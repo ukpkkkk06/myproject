@@ -1,0 +1,58 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# ---------- Python backend ----------
+project_back/__pycache__/
+project_back/**/*.py[cod]
+project_back/.pytest_cache/
+project_back/.mypy_cache/
+project_back/.ruff_cache/
+project_back/.coverage
+project_back/.coverage.*
+project_back/coverage.xml
+project_back/htmlcov/
+project_back/.python-version
+
+# venv
+project_back/.venv/
+project_back/venv/
+project_back/env/
+
+# builds & logs & local db
+project_back/build/
+project_back/dist/
+project_back/*.log
+project_back/*.sqlite*
+project_back/*.db
+
+# Alembic 缓存（保留迁移脚本）
+project_back/alembic/__pycache__/
+project_back/alembic/versions/__pycache__/
+!project_back/alembic/versions/*.py
+
+# 环境变量（仅忽略后端 .env）
+project_back/.env
+
+# ---------- Frontend (uni-app / Vite) ----------
+frontend-mp/node_modules/
+frontend-mp/dist/
+frontend-mp/unpackage/
+frontend-mp/.hbuilderx/
+frontend-mp/.cache/
+frontend-mp/npm-debug.log*
+frontend-mp/yarn-error.log*
+frontend-mp/pnpm-debug.log*
+frontend-mp/*.log
+
+# 保留前端开发环境配置
+!frontend-mp/.env.development
+
+# 微信开发者工具产物（如有）
+frontend-mp/miniprogram_npm/
+frontend-mp/project.private.config.json

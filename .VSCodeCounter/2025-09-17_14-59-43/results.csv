@@ -1,0 +1,46 @@
+"filename", "language", "JSON", "JSON with Comments", "JavaScript", "MS SQL", "SCSS", "TypeScript", "vue", "Python", "Ini", "HTML", "comment", "blank", "total"
+"c:\Users\yjq\Desktop\myproject\frontend-mp\index.html", "HTML", 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 2, 1, 21
+"c:\Users\yjq\Desktop\myproject\frontend-mp\package-lock.json", "JSON", 11026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 11027
+"c:\Users\yjq\Desktop\myproject\frontend-mp\package.json", "JSON", 68, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 69
+"c:\Users\yjq\Desktop\myproject\frontend-mp\shims-uni.d.ts", "TypeScript", 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 1, 4, 11
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\App.vue", "vue", 0, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 2, 18
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\main.js", "JavaScript", 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 1, 11
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\manifest.json", "JSON", 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1, 73
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages.json", "JSON", 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 23
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\index\index.vue", "vue", 0, 0, 0, 0, 0, 0, 116, 0, 0, 0, 0, 17, 133
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\login\login.vue", "vue", 0, 0, 0, 0, 0, 0, 28, 0, 0, 0, 0, 2, 30
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\shime-uni.d.ts", "TypeScript", 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 1, 6
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\types\env.d.ts", "TypeScript", 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 1, 0, 7
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\uni.scss", "SCSS", 0, 0, 0, 0, 37, 0, 0, 0, 0, 0, 25, 14, 76
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\utils\api.ts", "TypeScript", 0, 0, 0, 0, 0, 67, 0, 0, 0, 0, 5, 10, 82
+"c:\Users\yjq\Desktop\myproject\frontend-mp\tsconfig.json", "JSON with Comments", 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18
+"c:\Users\yjq\Desktop\myproject\frontend-mp\vite.config.js", "JavaScript", 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 2, 13
+"c:\Users\yjq\Desktop\myproject\myproject.code-workspace", "JSON with Comments", 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"c:\Users\yjq\Desktop\myproject\project_back\alembic.ini", "Ini", 0, 0, 0, 0, 0, 0, 0, 0, 121, 0, 0, 27, 148
+"c:\Users\yjq\Desktop\myproject\project_back\alembic\env.py", "Python", 0, 0, 0, 0, 0, 0, 0, 51, 0, 0, 5, 9, 65
+"c:\Users\yjq\Desktop\myproject\project_back\alembic\versions\94040048a275_add_last_login_at_to_user.py", "Python", 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 14, 7, 49
+"c:\Users\yjq\Desktop\myproject\project_back\alembic\versions\aeec0cd06ff3_add_auth_fields_to_user.py", "Python", 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 14, 7, 51
+"c:\Users\yjq\Desktop\myproject\project_back\alembic\versions\c5da4433a51d_baseline.py", "Python", 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 10, 6, 26
+"c:\Users\yjq\Desktop\myproject\project_back\app\__init__.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\__init__.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\deps.py", "Python", 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 2, 22
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\__init__.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\__init__.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\auth.py", "Python", 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 2, 16
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\health.py", "Python", 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 2, 14
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\users.py", "Python", 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 2, 12, 55
+"c:\Users\yjq\Desktop\myproject\project_back\app\core\config.py", "Python", 0, 0, 0, 0, 0, 0, 0, 31, 0, 0, 1, 7, 39
+"c:\Users\yjq\Desktop\myproject\project_back\app\core\security.py", "Python", 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 1, 4, 20
+"c:\Users\yjq\Desktop\myproject\project_back\app\db\__init__.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\yjq\Desktop\myproject\project_back\app\db\base.py", "Python", 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"c:\Users\yjq\Desktop\myproject\project_back\app\db\session.py", "Python", 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 0, 3, 21
+"c:\Users\yjq\Desktop\myproject\project_back\app\main.py", "Python", 0, 0, 0, 0, 0, 0, 0, 39, 0, 0, 2, 9, 50
+"c:\Users\yjq\Desktop\myproject\project_back\app\models\__init__.py", "Python", 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+"c:\Users\yjq\Desktop\myproject\project_back\app\models\user.py", "Python", 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 1, 16
+"c:\Users\yjq\Desktop\myproject\project_back\app\models_init_.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\yjq\Desktop\myproject\project_back\app\schemas\user.py", "Python", 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 0, 6, 34
+"c:\Users\yjq\Desktop\myproject\project_back\app\schemas_init_.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\yjq\Desktop\myproject\project_back\app\services\user_service.py", "Python", 0, 0, 0, 0, 0, 0, 0, 75, 0, 0, 0, 7, 82
+"c:\Users\yjq\Desktop\myproject\project_back\sql\00_init.sql", "MS SQL", 0, 0, 0, 190, 0, 0, 0, 0, 0, 0, 24, 18, 232
+"c:\Users\yjq\Desktop\myproject\project_back\sql\create_database.sql", "MS SQL", 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 11, 3, 17
+"Total", "-", 11180, 26, 21, 193, 37, 84, 160, 431, 121, 18, 126, 198, 12595
