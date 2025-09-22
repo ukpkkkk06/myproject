@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from app.api.v1.endpoints import health, users, auth
 from app.api.deps import get_current_user
+from app.models.user import User
 import logging
 from app.core.config import settings
 from starlette.middleware.cors import CORSMiddleware
@@ -41,6 +42,10 @@ async def on_http_exception(request: Request, exc: HTTPException):
 async def on_exception(request: Request, exc: Exception):
     logging.exception("Unhandled error", exc_info=exc)
     return JSONResponse(status_code=500, content={"code": 500, "message": "服务器内部错误"})
+
+@app.on_event("startup")
+def _debug_user_columns():
+    logging.getLogger().info("User columns mapped => %s", [c.name for c in User.__table__.columns])
 
 api = APIRouter(prefix="/api/v1")
 api.include_router(health.router, tags=["health"])

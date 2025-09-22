@@ -2,7 +2,7 @@ from typing import Optional, Tuple, List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
-from app.models.user import User
+from app.models.user import User  # 确保从这里导入
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import verify_password, get_password_hash
 from datetime import datetime
