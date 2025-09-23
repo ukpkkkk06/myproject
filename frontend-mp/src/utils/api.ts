@@ -1,4 +1,7 @@
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || ''
+const API_BASE =
+  (import.meta as any).env?.VITE_API_BASE_URL
+  || (import.meta as any).env?.VITE_API_BASE
+  || 'http://127.0.0.1:8000'
 const API_PREFIX = (import.meta as any).env?.VITE_API_PREFIX || '/api/v1'
 
 function joinUrl(base: string, prefix: string, path: string) {
@@ -73,8 +76,11 @@ export interface UserInfo {
 }
 
 export interface CreateSessionResp { attempt_id: number; paper_id: number; total: number; first_seq: number }
-export interface QuestionView { seq: number; question_id: number; type: string; difficulty?: number; stem: string; options: string[] }
+export interface QuestionView { seq: number; question_id: number; type: string; difficulty?: number; stem: string; options: string[]; explanation?: string }
 export interface SubmitAnswerResp { seq: number; correct: boolean; correct_answer: string; total: number }
+
+export interface ErrorBookItem { id: number; question_id: number; wrong_count: number; first_wrong_time?: string; last_wrong_time?: string; next_review_time?: string; mastered: boolean }
+export interface ErrorBookListResp { total: number; page: number; size: number; items: ErrorBookItem[] }
 
 export const api = {
   // 健康检查
@@ -122,6 +128,12 @@ export const api = {
     request<{ total: number; answered: number; correct_count: number; accuracy: number; duration_seconds: number }>(
       `/practice/sessions/${attemptId}/finish`, { method: 'POST' }
     ),
+  // 获取我的错题本（使用通用 request 封装，避免未定义变量）
+  getMyErrorBook: (page = 1, size = 10, onlyDue = false, includeMastered = false) =>
+    request<ErrorBookListResp>('/error-book', {
+      method: 'GET',
+      data: { page, size, only_due: onlyDue, include_mastered: includeMastered }
+    }),
 }
 
 export interface UserSimple {

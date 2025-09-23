@@ -1,6 +1,6 @@
 import logging
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -12,6 +12,7 @@ from app.models.paper import Paper
 from app.models.paper_question import PaperQuestion
 from app.models.exam_attempt import ExamAttempt
 from app.models.user_answer import UserAnswer
+from app.models.error_book import ErrorBook
 
 log = logging.getLogger("practice_service")
 
@@ -154,6 +155,7 @@ def get_question(db: Session, user: User, attempt_id: int, seq: int):
         "difficulty": q.difficulty,
         "stem": qv.stem,
         "options": qv.options or [],
+        "explanation": qv.explanation or None,  # 新增
     }
 
 def submit_answer(db: Session, user: User, attempt_id: int, seq: int, user_answer: str, time_spent_ms: int | None = None):
@@ -186,6 +188,29 @@ def submit_answer(db: Session, user: User, attempt_id: int, seq: int, user_answe
             answer_time=now, first_flag=True
         )
         db.add(ua)
+
+    # 新增：答错则写入/更新错题本
+    if not correct:
+        eb = db.query(ErrorBook).filter(
+            ErrorBook.user_id == user.id,          # 按用户维度
+            ErrorBook.question_id == q.id
+        ).first()
+        if eb:
+            eb.wrong_count = (eb.wrong_count or 0) + 1
+            eb.last_wrong_time = now
+            eb.next_review_time = now + timedelta(days=min(7, max(1, eb.wrong_count)))
+        else:
+            eb = ErrorBook(
+                user_id=user.id,                   # 写入 user_id
+                question_id=q.id,
+                first_wrong_time=now,
+                last_wrong_time=now,
+                wrong_count=1,
+                next_review_time=now + timedelta(days=1),
+                mastered=False,
+            )
+            db.add(eb)
+
     db.commit()
 
     total = db.query(PaperQuestion).filter(PaperQuestion.paper_id == attempt.paper_id).count()

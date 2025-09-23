@@ -4,7 +4,7 @@
     <view class="btn-col">
       <button class="action-btn" @tap="goPractice">开始刷题</button>
       <button class="action-btn" @tap="goHistory">历史考试</button>
-      <button class="action-btn" @tap="goWrongbook">错题本</button>
+      <view class="card" @tap="goErrorBook">错题本</view>
       <button class="action-btn" @tap="goProfile">个人中心</button>
     </view>
   </view>
@@ -13,7 +13,9 @@
 <script setup lang="ts">
 function goPractice() { uni.navigateTo({ url: '/pages/practice/practice' }) }
 function goHistory() { uni.showToast({ icon: 'none', title: '待实现' }) }
-function goWrongbook() { uni.showToast({ icon: 'none', title: '待实现' }) }
+function goErrorBook() {
+  uni.navigateTo({ url: '/pages/error-book/error-book' })
+}
 function goProfile() { uni.navigateTo({ url: '/pages/profile/profile' }) }
 </script>
 

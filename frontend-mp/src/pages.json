@@ -35,6 +35,12 @@
 			"style": {
 				"navigationBarTitleText": "开始刷题"
 			}
+		},
+		{
+			"path": "pages/error-book/error-book",
+			"style": {
+				"navigationBarTitleText": "错题本"
+			}
 		}
 	],
 	"globalStyle": {

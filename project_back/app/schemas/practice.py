@@ -17,6 +17,7 @@ class QuestionView(BaseModel):
     difficulty: Optional[int] = None
     stem: str
     options: List[str] = []
+    explanation: Optional[str] = None  # 新增：题目解析
 
 class SubmitAnswerRequest(BaseModel):
     seq: int
