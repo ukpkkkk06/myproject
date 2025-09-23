@@ -65,7 +65,16 @@ export interface UserInfo {
   roles: string[]
   role_codes: string[]
   is_admin: boolean
+  email?: string | null
+  nickname?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  last_login_at?: string | null
 }
+
+export interface CreateSessionResp { attempt_id: number; paper_id: number; total: number; first_seq: number }
+export interface QuestionView { seq: number; question_id: number; type: string; difficulty?: number; stem: string; options: string[] }
+export interface SubmitAnswerResp { seq: number; correct: boolean; correct_answer: string; total: number }
 
 export const api = {
   // 健康检查
@@ -92,10 +101,27 @@ export const api = {
 
   // 个人信息
   me: () => request<UserInfo>('/me', { method: 'GET' }),
-
+  updateMyNickname: (nickname: string) =>
+    request<UserInfo>('/me/nickname', { method: 'PUT', data: { nickname } }),
+  changeMyPassword: (old_password: string, new_password: string) =>
+    request<void>('/me/password', { method: 'PUT', data: { old_password, new_password } }),
   // 简化用户列表（去掉 URLSearchParams，直接用 data）
   usersSimple: (skip = 0, limit = 20, account?: string, email?: string) =>
     request<UsersSimplePage>('/users/simple', { method: 'GET', data: { skip, limit, account, email } }),
+
+  // 创建练习
+  createPractice: (size = 5) => request<CreateSessionResp>('/practice/sessions', { method: 'POST', data: { size } }),
+  // 获取练习题目
+  getPracticeQuestion: (attemptId: number, seq: number) =>
+    request<QuestionView>(`/practice/sessions/${attemptId}/questions/${seq}`, { method: 'GET' }),
+  // 提交练习答案
+  submitPracticeAnswer: (attemptId: number, seq: number, user_answer: string, time_spent_ms?: number) =>
+    request<SubmitAnswerResp>(`/practice/sessions/${attemptId}/answers`, { method: 'POST', data: { seq, user_answer, time_spent_ms } }),
+  // 完成练习
+  finishPractice: (attemptId: number) =>
+    request<{ total: number; answered: number; correct_count: number; accuracy: number; duration_seconds: number }>(
+      `/practice/sessions/${attemptId}/finish`, { method: 'POST' }
+    ),
 }
 
 export interface UserSimple {

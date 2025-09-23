@@ -7,10 +7,10 @@ from sqlalchemy import func
 from app.models.user import User
 from app.models.role import Role
 from app.models.user_role import UserRole
-from app.core.exceptions import AppException
+from app.core.exceptions import AppException, ConflictException
+from app.core.security import verify_password, get_password_hash
 
 from app.schemas.user import UserCreate, UserUpdate, UsersSimplePage, UserSimple
-from app.core.security import verify_password, get_password_hash
 from app.core.exceptions import NotFoundException, ConflictException, AppException
 
 def create_user(db: Session, payload: UserCreate) -> User:
@@ -159,8 +159,8 @@ def authenticate_user(db: Session, account: str, password: str) -> Optional[User
     return user
 
 
+# 查看当前登录用户信息
 def get_user_info(db: Session, user: User) -> dict:
-    # 读取用户角色名称与代码
     rows = (
         db.query(Role.name, Role.code)
         .join(UserRole, UserRole.role_id == Role.id)
@@ -177,4 +177,37 @@ def get_user_info(db: Session, user: User) -> dict:
         "roles": role_names,
         "role_codes": role_codes,
         "is_admin": is_admin,
+        "email": user.email,
+        "nickname": user.nickname,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+        "last_login_at": user.last_login_at.isoformat() if user.last_login_at else None,
     }
+
+
+# 更新昵称
+def update_nickname(db: Session, user: User, nickname: str) -> dict:
+    nickname = (nickname or "").strip()
+    if not nickname:
+        raise AppException("昵称不能为空", code=422, status_code=422)
+    if len(nickname) > 50:
+        raise AppException("昵称过长", code=422, status_code=422)
+    user.nickname = nickname
+    user.updated_at = datetime.utcnow()
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return get_user_info(db, user)
+
+
+# 修改密码
+def change_password(db: Session, user: User, old_password: str, new_password: str) -> None:
+    if not verify_password(old_password or "", user.password_hash or ""):
+        raise AppException("原密码不正确", code=400, status_code=400)
+    new_password = (new_password or "").strip()
+    if len(new_password) < 6:
+        raise AppException("新密码至少6位", code=422, status_code=422)
+    user.password_hash = get_password_hash(new_password)
+    user.updated_at = datetime.utcnow()
+    db.add(user)
+    db.commit()

@@ -23,6 +23,18 @@
 			"style": {
 				"navigationBarTitleText": "大厅"
 			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "个人中心"
+			}
+		},
+		{
+			"path": "pages/practice/practice",
+			"style": {
+				"navigationBarTitleText": "开始刷题"
+			}
 		}
 	],
 	"globalStyle": {

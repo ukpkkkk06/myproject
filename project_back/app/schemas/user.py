@@ -26,8 +26,8 @@ class UsersPage(BaseModel):
     items: List[UserRead]
 
 class LoginRequest(BaseModel):
-    account: str = Field(..., min_length=1)
-    password: str = Field(..., min_length=1)
+    account: str
+    password: str
 
 class Token(BaseModel):
     access_token: str
@@ -59,6 +59,7 @@ class UsersSimplePage(BaseModel):
     total: int
     items: List[UserSimple]
 
+# 个人中心所需模型
 class UserInfo(BaseModel):
     id: int
     account: str
@@ -66,6 +67,18 @@ class UserInfo(BaseModel):
     roles: List[str] = []
     role_codes: List[str] = []
     is_admin: bool = False
+    email: Optional[str] = None
+    nickname: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    last_login_at: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+class UpdateNicknameRequest(BaseModel):
+    nickname: str
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
