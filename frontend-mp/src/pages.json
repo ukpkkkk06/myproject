@@ -21,7 +21,7 @@
 		{
 			"path": "pages/lobby/lobby",
 			"style": {
-				"navigationBarTitleText": "大厅"
+				"navigationStyle": "custom"
 			}
 		},
 		{
@@ -40,6 +40,12 @@
 			"path": "pages/error-book/error-book",
 			"style": {
 				"navigationBarTitleText": "错题本"
+			}
+		},
+		{
+			"path": "pages/question-bank/question-bank",
+			"style": {
+				"navigationBarTitleText": "我的题库"
 			}
 		}
 	],

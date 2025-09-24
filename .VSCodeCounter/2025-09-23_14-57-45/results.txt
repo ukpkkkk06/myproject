@@ -1,0 +1,137 @@
+Date : 2025-09-23 14:57:45
+Directory : c:\Users\yjq\Desktop\myproject
+Total : 69 files,  14310 codes, 154 comments, 422 blanks, all 14886 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| JSON               |          4 |     11,210 |          0 |          4 |     11,214 |
+| Python             |         42 |      1,127 |         71 |        219 |      1,417 |
+| Log                |          1 |        866 |          0 |         19 |        885 |
+| vue                |          8 |        527 |          0 |         78 |        605 |
+| MS SQL             |          3 |        228 |         42 |         31 |        301 |
+| TypeScript         |          4 |        129 |         14 |         26 |        169 |
+| Ini                |          1 |        121 |          0 |         27 |        148 |
+| SCSS               |          1 |         37 |         25 |         14 |         76 |
+| JSON with Comments |          2 |         26 |          0 |          0 |         26 |
+| JavaScript         |          2 |         21 |          0 |          3 |         24 |
+| HTML               |          1 |         18 |          2 |          1 |         21 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                   | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                      |         69 |     14,310 |        154 |        422 |     14,886 |
+| . (Files)                                                                                              |          1 |          8 |          0 |          0 |          8 |
+| frontend-mp                                                                                            |         21 |     11,960 |         41 |        126 |     12,127 |
+| frontend-mp (Files)                                                                                    |          6 |     11,147 |          3 |          9 |     11,159 |
+| frontend-mp\src                                                                                        |         15 |        813 |         38 |        117 |        968 |
+| frontend-mp\src (Files)                                                                                |          6 |        184 |         25 |         20 |        229 |
+| frontend-mp\src\pages                                                                                  |          7 |        511 |          0 |         76 |        587 |
+| frontend-mp\src\pages\error-book                                                                       |          1 |         71 |          0 |         11 |         82 |
+| frontend-mp\src\pages\index                                                                            |          1 |         93 |          0 |         15 |        108 |
+| frontend-mp\src\pages\lobby                                                                            |          1 |         25 |          0 |          2 |         27 |
+| frontend-mp\src\pages\login                                                                            |          1 |         51 |          0 |          7 |         58 |
+| frontend-mp\src\pages\practice                                                                         |          1 |        127 |          0 |         21 |        148 |
+| frontend-mp\src\pages\profile                                                                          |          1 |         88 |          0 |         12 |        100 |
+| frontend-mp\src\pages\register                                                                         |          1 |         56 |          0 |          8 |         64 |
+| frontend-mp\src\types                                                                                  |          1 |          6 |          1 |          0 |          7 |
+| frontend-mp\src\utils                                                                                  |          1 |        112 |         12 |         21 |        145 |
+| project_back                                                                                           |         47 |      2,342 |        113 |        296 |      2,751 |
+| project_back (Files)                                                                                   |          1 |        121 |          0 |         27 |        148 |
+| project_back\alembic                                                                                   |          4 |        119 |         43 |         29 |        191 |
+| project_back\alembic (Files)                                                                           |          1 |         51 |          5 |          9 |         65 |
+| project_back\alembic\versions                                                                          |          3 |         68 |         38 |         20 |        126 |
+| project_back\app                                                                                       |         38 |      1,008 |         28 |        190 |      1,226 |
+| project_back\app (Files)                                                                               |          4 |         41 |          1 |         11 |         53 |
+| project_back\app\api                                                                                   |          9 |        148 |          3 |         33 |        184 |
+| project_back\app\api (Files)                                                                           |          2 |         20 |          0 |          3 |         23 |
+| project_back\app\api\v1                                                                                |          7 |        128 |          3 |         30 |        161 |
+| project_back\app\api\v1 (Files)                                                                        |          1 |          0 |          0 |          1 |          1 |
+| project_back\app\api\v1\endpoints                                                                      |          6 |        128 |          3 |         29 |        160 |
+| project_back\app\core                                                                                  |          4 |        115 |         10 |         24 |        149 |
+| project_back\app\db                                                                                    |          3 |         21 |          0 |          5 |         26 |
+| project_back\app\models                                                                                |         11 |        129 |          0 |         16 |        145 |
+| project_back\app\schemas                                                                               |          3 |        116 |          1 |         24 |        141 |
+| project_back\app\services                                                                              |          4 |        438 |         13 |         77 |        528 |
+| project_back\logs                                                                                      |          1 |        866 |          0 |         19 |        885 |
+| project_back\sql                                                                                       |          3 |        228 |         42 |         31 |        301 |
++--------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                                               | language           | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| c:\Users\yjq\Desktop\myproject\frontend-mp\index.html                                                  | HTML               |         18 |          2 |          1 |         21 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\package-lock.json                                           | JSON               |     11,026 |          0 |          1 |     11,027 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\package.json                                                | JSON               |         68 |          0 |          1 |         69 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\shims-uni.d.ts                                              | TypeScript         |          6 |          1 |          4 |         11 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\App.vue                                                 | vue                |         16 |          0 |          2 |         18 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\main.js                                                 | JavaScript         |         10 |          0 |          1 |         11 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\manifest.json                                           | JSON               |         64 |          0 |          1 |         65 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages.json                                              | JSON               |         52 |          0 |          1 |         53 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\error-book\error-book.vue                         | vue                |         71 |          0 |         11 |         82 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\index\index.vue                                   | vue                |         93 |          0 |         15 |        108 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\lobby\lobby.vue                                   | vue                |         25 |          0 |          2 |         27 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\login\login.vue                                   | vue                |         51 |          0 |          7 |         58 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\practice\practice.vue                             | vue                |        127 |          0 |         21 |        148 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\profile\profile.vue                               | vue                |         88 |          0 |         12 |        100 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\register\register.vue                             | vue                |         56 |          0 |          8 |         64 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\shime-uni.d.ts                                          | TypeScript         |          5 |          0 |          1 |          6 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\types\env.d.ts                                          | TypeScript         |          6 |          1 |          0 |          7 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\uni.scss                                                | SCSS               |         37 |         25 |         14 |         76 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\src\utils\api.ts                                            | TypeScript         |        112 |         12 |         21 |        145 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\tsconfig.json                                               | JSON with Comments |         18 |          0 |          0 |         18 |
+| c:\Users\yjq\Desktop\myproject\frontend-mp\vite.config.js                                              | JavaScript         |         11 |          0 |          2 |         13 |
+| c:\Users\yjq\Desktop\myproject\myproject.code-workspace                                                | JSON with Comments |          8 |          0 |          0 |          8 |
+| c:\Users\yjq\Desktop\myproject\project_back\alembic.ini                                                | Ini                |        121 |          0 |         27 |        148 |
+| c:\Users\yjq\Desktop\myproject\project_back\alembic\env.py                                             | Python             |         51 |          5 |          9 |         65 |
+| c:\Users\yjq\Desktop\myproject\project_back\alembic\versions\94040048a275_add_last_login_at_to_user.py | Python             |         28 |         14 |          7 |         49 |
+| c:\Users\yjq\Desktop\myproject\project_back\alembic\versions\aeec0cd06ff3_add_auth_fields_to_user.py   | Python             |         30 |         14 |          7 |         51 |
+| c:\Users\yjq\Desktop\myproject\project_back\alembic\versions\c5da4433a51d_baseline.py                  | Python             |         10 |         10 |          6 |         26 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\__init__.py                                            | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\__init__.py                                        | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\deps.py                                            | Python             |         20 |          0 |          2 |         22 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\__init__.py                                     | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\__init__.py                           | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\auth.py                               | Python             |         31 |          3 |          6 |         40 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\error_book.py                         | Python             |         32 |          0 |          2 |         34 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\health.py                             | Python             |         12 |          0 |          2 |         14 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\practice.py                           | Python             |         24 |          0 |          6 |         30 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\users.py                              | Python             |         29 |          0 |         12 |         41 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\core\config.py                                         | Python             |         31 |          1 |          7 |         39 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\core\error_handlers.py                                 | Python             |         49 |          7 |          7 |         63 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\core\exceptions.py                                     | Python             |         20 |          1 |          6 |         27 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\core\security.py                                       | Python             |         15 |          1 |          4 |         20 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\db\__init__.py                                         | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\db\base.py                                             | Python             |          3 |          0 |          1 |          4 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\db\session.py                                          | Python             |         18 |          0 |          3 |         21 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\main.py                                                | Python             |         41 |          1 |          8 |         50 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\__init__.py                                     | Python             |          2 |          0 |          0 |          2 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\error_book.py                                   | Python             |         18 |          0 |          4 |         22 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\exam_attempt.py                                 | Python             |         16 |          0 |          1 |         17 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\paper.py                                        | Python             |         12 |          0 |          1 |         13 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\paper_question.py                               | Python             |          9 |          0 |          1 |         10 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\question.py                                     | Python             |         11 |          0 |          1 |         12 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\question_version.py                             | Python             |         14 |          0 |          1 |         15 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\role.py                                         | Python             |         10 |          0 |          2 |         12 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\user.py                                         | Python             |         14 |          0 |          2 |         16 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\user_answer.py                                  | Python             |         15 |          0 |          1 |         16 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models\user_role.py                                    | Python             |          8 |          0 |          2 |         10 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\models_init_.py                                        | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\schemas\error_book.py                                  | Python             |         16 |          0 |          2 |         18 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\schemas\practice.py                                    | Python             |         32 |          0 |          7 |         39 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\schemas\user.py                                        | Python             |         68 |          1 |         15 |         84 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\schemas_init_.py                                       | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\services\auth_service.py                               | Python             |         21 |          0 |          6 |         27 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\services\error_book_service.py                         | Python             |         35 |          1 |          5 |         41 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\services\practice_service.py                           | Python             |        209 |          5 |         33 |        247 |
+| c:\Users\yjq\Desktop\myproject\project_back\app\services\user_service.py                               | Python             |        173 |          7 |         33 |        213 |
+| c:\Users\yjq\Desktop\myproject\project_back\logs\app.log                                               | Log                |        866 |          0 |         19 |        885 |
+| c:\Users\yjq\Desktop\myproject\project_back\sql\00_init.sql                                            | MS SQL             |        190 |         24 |         18 |        232 |
+| c:\Users\yjq\Desktop\myproject\project_back\sql\create_database.sql                                    | MS SQL             |          3 |         11 |          3 |         17 |
+| c:\Users\yjq\Desktop\myproject\project_back\sql\seed_practice.sql                                      | MS SQL             |         35 |          7 |         10 |         52 |
+| Total                                                                                                  |                    |     14,310 |        154 |        422 |     14,886 |
++--------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+

@@ -82,6 +82,23 @@ export interface SubmitAnswerResp { seq: number; correct: boolean; correct_answe
 export interface ErrorBookItem { id: number; question_id: number; wrong_count: number; first_wrong_time?: string; last_wrong_time?: string; next_review_time?: string; mastered: boolean }
 export interface ErrorBookListResp { total: number; page: number; size: number; items: ErrorBookItem[] }
 
+export interface MyQuestionItem {
+  question_id: number
+  type: string
+  difficulty?: number
+  stem: string
+  audit_status: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+export interface MyQuestionListResp {
+  total: number
+  page: number
+  size: number
+  items: MyQuestionItem[]
+}
+
 export const api = {
   // 健康检查
   health: () => request<{ status: string; db?: string }>('/health', { method: 'GET' }),
@@ -134,6 +151,25 @@ export const api = {
       method: 'GET',
       data: { page, size, only_due: onlyDue, include_mastered: includeMastered }
     }),
+  // 获取我的题目
+  getMyQuestions: (params: {
+    page?: number
+    size?: number
+    keyword?: string
+    qtype?: string
+    difficulty?: number
+    active_only?: boolean
+  }) => {
+    const payload: any = {
+      page: params.page || 1,
+      size: params.size || 10,
+      active_only: params.active_only === true ? true : false,
+    }
+    if (params.keyword) payload.keyword = params.keyword
+    if (params.qtype) payload.qtype = params.qtype
+    if (typeof params.difficulty === 'number') payload.difficulty = params.difficulty
+    return request<MyQuestionListResp>('/my-questions', { method: 'GET', data: payload })
+  },
 }
 
 export interface UserSimple {

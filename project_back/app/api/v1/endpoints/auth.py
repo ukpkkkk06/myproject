@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.services import auth_service, user_service
-from app.schemas.user import LoginRequest, Token, UserInfo, UpdateNicknameRequest, ChangePasswordRequest
+from app.schemas.user import LoginRequest, Token, UserInfo, UpdateNicknameRequest, ChangePasswordRequest, RegisterRequest
 
 router = APIRouter()
 
@@ -38,3 +38,10 @@ def me_change_password(
 ):
     user_service.change_password(db, current_user, body.old_password, body.new_password)
     return {"code": 0, "message": "密码已更新"}
+
+# 注册：/api/v1/register
+@router.post("/register", response_model=Token)
+def register(body: RegisterRequest, db: Session = Depends(get_db)):
+    user_service.register(db, body.account, body.password, body.nickname)
+    # 直接复用登录获取 Token
+    return auth_service.login(db, body.account, body.password)

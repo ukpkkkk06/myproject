@@ -34,8 +34,8 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 class RegisterRequest(BaseModel):
-    account: str = Field(..., min_length=1)
-    password: str = Field(..., min_length=1)
+    account: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=6, max_length=64)
     email: Optional[str] = None
     nickname: Optional[str] = None
 

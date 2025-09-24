@@ -12,6 +12,7 @@ from app.core.security import verify_password, get_password_hash
 
 from app.schemas.user import UserCreate, UserUpdate, UsersSimplePage, UserSimple
 from app.core.exceptions import NotFoundException, ConflictException, AppException
+from app.core import security
 
 def create_user(db: Session, payload: UserCreate) -> User:
     # 账号/邮箱唯一性校验（数据库也应有唯一索引，双保险）
@@ -211,3 +212,19 @@ def change_password(db: Session, user: User, old_password: str, new_password: st
     user.updated_at = datetime.utcnow()
     db.add(user)
     db.commit()
+
+
+def register(db: Session, account: str, password: str, nickname: str | None = None) -> User:
+    exists = db.query(User).filter(User.account == account).first()
+    if exists:
+        raise AppException("账号已存在", code=409, status_code=409)
+    user = User(
+        account=account,
+        nickname=nickname or account,
+        password_hash=security.get_password_hash(password),
+        # is_active 去掉, 由 status='ACTIVE' 表示已启用
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

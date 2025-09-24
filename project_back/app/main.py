@@ -2,7 +2,11 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from fastapi import FastAPI
-from app.api.v1.endpoints import health, users, auth, practice, error_book as error_book_endpoint
+from app.api.v1.endpoints import (
+    health, users, auth, practice,
+    error_book as error_book_endpoint,
+    question_bank as question_bank_endpoint,
+)
 from app.core.config import settings
 from starlette.middleware.cors import CORSMiddleware
 from app.core.error_handlers import register_exception_handlers
@@ -44,6 +48,7 @@ def create_app() -> FastAPI:
     app.include_router(users.router,    prefix="/api/v1", tags=["users"])
     app.include_router(practice.router, prefix="/api/v1", tags=["practice"])
     app.include_router(error_book_endpoint.router, prefix="/api/v1", tags=["error-book"])
+    app.include_router(question_bank_endpoint.router, prefix="/api/v1", tags=["question-bank"])
 
     return app
 
