@@ -1,12 +1,6 @@
 {
 	"pages": [ 
 		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "uni-app"
-			}
-		},
-		{
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": "登录"
@@ -22,6 +16,12 @@
 			"path": "pages/lobby/lobby",
 			"style": {
 				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "管理员"
 			}
 		},
 		{
@@ -46,6 +46,12 @@
 			"path": "pages/question-bank/question-bank",
 			"style": {
 				"navigationBarTitleText": "我的题库"
+			}
+		},
+		{
+			"path": "pages/user-detail/user-detail",
+			"style": {
+				"navigationStyle": "custom"
 			}
 		}
 	],

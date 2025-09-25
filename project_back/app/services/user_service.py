@@ -1,21 +1,48 @@
 from typing import Optional, Tuple, List
 from datetime import datetime
 
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.models.user import User
 from app.models.role import Role
 from app.models.user_role import UserRole
-from app.core.exceptions import AppException, ConflictException
-from app.core.security import verify_password, get_password_hash
+from app.models.user import User
+from app.core import security
 
 from app.schemas.user import UserCreate, UserUpdate, UsersSimplePage, UserSimple
 from app.core.exceptions import NotFoundException, ConflictException, AppException
-from app.core import security
+from app.core.security import verify_password, get_password_hash
+
+DEFAULT_ROLE_CODE = "USER"
+
+
+def _get_or_create_default_role(db: Session) -> Role:
+    """获取或创建普通用户角色"""
+    role = (
+        db.query(Role)
+        .filter(or_(Role.code == DEFAULT_ROLE_CODE, Role.name == DEFAULT_ROLE_CODE))
+        .first()
+    )
+    if not role:
+        role = Role(code=DEFAULT_ROLE_CODE, name="普通用户", description="基础权限，仅能查看和注销自身账户")
+        db.add(role)
+        db.flush()
+    return role
+
+
+def _attach_default_role(db: Session, user: User):
+    role = _get_or_create_default_role(db)
+    exists = db.query(UserRole).filter(
+        UserRole.user_id == user.id,
+        UserRole.role_id == role.id
+    ).first()
+    if not exists:
+        db.add(UserRole(user_id=user.id, role_id=role.id))  # created_at 由DB默认
+
 
 def create_user(db: Session, payload: UserCreate) -> User:
-    # 账号/邮箱唯一性校验（数据库也应有唯一索引，双保险）
+    # 账号/邮箱唯一性校验
     if db.query(User).filter(User.account == payload.account).first():
         raise ConflictException("account 已存在")
     if payload.email and db.query(User).filter(User.email == payload.email).first():
@@ -25,9 +52,12 @@ def create_user(db: Session, payload: UserCreate) -> User:
         account=payload.account,
         email=payload.email,
         nickname=payload.nickname,
+        # 如果 UserCreate 含密码字段可在此设置 password_hash
     )
     db.add(user)
     try:
+        db.flush()              # 取得 user.id
+        _attach_default_role(db, user)
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -214,17 +244,25 @@ def change_password(db: Session, user: User, old_password: str, new_password: st
     db.commit()
 
 
-def register(db: Session, account: str, password: str, nickname: str | None = None) -> User:
-    exists = db.query(User).filter(User.account == account).first()
-    if exists:
+def register(db: Session, account: str, password: str, nickname: str | None = None, email: str | None = None):
+    # 账号是否存在
+    if db.query(User).filter(User.account == account).first():
         raise AppException("账号已存在", code=409, status_code=409)
     user = User(
         account=account,
         nickname=nickname or account,
+        email=email,
         password_hash=security.get_password_hash(password),
-        # is_active 去掉, 由 status='ACTIVE' 表示已启用
     )
     db.add(user)
-    db.commit()
+    try:
+        db.flush()  # 得到 user.id
+        _attach_default_role(db, user)
+        db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        # 打印真实错误到日志，便于定位（可选）
+        print(f"[register] IntegrityError: {e}")
+        raise AppException("账号创建失败", code=500, status_code=500)
     db.refresh(user)
     return user

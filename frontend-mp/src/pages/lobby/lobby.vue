@@ -1,17 +1,24 @@
 <template>
-  <view class="page">
-    <view class="custom-bar">
-      <text class="title">大厅</text>
-      <button class="logout" size="mini" @tap="logout">退出</button>
+  <view class="lobby-page">
+    <view class="nav">
+      <text class="nav-title">大厅</text>
     </view>
 
-    <view class="body">
-      <view class="btn-col">
-        <button class="action" @tap="goPractice">开始刷题</button>
-        <button class="action" @tap="goQuestionBank">我的题库</button>
-        <button class="action" @tap="goErrorBook">错题本</button>
-        <button class="action" @tap="goProfile">个人中心</button>
-        <button class="danger" @tap="logout">退出登录</button>
+    <view class="content">
+      <view class="panel">
+        <view class="panel-head">
+          <text class="panel-title">功能中心</text>
+          <text class="panel-sub">选择你要进行的操作</text>
+        </view>
+
+        <view class="vertical">
+          <button class="btn primary fullW" @tap="goPractice">开始刷题</button>
+          <button class="btn primary fullW" @tap="goQuestionBank">我的题库</button>
+          <button class="btn primary fullW" @tap="goErrorBook">错题本</button>
+          <button class="btn primary fullW" @tap="goProfile">个人中心</button>
+        </view>
+
+        <button class="btn danger fullW logout" @tap="logout">退出登录</button>
       </view>
     </view>
   </view>
@@ -22,17 +29,13 @@ function goPractice(){ uni.navigateTo({ url:'/pages/practice/practice' }) }
 function goQuestionBank(){ uni.navigateTo({ url:'/pages/question-bank/question-bank' }) }
 function goErrorBook(){ uni.navigateTo({ url:'/pages/error-book/error-book' }) }
 function goProfile(){ uni.navigateTo({ url:'/pages/profile/profile' }) }
-
-function logout() {
+function logout(){
   uni.showModal({
-    title: '确认退出',
-    content: '确定要退出当前账号？',
-    success(res) {
-      if (res.confirm) {
-        try {
-          uni.removeStorageSync('token')
-          // 如果后端有 /logout 可在此调用
-        } catch(e){}
+    title:'确认退出',
+    content:'确定要退出当前账号？',
+    success(res){
+      if(res.confirm){
+        uni.removeStorageSync('token')
         uni.reLaunch({ url:'/pages/login/login' })
       }
     }
@@ -41,28 +44,113 @@ function logout() {
 </script>
 
 <style scoped>
-.page { min-height:100vh; background:#f5f6fa; }
-.custom-bar {
-  height: 100rpx;
-  padding: 0 28rpx;
+:root, page, .lobby-page {
+  --c-bg-grad-top:#e8f2ff;
+  --c-bg-grad-bottom:#f5f9ff;
+  --c-panel:#ffffff;
+  --c-border:#d8e6f5;
+  --c-primary:#66b4ff;
+  --c-primary-dark:#4b9ef0;
+  --c-primary-light:#d4ecff;
+  --c-text:#1f2d3d;
+  --c-text-sec:#5f7085;
+  --c-danger:#ff4d4f;
+  --c-danger-dark:#d73a3c;
+  --radius:20rpx;
+  --radius-s:12rpx;
+}
+
+.lobby-page {
+  min-height:100vh;
+  background:linear-gradient(180deg,var(--c-bg-grad-top),var(--c-bg-grad-bottom));
   display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  padding-bottom:16rpx;
-  background:#1677ff;
+  flex-direction:column;
+  box-sizing:border-box;
+  padding-top:120rpx;
 }
-.title { color:#fff; font-size:36rpx; font-weight:600; }
-.logout { line-height:1; background:#fff; color:#1677ff; }
-.body { padding:32rpx; }
-.btn-col { display:flex; flex-direction:column; gap:28rpx; }
-.action {
-  background:#1677ff;
-  color:#fff;
-  border-radius:12rpx;
+
+.nav {
+  position:fixed;
+  top:0; left:0; right:0;
+  height:120rpx;
+  padding:40rpx 36rpx 0;
+  box-sizing:border-box;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  backdrop-filter:blur(10px);
+  background:rgba(255,255,255,0.55);
+  border-bottom:1rpx solid rgba(214,230,245,0.8);
+  z-index:10;
 }
-.danger {
-  background:#ff4d4f;
+
+.nav-title {
+  font-size:40rpx;
+  font-weight:700;
+  letter-spacing:1rpx;
+  color:var(--c-text);
+}
+
+.content {
+  padding:40rpx 44rpx 120rpx;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  box-sizing:border-box;
+}
+
+.panel {
+  background:var(--c-panel);
+  border:1rpx solid var(--c-border);
+  border-radius:var(--radius);
+  padding:48rpx 42rpx 56rpx;
+  box-shadow:0 8rpx 24rpx rgba(35,72,130,0.08),0 2rpx 6rpx rgba(35,72,130,0.06);
+  display:flex;
+  flex-direction:column;
+  gap:46rpx;
+}
+
+.panel-head { display:flex; flex-direction:column; gap:10rpx; }
+.panel-title { font-size:42rpx; font-weight:600; color:var(--c-text); }
+.panel-sub { font-size:26rpx; color:var(--c-text-sec); }
+
+.vertical {
+  display:flex;
+  flex-direction:column;
+  gap:28rpx;
+}
+
+.btn {
+  border:none;
+  border-radius:var(--radius-s);
+  font-size:30rpx;
+  font-weight:600;
+  letter-spacing:1rpx;
+  padding:28rpx 0;
   color:#fff;
-  border-radius:12rpx;
+  background:#ccc;
+  box-shadow:0 4rpx 10rpx rgba(0,0,0,0.08);
+  transition:opacity .18s;
+}
+
+.btn.primary {
+  background:linear-gradient(90deg,#a9d6ff,#66b4ff);
+  box-shadow:0 6rpx 14rpx rgba(102,180,255,0.35);
+}
+.btn.primary:active,
+.btn.danger:active { opacity:.85; }
+
+.btn.danger {
+  background:linear-gradient(90deg,var(--c-danger),var(--c-danger-dark));
+  box-shadow:0 6rpx 14rpx rgba(255,77,79,0.28);
+}
+
+.fullW { width:100%; }
+.logout { margin-top:4rpx; }
+
+.btn[disabled]{ opacity:.55; }
+
+@media (min-width:700rpx){
+  .panel { max-width:680rpx; margin:0 auto; }
 }
 </style>

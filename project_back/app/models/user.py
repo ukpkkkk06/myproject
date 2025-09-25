@@ -1,6 +1,7 @@
 from sqlalchemy import Column, BigInteger, String, DateTime
 from sqlalchemy.sql import func
 from app.db.base import Base
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "USER"
@@ -14,3 +15,5 @@ class User(Base):
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
     last_login_at = Column(DateTime, nullable=True)
     password_hash = Column(String(255), nullable=True)
+    
+    

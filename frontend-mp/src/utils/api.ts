@@ -179,3 +179,27 @@ export interface UserSimple {
   role?: string | null
 }
 export interface UsersSimplePage { total: number; items: UserSimple[] }
+
+export interface AdminUserDetail {
+  id: number
+  account: string
+  nickname?: string
+  email?: string
+  status?: string
+  roles: { code: string; name?: string }[]
+  created_at?: string
+  updated_at?: string
+  last_login_at?: string
+}
+
+export async function adminGetUserDetail(uid: number) {
+  return await request<AdminUserDetail>(`/admin/users/${uid}`)
+}
+
+export async function adminUpdateUser(uid: number, data: { nickname?: string; email?: string | null; status?: string }) {
+  return await request<void>(`/admin/users/${uid}`, { method: 'PUT', data })
+}
+
+export async function adminResetUserPassword(uid: number, password: string) {
+  return await request<void>(`/admin/users/${uid}/password`, { method: 'PUT', data: { password } })
+}
