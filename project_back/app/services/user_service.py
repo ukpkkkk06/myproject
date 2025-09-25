@@ -1,17 +1,16 @@
 from typing import Optional, Tuple, List
 from datetime import datetime
 
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.exc import IntegrityError
+from app.core.exceptions import AppException
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from app.models.user import User
 from app.models.role import Role
 from app.models.user_role import UserRole
-from app.models.user import User
 from app.core import security
 
 from app.schemas.user import UserCreate, UserUpdate, UsersSimplePage, UserSimple
-from app.core.exceptions import NotFoundException, ConflictException, AppException
 from app.core.security import verify_password, get_password_hash
 
 DEFAULT_ROLE_CODE = "USER"
@@ -44,9 +43,9 @@ def _attach_default_role(db: Session, user: User):
 def create_user(db: Session, payload: UserCreate) -> User:
     # 账号/邮箱唯一性校验
     if db.query(User).filter(User.account == payload.account).first():
-        raise ConflictException("account 已存在")
+        raise AppException("account 已存在", code=409, status_code=409)
     if payload.email and db.query(User).filter(User.email == payload.email).first():
-        raise ConflictException("email 已存在")
+        raise AppException("email 已存在", code=409, status_code=409)
 
     user = User(
         account=payload.account,
@@ -61,7 +60,7 @@ def create_user(db: Session, payload: UserCreate) -> User:
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise ConflictException("account 或 email 已存在")
+        raise AppException("account 或 email 已存在", code=409, status_code=409)
     db.refresh(user)
     return user
 
@@ -69,7 +68,7 @@ def create_user(db: Session, payload: UserCreate) -> User:
 def get_user(db: Session, user_id: int) -> User:
     user = db.get(User, user_id)
     if not user:
-        raise NotFoundException("用户不存在")
+        raise AppException("用户不存在", code=404, status_code=404)
     return user
 
 
@@ -142,23 +141,39 @@ def list_users_simple(
     return {"total": total, "items": items}
 
 
-def update_user(db: Session, user_id: int, payload: UserUpdate) -> User:
-    user = db.get(User, user_id)
+def update_user(db: Session, user_id: int, payload) -> User:
+    """管理员更新用户资料。payload 可为 Pydantic 模型或 dict"""
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise NotFoundException("未找到用户")
+        raise AppException("用户不存在", code=404, status_code=404)
 
-    if payload.email is not None:
-        user.email = payload.email
-    if payload.nickname is not None:
-        user.nickname = payload.nickname
-    if payload.status is not None:
-        user.status = payload.status
+    def pick(key: str):
+        if isinstance(payload, dict):
+            return payload.get(key, None)
+        return getattr(payload, key, None)
+
+    nickname = pick("nickname")
+    email = pick("email")
+    status = pick("status")
+
+    if nickname is not None:
+        user.nickname = nickname.strip() or None
+
+    if email is not None:
+        # 空串视为清空
+        email_val = (email or "").strip()
+        user.email = email_val or None
+
+    if status is not None:
+        user.status = (status or "").upper() or None
 
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
-        raise ConflictException("email 已存在")
+        # 例如 email 唯一索引冲突
+        raise AppException("更新失败：数据冲突或非法参数", code=409, status_code=409) from e
+
     db.refresh(user)
     return user
 
@@ -166,7 +181,7 @@ def update_user(db: Session, user_id: int, payload: UserUpdate) -> User:
 def delete_user(db: Session, user_id: int) -> None:
     user = db.get(User, user_id)
     if not user:
-        raise NotFoundException("用户不存在")
+        raise AppException("用户不存在", code=404, status_code=404)
     db.delete(user)
     db.commit()
 
@@ -245,24 +260,32 @@ def change_password(db: Session, user: User, old_password: str, new_password: st
 
 
 def register(db: Session, account: str, password: str, nickname: str | None = None, email: str | None = None):
-    # 账号是否存在
+    # 唯一性校验
     if db.query(User).filter(User.account == account).first():
         raise AppException("账号已存在", code=409, status_code=409)
+    if email and db.query(User).filter(User.email == email).first():
+        raise AppException("邮箱已存在", code=409, status_code=409)
+
     user = User(
         account=account,
         nickname=nickname or account,
-        email=email,
+        email=email,                                    # 写入邮箱
         password_hash=security.get_password_hash(password),
     )
     db.add(user)
     try:
-        db.flush()  # 得到 user.id
-        _attach_default_role(db, user)
+        db.flush()
+        # 绑定默认角色（直接写关联，避免 user.roles 属性缺失）
+        role = db.query(Role).filter(or_(Role.code == DEFAULT_ROLE_CODE, Role.name == DEFAULT_ROLE_CODE)).first()
+        if not role:
+            role = Role(code=DEFAULT_ROLE_CODE, name="普通用户", description="基础权限，仅能查看和注销自身账户")
+            db.add(role); db.flush()
+        if not db.query(UserRole).filter(UserRole.user_id==user.id, UserRole.role_id==role.id).first():
+            db.add(UserRole(user_id=user.id, role_id=role.id, created_at=datetime.utcnow()))
         db.commit()
-    except IntegrityError as e:
+    except IntegrityError:
         db.rollback()
-        # 打印真实错误到日志，便于定位（可选）
-        print(f"[register] IntegrityError: {e}")
         raise AppException("账号创建失败", code=500, status_code=500)
+
     db.refresh(user)
     return user

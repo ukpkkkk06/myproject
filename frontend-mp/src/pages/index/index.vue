@@ -62,7 +62,7 @@
 
       <!-- 操作 -->
       <view class="card actions">
-        <button class="btn danger" @tap="logout">退出登录</button>
+        <button class="btn danger wide" @tap="logout">退出登录</button>
       </view>
     </view>
 
@@ -297,27 +297,30 @@ onMounted(async ()=>{
   color:var(--c-text-sec);
 }
 
+/* 统一扁平化按钮样式（与用户详情页一致） */
 .btn{
-  border:none;
-  border-radius:var(--radius-s);
+  width:auto;
+  border:1rpx solid transparent;
+  border-radius:10rpx;
   font-size:30rpx;
   font-weight:600;
-  letter-spacing:1rpx;
-  padding:28rpx 0;
+  padding:24rpx 0;
   color:#fff;
   background:#ccc;
-  box-shadow:0 4rpx 10rpx rgba(0,0,0,.08);
+  box-shadow:none;
   transition:opacity .18s;
 }
+.btn.wide{ width:100%; }              /* 通栏 */
 .btn.primary{
-  background:linear-gradient(90deg,#a9d6ff,#66b4ff);
-  box-shadow:0 6rpx 14rpx rgba(102,180,255,.35);
+  background:#66b4ff;                 /* 纯色主色 */
+  border-color:#66b4ff;
 }
 .btn.danger{
-  background:#ff4d4f;  /* 扁平化 */
-  box-shadow:none;
-  border-radius:10rpx;
+  background:#ff4d4f;                 /* 纯色红 */
+  border-color:#ff4d4f;
 }
+button::after{ border:none; }         /* 去小程序默认描边 */
+
 .btn:active{ opacity:.86; }
 .btn[disabled]{ opacity:.55; }
 .search{ width:100%; }

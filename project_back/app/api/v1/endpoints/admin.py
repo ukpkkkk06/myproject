@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Body, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from app.api.deps import get_db, get_current_user
@@ -7,6 +7,7 @@ from app.models.user import User
 from app.models.role import Role
 from app.models.user_role import UserRole
 from app.services import user_service
+from app.schemas.user import AdminUpdateUserRequest
 
 router = APIRouter()
 
@@ -62,13 +63,12 @@ def admin_get_user(uid: int, db: Session = Depends(get_db), me: User = Depends(g
 @router.put("/admin/users/{uid:int}")
 def admin_update_user(
     uid: int,
-    body: dict = Body(...),
+    body: AdminUpdateUserRequest,
     db: Session = Depends(get_db),
     me: User = Depends(get_current_user),
 ):
     if not _is_admin(db, me):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限")
-    # 直接复用 user_service.update_user，支持 nickname/email/status
     user_service.update_user(db, uid, body)
     return {"code": 0, "message": "ok"}
 

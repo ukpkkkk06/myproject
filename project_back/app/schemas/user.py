@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, ConfigDict, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 
 class UserCreate(BaseModel):
@@ -34,10 +34,10 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 class RegisterRequest(BaseModel):
-    account: str = Field(..., min_length=3, max_length=50)
+    account: str = Field(..., min_length=3, max_length=32)
     password: str = Field(..., min_length=6, max_length=64)
-    email: Optional[str] = None
     nickname: Optional[str] = None
+    email: Optional[str] = None  # 若需严格校验，可改为 EmailStr
 
 class UserOut(BaseModel):
     id: int
@@ -82,3 +82,8 @@ class UpdateNicknameRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str
+
+class AdminUpdateUserRequest(BaseModel):
+    nickname: Optional[str] = None
+    email: Optional[str] = None      # 如需严格校验可改 EmailStr
+    status: Optional[str] = None     # ACTIVE / DISABLED / ...

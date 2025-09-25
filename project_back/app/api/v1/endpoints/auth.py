@@ -42,6 +42,7 @@ def me_change_password(
 # 注册：/api/v1/register
 @router.post("/register", response_model=Token)
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    user_service.register(db, body.account, body.password, body.nickname)
+    # 关键：把 email 传给服务层
+    user_service.register(db, body.account, body.password, body.nickname, body.email)
     # 直接复用登录获取 Token
     return auth_service.login(db, body.account, body.password)

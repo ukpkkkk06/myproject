@@ -1,6 +1,9 @@
 <template>
   <view class="ud-page">
-    <view class="safe-nav"><text class="nav-title">用户详情</text></view>
+    <!-- 顶部仅保留标题 -->
+    <view class="safe-nav">
+      <text class="nav-title">用户详情</text>
+    </view>
 
     <view class="body">
       <!-- 基本信息 -->
@@ -31,7 +34,9 @@
         <picker class="picker" mode="selector" :range="statusOptions" @change="onPickStatus">
           <view class="select">状态：{{ form.status || '未选择' }}</view>
         </picker>
-        <button class="btn primary" :disabled="savingInfo" @tap="saveInfo">{{ savingInfo ? '保存中…' : '保存资料' }}</button>
+        <button class="btn primary wide" :disabled="savingInfo" @tap="saveInfo">
+          {{ savingInfo ? '保存中…' : '保存资料' }}
+        </button>
       </view>
 
       <!-- 重置密码 -->
@@ -39,7 +44,12 @@
         <view class="card-title small">重置密码</view>
         <input class="ipt" v-model="pwd1" password placeholder="新密码（至少6位）" placeholder-class="ph" />
         <input class="ipt" v-model="pwd2" password placeholder="确认新密码" placeholder-class="ph" />
-        <button class="btn danger" :disabled="savingPwd" @tap="resetPwd">{{ savingPwd ? '提交中…' : '更新密码' }}</button>
+        <button class="btn danger wide" :disabled="savingPwd" @tap="resetPwd">
+          {{ savingPwd ? '提交中…' : '更新密码' }}
+        </button>
+
+        <!-- 返回控件（扁平通栏） -->
+        <button class="btn ghost wide back-under" @tap="goBack">返回后台</button>
       </view>
     </view>
   </view>
@@ -49,6 +59,14 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { adminGetUserDetail, adminUpdateUser, adminResetUserPassword, type AdminUserDetail } from '@/utils/api'
+
+function goBack(){
+  try{
+    const pages = (getCurrentPages && getCurrentPages()) as any[]
+    if (pages && pages.length > 1) return uni.navigateBack()
+  }catch(e){}
+  uni.reLaunch({ url: '/pages/index/index' })
+}
 
 const uid = ref<number>(0)
 const u = ref<AdminUserDetail | null>(null)
@@ -118,12 +136,12 @@ onLoad(async (q:any) => {
 .ud-page{ min-height:100vh; background:linear-gradient(180deg,var(--c-bg1),var(--c-bg2)); }
 .safe-nav{ position:fixed; left:0; right:0; top:0; padding-top:env(safe-area-inset-top); height:calc(env(safe-area-inset-top) + 88rpx); display:flex; align-items:flex-end; justify-content:center; padding-bottom:16rpx; background:rgba(255,255,255,.55); border-bottom:1rpx solid rgba(214,230,245,.8); }
 .nav-title{ font-size:40rpx; font-weight:700; color:var(--c-text); }
-.body{ padding:calc(env(safe-area-inset-top)+88rpx) 36rpx 120rpx; display:flex; flex-direction:column; gap:34rpx; }
 
+/* 移除顶部 back-btn 的样式 */
+.body{ padding:calc(env(safe-area-inset-top)+88rpx) 36rpx 120rpx; display:flex; flex-direction:column; gap:34rpx; }
 .card{ background:#fff; border:1rpx solid var(--c-border); border-radius:var(--radius); padding:36rpx; box-shadow:0 8rpx 24rpx rgba(35,72,130,.08); display:flex; flex-direction:column; gap:24rpx; }
 .card-title{ font-size:36rpx; font-weight:600; }
 .card-title.small{ font-size:32rpx; }
-
 .info{ border:1rpx solid var(--c-border); border-radius:var(--radius-s); overflow:hidden; }
 .row{ display:flex; justify-content:space-between; padding:22rpx 24rpx; border-bottom:1rpx solid var(--c-border); font-size:28rpx; }
 .row:last-child{ border-bottom:none; }
@@ -131,18 +149,51 @@ onLoad(async (q:any) => {
 .val{ color:var(--c-text); }
 .pill{ display:inline-block; margin-right:10rpx; padding:8rpx 16rpx; border-radius:999rpx; background:#eef6ff; color:#4b9ef0; font-size:24rpx; }
 .muted{ color:#9aa6b2; }
-
-.ipt{
-  width:100%; height:92rpx; line-height:92rpx; padding:0 30rpx; font-size:30rpx;
-  background:#fff; border:1rpx solid var(--c-border); border-radius:var(--radius-s); box-sizing:border-box; color:var(--c-text);
-}
+.ipt{ width:100%; height:92rpx; line-height:92rpx; padding:0 30rpx; font-size:30rpx; background:#fff; border:1rpx solid var(--c-border); border-radius:var(--radius-s); box-sizing:border-box; color:var(--c-text); }
 .ipt:focus{ border-color:var(--c-primary); box-shadow:0 0 0 4rpx #d4ecff; }
 .ph{ color:#9ab2c7; font-size:30rpx; }
 .picker{ width:100%; }
-.select{ height:92rpx; line-height:92rpx; padding:0 30rpx; border:1rpx solid var(--c-border); border-radius:var(--radius-s); background:#f7f9fc; color:var(--c-text); font-size:30rpx; }
+.select{
+  height:92rpx;
+  line-height:92rpx;
+  padding:0 30rpx;
+  border:1rpx solid var(--c-border);
+  border-radius:var(--radius-s);
+  background:#f7f9fc;
+  color:var(--c-text);
+  font-size:30rpx;
+}
 
-.btn{ border:none; border-radius:10rpx; font-size:30rpx; font-weight:600; padding:24rpx 0; color:#fff; }
-.btn.primary{ background:#66b4ff; }
-.btn.danger{ background:#ff4d4f; }
+/* 公共按钮样式 */
+.btn{
+  width:auto;
+  border:1rpx solid transparent;
+  border-radius:10rpx;
+  font-size:30rpx;
+  font-weight:600;
+  padding:24rpx 0;
+  box-shadow:none;               /* 去阴影 */
+  transition:opacity .18s;
+}
+.btn.wide{ width:100%; }         /* 通栏 */
+.btn.primary{
+  color:#fff;
+  background:#66b4ff;            /* 纯色，非渐变 */
+  border-color:#66b4ff;
+}
+.btn.danger{
+  color:#fff;
+  background:#ff4d4f;            /* 纯色红 */
+  border-color:#ff4d4f;
+}
+.btn.ghost{
+  color:#1f2d3d;
+  background:#f2f6fb;            /* 浅灰填充 */
+  border-color:var(--c-border);
+}
 .btn:active{ opacity:.92; }
+.btn[disabled]{ opacity:.55; }
+
+/* 移除小程序 button 默认描边（必须） */
+button::after{ border:none; }
 </style>
