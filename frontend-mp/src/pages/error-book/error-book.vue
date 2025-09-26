@@ -19,7 +19,8 @@
         @tap="viewQuestion(it)"
       >
         <view class="top">
-          <text class="qid">Q{{ it.question_id }}</text>
+          <!-- 改为显示题干（最多两行） -->
+          <text class="stem">{{ stemOf(it) }}</text>
           <text class="cnt" :class="countLevel(it.wrong_count)">错 {{ it.wrong_count }} 次</text>
         </view>
         <view class="meta-row">
@@ -54,6 +55,9 @@ const total = ref(0)
 const loading = ref(false)
 const onlyDue = ref(false)
 
+// 新增：缓存 question_id -> 题干
+const stemMap = ref<Record<number, string>>({})
+
 function fmt(s?: string) {
   return s ? s.replace('T',' ').split('.')[0] : ''
 }
@@ -66,18 +70,41 @@ async function fetchPage(p=1) {
     else items.value = items.value.concat(data.items || [])
     total.value = data.total || 0
     page.value = data.page || p
+    // 拉取当前页题干（批量）
+    await fetchStemsFor(items.value)
   } catch(e:any){
     uni.showToast({ icon:'none', title: e?.data?.message || '加载失败' })
   } finally { loading.value=false }
 }
 
+async function fetchStemsFor(list: Item[]){
+  // 只请求未缓存的
+  const ids = Array.from(new Set(
+    list.map(i=>i.question_id).filter(id => !stemMap.value[id])
+  ))
+  if(ids.length === 0) return
+  try{
+    const r = await api.getQuestionsBrief(ids)   // 后端若未实现，会走 catch
+    const arr = r?.items || r || []
+    arr.forEach((q:any) => {
+      if(q && q.id) stemMap.value[q.id] = (q.stem || q.title || `Q${q.id}`)
+    })
+  }catch{
+    // 后端没有该接口时，保留默认占位
+  }
+}
+
 const hasMore = computed(()=> items.value.length < total.value)
 function loadMore(){ if(!loading.value && hasMore.value) fetchPage(page.value+1) }
 function toggleDue(e:any){ onlyDue.value = !!e.detail.value; fetchPage(1) }
+
+function stemOf(it: Item){
+  return stemMap.value[it.question_id] || (it as any).stem || `Q${it.question_id}`
+}
+
 function viewQuestion(it:Item){
-  uni.showToast({ icon:'none', title:`题目 ${it.question_id}` })
-  // 可跳转详情页
-  // uni.navigateTo({ url:'/pages/question-detail/question-detail?id='+it.question_id })
+  // 传递 question_id 与历史错误次数
+  uni.navigateTo({ url:`/pages/question-detail/question-detail?id=${it.question_id}&wrong=${it.wrong_count}` })
 }
 
 function countLevel(n:number){
@@ -160,15 +187,25 @@ onMounted(()=>{
   transition:background .15s,border-color .15s;
 }
 .q-item:active{ opacity:.88; }
+
 .top{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  font-size:28rpx;
-  font-weight:600;
+  align-items:flex-start;
+  gap:16rpx;
 }
-.qid{ color:var(--c-primary-dark); }
-.cnt{ font-size:26rpx; font-weight:600; }
+.stem{
+  flex:1;
+  font-size:30rpx;
+  color:var(--c-text);
+  font-weight:600;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;           /* 最多两行 */
+  overflow:hidden;
+  word-break:break-word;
+}
+.cnt{ font-size:26rpx; font-weight:600; white-space:nowrap; margin-left:8rpx; }
 .cnt.low{ color:var(--c-primary-dark); }
 .cnt.mid{ color:var(--c-warn); }
 .cnt.high{ color:var(--c-danger); }
@@ -184,12 +221,7 @@ onMounted(()=>{
 .meta-val{ color:var(--c-text); }
 .sep{ width:24rpx; }
 
-.empty{
-  text-align:center;
-  color:var(--c-text-sec);
-  padding:160rpx 0 40rpx;
-  font-size:30rpx;
-}
+.empty{ text-align:center; color:var(--c-text-sec); padding:160rpx 0 40rpx; font-size:30rpx; }
 
 .load-btn{
   margin-top:8rpx;

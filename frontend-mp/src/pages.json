@@ -53,6 +53,18 @@
 			"style": {
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/question-detail/question-detail",
+			"style": {
+				"navigationBarTitleText": "题目详情"
+			}
+		},
+		{
+			"path": "pages/question-edit/question-edit",
+			"style": {
+				"navigationBarTitleText": "编辑题目"
+			}
 		}
 	],
 	"globalStyle": {

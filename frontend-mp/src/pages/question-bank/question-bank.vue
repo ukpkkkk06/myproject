@@ -43,12 +43,12 @@
       >
         <view class="q-top">
           <text class="qid">#{{ q.question_id }}</text>
-          <text class="q-meta">{{ q.type }} | {{ q.difficulty ?? '-' }}</text>
+          <text class="q-meta">{{ q.type || '-' }} | {{ q.difficulty ?? '-' }}</text>
         </view>
-        <view class="stem">{{ q.stem }}</view>
+        <view class="stem">{{ q.stem || '-' }}</view>
         <view class="q-bottom">
           <text class="tag" :class="statusCls(q.audit_status)">{{ q.audit_status }}</text>
-          <text class="time">{{ q.updated_at.replace('T',' ').split('.')[0] }}</text>
+          <text class="time">{{ fmtTime(q.updated_at || (q as any).created_at) }}</text>
         </view>
       </view>
 
@@ -82,6 +82,11 @@ const difficulties = ['全部','1','2','3','4','5']
 const selDiffLabel = computed(()=> selDiff.value==null ? '全部' : selDiff.value)
 const hasMore = computed(()=> items.value.length < total.value)
 
+function fmtTime(s?: string){
+  if(!s) return '-'
+  try { return s.replace('T',' ').split('.')[0] } catch { return '-' }
+}
+
 async function fetch(p=1, append=false){
   loading.value = true
   try {
@@ -93,10 +98,11 @@ async function fetch(p=1, append=false){
       difficulty: selDiff.value==null ? undefined : selDiff.value,
       active_only: activeOnly.value
     })
-    total.value = resp.total
-    if(!append) items.value = resp.items
-    else items.value = items.value.concat(resp.items)
-    page.value = resp.page
+    total.value = resp?.total ?? 0
+    const list = resp?.items ?? []
+    if(!append) items.value = list
+    else items.value = items.value.concat(list)
+    page.value = resp?.page ?? p
   } catch(e:any){
     uni.showToast({ icon:'none', title: e?.data?.message || '加载失败' })
   } finally { loading.value = false }
@@ -270,8 +276,8 @@ onMounted(()=>{
   line-height:1.55;
   color:var(--c-text);
   display:-webkit-box;
-  -webkit-line-clamp:3;
   -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
   overflow:hidden;
 }
 .q-bottom{

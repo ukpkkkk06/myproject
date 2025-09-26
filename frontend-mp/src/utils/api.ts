@@ -99,6 +99,27 @@ export interface MyQuestionListResp {
   items: MyQuestionItem[]
 }
 
+export interface QuestionOption { key?: string; text?: string; content?: string; is_correct?: boolean }
+export interface QuestionBrief { id: number; stem: string; options?: QuestionOption[]; analysis?: string }
+
+// 批量获取题干（若后端支持）
+async function getQuestionsBrief(ids: number[]) {
+  if (!ids?.length) return { items: [] }
+  // 尝试多个常见路径，任一成功即可
+  try { return await request<{ items: QuestionBrief[] }>(`/question-bank/questions/brief?ids=${ids.join(',')}`) } catch {}
+  try { return await request<{ items: QuestionBrief[] }>(`/questions/brief?ids=${ids.join(',')}`) } catch {}
+  // 兜底：返回空
+  return { items: [] }
+}
+
+// 获取题目详情（占位：后端路径因项目而异，按常见路径尝试）
+async function getQuestionDetail(id: number) {
+  try { return await request<QuestionBrief>(`/question-bank/questions/${id}`) } catch {}
+  try { return await request<QuestionBrief>(`/questions/${id}`) } catch {}
+  // 兜底：占位
+  return { id, stem: `#${id}`, options: [], analysis: '' }
+}
+
 export const api = {
   // 健康检查
   health: () => request<{ status: string; db?: string }>('/health', { method: 'GET' }),
@@ -170,6 +191,8 @@ export const api = {
     if (typeof params.difficulty === 'number') payload.difficulty = params.difficulty
     return request<MyQuestionListResp>('/my-questions', { method: 'GET', data: payload })
   },
+  getQuestionsBrief,
+  getQuestionDetail,
 }
 
 export interface UserSimple {
