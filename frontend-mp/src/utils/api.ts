@@ -120,6 +120,33 @@ async function getQuestionDetail(id: number) {
   return { id, stem: `#${id}`, options: [], analysis: '' }
 }
 
+export interface QuestionUpdatePayload {
+  stem?: string
+  options?: { key?: string; text: string }[] | string[]
+  analysis?: string
+  correct_answer?: string
+  is_active?: boolean
+}
+
+// 确保只保留一个定义
+export async function updateQuestion(qid: number, data: any) {
+  return request(`/api/v1/question-bank/questions/${qid}`, { method: 'PUT', data })
+}
+
+export interface TagItem { id:number; name:string; type?:string; parent_id?:number|null; is_active?:boolean }
+
+export async function listTags(type: string) {
+  return request<TagItem[]>(`/api/v1/tags`, { method: 'GET', data: { type } })
+}
+
+export async function getQuestionTags(qid: number) {
+  return request(`/api/v1/question-bank/questions/${qid}/tags`, { method: 'GET' })
+}
+
+export async function setQuestionTags(qid:number, data:{subject_id?:number; level_id?:number; add_ids?:number[]; remove_ids?:number[]}) {
+  return request(`/api/v1/question-bank/questions/${qid}/tags`, { method:'PUT', data })
+}
+
 export const api = {
   // 健康检查
   health: () => request<{ status: string; db?: string }>('/health', { method: 'GET' }),
@@ -193,6 +220,10 @@ export const api = {
   },
   getQuestionsBrief,
   getQuestionDetail,
+  updateQuestion,
+  listTags,
+  getQuestionTags,
+  setQuestionTags,
 }
 
 export interface UserSimple {

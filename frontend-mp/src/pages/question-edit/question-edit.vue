@@ -24,8 +24,22 @@
 
         <view class="label">状态</view>
         <view class="switch-wrap">
-          <switch :checked="form.is_active" @change="e=>form.is_active=!!e.detail.value" color="#66b4ff" />
+          <switch :checked="form.is_active" @change="onActiveChange" color="#66b4ff" />
           <text class="sw-label">{{ form.is_active ? '启用' : '停用' }}</text>
+        </view>
+
+        <!-- 学科/学段 TAG -->
+        <view class="row">
+          <text class="row-label">学科</text>
+          <picker class="picker" mode="selector" :range="subjects" range-key="name" @change="onSubjectPick">
+            <view class="select">{{ curSubjectName || '请选择学科' }}</view>
+          </picker>
+        </view>
+        <view class="row">
+          <text class="row-label">学段</text>
+          <picker class="picker" mode="selector" :range="levels" range-key="name" @change="onLevelPick">
+            <view class="select">{{ curLevelName || '请选择学段（小学/初中/高中/大学）' }}</view>
+          </picker>
         </view>
 
         <button class="btn primary wide" :disabled="saving" @tap="save">{{ saving ? '保存中…' : '保存' }}</button>
@@ -36,9 +50,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { api, type QuestionOption } from '@/utils/api'
+import { api, type TagItem } from '@/utils/api'
 
 const qid = ref<number>(0)
 const saving = ref(false)
@@ -55,6 +69,14 @@ const form = ref<{
   analysis: '',
   is_active: true,
 })
+
+// TAG 状态
+const subjects = ref<TagItem[]>([])
+const levels = ref<TagItem[]>([])
+const curSubjectId = ref<number|null>(null)
+const curLevelId = ref<number|null>(null)
+const curSubjectName = computed(()=> subjects.value.find(t=>t.id===curSubjectId.value)?.name || '')
+const curLevelName = computed(()=> levels.value.find(t=>t.id===curLevelId.value)?.name || '')
 
 function keyOf(i:number){ return String.fromCharCode(65 + i) }
 function setCorrect(i:number){ form.value.correct_answer = keyOf(i) }
@@ -88,6 +110,25 @@ async function load(){
   form.value.is_active = !!(d?.is_active ?? true)
 }
 
+async function loadTags(){
+  subjects.value = await api.listTags('SUBJECT').catch(()=>[])
+  levels.value = await api.listTags('LEVEL').catch(()=>[])
+  const qt = await api.getQuestionTags(qid.value).catch(()=>null)
+  if(qt){
+    curSubjectId.value = qt.subject_id ?? null
+    curLevelId.value = qt.level_id ?? null
+  }
+}
+
+function onSubjectPick(e:any){
+  const idx = Number(e?.detail?.value ?? -1)
+  if(idx>=0) curSubjectId.value = subjects.value[idx].id
+}
+function onLevelPick(e:any){
+  const idx = Number(e?.detail?.value ?? -1)
+  if(idx>=0) curLevelId.value = levels.value[idx].id
+}
+
 async function save(){
   if(!form.value.stem.trim()){ return uni.showToast({ icon:'none', title:'请填写题干' }) }
   if(form.value.options.length<2){ return uni.showToast({ icon:'none', title:'至少两个选项' }) }
@@ -95,12 +136,17 @@ async function save(){
   try{
     const payload = {
       stem: form.value.stem,
-      options: form.value.options.map((o,i)=> ({ key: o.key ?? keyOf(i), text: o.text })),
+      options: form.value.options.map((o: {key?:string; text:string}, i:number)=> ({ key: o.key ?? keyOf(i), text: o.text })),
       correct_answer: form.value.correct_answer,
       analysis: form.value.analysis,
       is_active: form.value.is_active,
     }
     await api.updateQuestion(qid.value, payload)
+    // 保存 TAG（学科/学段）
+    await api.setQuestionTags(qid.value, {
+      subject_id: curSubjectId.value ?? undefined,
+      level_id: curLevelId.value ?? undefined,
+    })
     uni.showToast({ icon:'success', title:'已保存' })
     setTimeout(()=>goBack(), 400)
   }catch(e:any){
@@ -116,10 +162,15 @@ function goBack(){
   uni.reLaunch({ url:'/pages/question-bank/question-bank' })
 }
 
+function onActiveChange(e: any) {
+  form.value.is_active = !!e?.detail?.value
+}
+
 onLoad((opt:any)=>{
   qid.value = Number(opt?.id || 0)
   if(!qid.value){ uni.showToast({ icon:'none', title:'参数错误' }); return setTimeout(()=>goBack(),500) }
   load()
+  loadTags()
 })
 </script>
 
@@ -148,5 +199,9 @@ onLoad((opt:any)=>{
 .btn.ghost{ background:#f2f6fb; color:#1f2d3d; }
 .btn.wide{ width:100%; }
 button::after{ border:none; }
+/* TAG 行样式 */
+.row{ display:flex; align-items:center; gap:16rpx; }
+.row-label{ width:140rpx; color:#5f7085; font-size:28rpx; }
+.picker{ flex:1; }
+.select{ height:92rpx; line-height:92rpx; padding:0 24rpx; border:1rpx solid #d8e6f5; border-radius:10rpx; background:#f7f9fc; color:#1f2d3d; }
 </style>
-```

@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Union
+from pydantic import BaseModel, Field
 from datetime import datetime
-from pydantic import BaseModel
 
 class MyQuestionItem(BaseModel):
     question_id: int
@@ -18,7 +18,6 @@ class MyQuestionListResp(BaseModel):
     size: int
     items: List[MyQuestionItem]
 
-# 若已存在，请忽略下面两个模型
 class QuestionOption(BaseModel):
     key: Optional[str] = None
     text: Optional[str] = None
@@ -33,3 +32,31 @@ class QuestionBrief(BaseModel):
 
 class QuestionsBriefResp(BaseModel):
     items: List[QuestionBrief]
+
+class TagOut(BaseModel):
+    id: int
+    name: str
+    type: Optional[str] = None
+    parent_id: Optional[int] = None
+    is_active: Optional[bool] = True
+
+class QuestionTagsOut(BaseModel):
+    subject_id: Optional[int] = None
+    level_id: Optional[int] = None
+    tag_ids: List[int] = Field(default_factory=list)
+
+class SetQuestionTagsIn(BaseModel):
+    subject_id: Optional[int] = None
+    level_id: Optional[int] = None
+    add_ids: List[int] = Field(default_factory=list)
+    remove_ids: List[int] = Field(default_factory=list)
+
+class SimpleOK(BaseModel):
+    ok: bool = True
+
+class QuestionUpdate(BaseModel):
+    stem: Optional[str] = None
+    options: Optional[Union[List[dict], List[str]]] = None
+    analysis: Optional[str] = None
+    correct_answer: Optional[str] = None
+    is_active: Optional[bool] = None

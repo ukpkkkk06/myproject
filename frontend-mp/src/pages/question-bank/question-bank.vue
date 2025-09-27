@@ -118,8 +118,7 @@ function onDiff(e:any){
 }
 function toggleActive(e:any){ activeOnly.value = !!e.detail.value; refresh() }
 function viewDetail(q:MyQuestionItem){
-  uni.showToast({ icon:'none', title:`题目ID ${q.question_id}` })
-  // TODO: uni.navigateTo({ url:'/pages/question-detail/question-detail?qid='+q.question_id })
+  uni.navigateTo({ url: '/pages/question-edit/question-edit?id=' + q.question_id })
 }
 function statusCls(s:string){
   s = (s||'').toLowerCase()

@@ -1,13 +1,17 @@
+import json
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from app.api import deps
 from app.models.user import User
-from app.schemas.question_bank import MyQuestionListResp, MyQuestionItem, QuestionsBriefResp, QuestionBrief
-from app.services import question_bank_service
-from typing import List
 from app.models.question import Question
 from app.models.question_version import QuestionVersion
-import json
+from app.models.tag import Tag, QuestionTag
+from app.schemas.question_bank import (
+    QuestionUpdate, TagOut, QuestionTagsOut, SetQuestionTagsIn,
+    MyQuestionListResp, MyQuestionItem, QuestionsBriefResp, QuestionBrief,
+)
+from app.services import question_bank_service
 
 router = APIRouter()
 
@@ -31,7 +35,7 @@ def list_my_questions(
             question_id=r.question_id,
             type=r.type,
             difficulty=r.difficulty,
-            stem=r.stem[:120],
+            stem=(r.stem or "")[:120],  # 兜底，避免 None 切片报错
             audit_status=r.audit_status,
             is_active=bool(r.is_active),
             created_at=r.created_at,
@@ -64,6 +68,45 @@ def _parse_options(val):
             else:
                 res.append({"key": chr(65+i), "text": str(it)})
     return res or None
+
+def _options_to_db(val):
+    """
+    将前端传来的 options 统一转为存库字符串JSON（数组），兼容：
+    - [{"key":"A","text":"1+1=2"}] / [{"text":"..."}]
+    - ["选项A","选项B"]
+    """
+    if val is None:
+        return None
+    import json
+    if isinstance(val, list):
+        out = []
+        for it in val:
+            if isinstance(it, dict):
+                out.append((it.get("text") or it.get("content") or "").strip())
+            else:
+                out.append(str(it))
+        return json.dumps(out, ensure_ascii=False)
+    try:
+        return json.dumps(val, ensure_ascii=False)
+    except Exception:
+        return None
+
+def _normalize_options_for_store(opts: Any) -> str:
+    if not opts:
+        return json.dumps([], ensure_ascii=False)
+    arr = []
+    if isinstance(opts, list):
+        for i, it in enumerate(opts):
+            if isinstance(it, dict):
+                key = it.get("key") or chr(65 + i)
+                text = it.get("text") or it.get("content") or ""
+                arr.append({"key": key, "text": text})
+            else:
+                arr.append({"key": chr(65 + i), "text": str(it)})
+    elif isinstance(opts, dict):
+        for k, v in opts.items():
+            arr.append({"key": str(k), "text": str(v)})
+    return json.dumps(arr, ensure_ascii=False)
 
 # 批量获取题目简要
 @router.get("/question-bank/questions/brief", response_model=QuestionsBriefResp)
@@ -150,3 +193,207 @@ def question_detail_alt(
     me: User = Depends(deps.get_current_user),
 ):
     return question_detail(qid=qid, db=db, me=me)
+
+# 兼容获取题目作者ID
+def _get_question_owner_id(q: Question, db) -> Optional[int]:
+    # 1) Question.created_by 优先
+    if hasattr(q, "created_by"):
+        return getattr(q, "created_by")
+    # 2) 回退到版本表的 created_by
+    if hasattr(q, "current_version_id") and q.current_version_id:
+        return db.query(QuestionVersion.created_by)\
+                 .filter(QuestionVersion.id == q.current_version_id)\
+                 .scalar()
+    return None
+
+@router.put("/question-bank/questions/{qid:int}")
+def update_question(
+    qid: int,
+    body: QuestionUpdate,
+    db: Session = Depends(deps.get_db),
+    me: User = Depends(deps.get_current_user),
+):
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise HTTPException(status_code=404, detail="题目不存在")
+
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    owner_id = _get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != uid):
+        raise HTTPException(status_code=403, detail="无权限")
+
+    # 获取题目版本（优先 current_version_id，其次按最新一条兜底）
+    QV = QuestionVersion
+    qv = None
+    if hasattr(q, "current_version_id") and q.current_version_id:
+        qv = db.query(QV).filter(QV.id == q.current_version_id).first()
+    if not qv:
+        qv = db.query(QV).filter(QV.question_id == q.id).order_by(QV.id.desc()).first()
+    if not qv:
+        raise HTTPException(status_code=404, detail="题目版本不存在")
+
+    # 更新字段
+    if body.stem is not None:
+        qv.stem = body.stem.strip()
+
+    if body.options is not None:
+        val = _options_to_db(body.options)
+        if val is not None:
+            if hasattr(qv, "options"):
+                qv.options = val
+            elif hasattr(qv, "choices"):
+                qv.choices = val
+
+    if body.analysis is not None:
+        if hasattr(qv, "analysis"):
+            qv.analysis = body.analysis
+        elif hasattr(qv, "explanation"):
+            qv.explanation = body.analysis
+
+    if body.correct_answer is not None:
+        ca = (body.correct_answer or "").strip().upper()[:8]
+        if hasattr(qv, "correct_answer"):
+            qv.correct_answer = ca
+        elif hasattr(qv, "answer"):
+            qv.answer = ca
+
+    if body.is_active is not None:
+        if hasattr(qv, "is_active"):
+            qv.is_active = bool(body.is_active)
+        elif hasattr(q, "is_active"):
+            q.is_active = bool(body.is_active)
+
+    db.commit()
+    return {"ok": True}
+
+@router.put("/questions/{qid:int}")
+def update_question_alt(
+    qid: int,
+    body: QuestionUpdate,
+    db: Session = Depends(deps.get_db),
+    me: User = Depends(deps.get_current_user),
+):
+    # 兼容路由
+    return update_question(qid=qid, body=body, db=db, me=me)
+
+# 获取标签列表（按类型过滤：SUBJECT/LEVEL）
+@router.get("/tags", response_model=List[TagOut])
+def list_tags(
+    type: Optional[str] = Query(default=None, description="SUBJECT/LEVEL/..."),
+    db: Session = Depends(deps.get_db),
+    me: User = Depends(deps.get_current_user),
+):
+    q = db.query(Tag)
+    if type:
+        q = q.filter(Tag.type == type)
+    rows = q.order_by(Tag.type.asc(), Tag.name.asc()).all()
+    return [
+        TagOut(
+            id=t.id,
+            name=t.name,
+            type=getattr(t, "type", None),
+            parent_id=getattr(t, "parent_id", None),
+            is_active=bool(getattr(t, "is_active", 1)),
+        ) for t in rows
+    ]
+
+# 查询题目的标签
+@router.get("/question-bank/questions/{qid:int}/tags", response_model=QuestionTagsOut)
+def get_question_tags(
+    qid: int,
+    db: Session = Depends(deps.get_db),
+    me: User = Depends(deps.get_current_user),
+):
+    rows = (
+        db.query(QuestionTag.tag_id, Tag.type)
+        .join(Tag, Tag.id == QuestionTag.tag_id)
+        .filter(QuestionTag.question_id == qid)
+        .all()
+    )
+    subject_id = next((tid for tid, tp in rows if tp == "SUBJECT"), None)
+    level_id = next((tid for tid, tp in rows if tp == "LEVEL"), None)
+    return QuestionTagsOut(
+        subject_id=subject_id,
+        level_id=level_id,
+        tag_ids=[tid for tid, _ in rows],
+    )
+
+# 设置题目的标签
+@router.put("/question-bank/questions/{qid:int}/tags")
+def set_question_tags(
+    qid: int,
+    body: SetQuestionTagsIn,
+    db: Session = Depends(deps.get_db),
+    me: User = Depends(deps.get_current_user),
+):
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise HTTPException(404, "题目不存在")
+
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    owner_id = _get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != uid):
+        raise HTTPException(403, "无权限")
+
+    # SUBJECT 互斥
+    if body.subject_id is not None:
+        old_sids = [
+            tid for (tid,) in db.query(QuestionTag.tag_id)
+            .join(Tag, Tag.id == QuestionTag.tag_id)
+            .filter(QuestionTag.question_id == qid, Tag.type == "SUBJECT").all()
+        ]
+        if old_sids:
+            db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid,
+                QuestionTag.tag_id.in_(old_sids)
+            ).delete(synchronize_session=False)
+        if body.subject_id:
+            ok = db.query(Tag.id).filter(Tag.id == body.subject_id, Tag.type == "SUBJECT").first()
+            if not ok:
+                raise HTTPException(400, "subject_id 非法")
+            exists = db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid, QuestionTag.tag_id == body.subject_id
+            ).first()
+            if not exists:
+                db.add(QuestionTag(question_id=qid, tag_id=body.subject_id))
+
+    # LEVEL 互斥
+    if body.level_id is not None:
+        old_lids = [
+            tid for (tid,) in db.query(QuestionTag.tag_id)
+            .join(Tag, Tag.id == QuestionTag.tag_id)
+            .filter(QuestionTag.question_id == qid, Tag.type == "LEVEL").all()
+        ]
+        if old_lids:
+            db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid,
+                QuestionTag.tag_id.in_(old_lids)
+            ).delete(synchronize_session=False)
+        if body.level_id:
+            ok = db.query(Tag.id).filter(Tag.id == body.level_id, Tag.type == "LEVEL").first()
+            if not ok:
+                raise HTTPException(400, "level_id 非法")
+            exists = db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid, QuestionTag.tag_id == body.level_id
+            ).first()
+            if not exists:
+                db.add(QuestionTag(question_id=qid, tag_id=body.level_id))
+
+    # 可选批量增删
+    if body.remove_ids:
+        db.query(QuestionTag).filter(
+            QuestionTag.question_id == qid,
+            QuestionTag.tag_id.in_(body.remove_ids)
+        ).delete(synchronize_session=False)
+    if body.add_ids:
+        for tid in body.add_ids:
+            exists = db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid, QuestionTag.tag_id == tid
+            ).first()
+            if not exists:
+                db.add(QuestionTag(question_id=qid, tag_id=tid))
+
+    db.commit()
+    return {"ok": True}
