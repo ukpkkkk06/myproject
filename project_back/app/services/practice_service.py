@@ -30,6 +30,35 @@ def _err_msg(e: Exception) -> str:
     except Exception:
         return str(e).lower()
 
+def _opt_to_list(val) -> list[str]:
+    if val is None:
+        return []
+    # 已是列表
+    if isinstance(val, list):
+        out = []
+        for it in val:
+            if isinstance(it, dict):
+                out.append((it.get("text") or it.get("content") or "").strip())
+            else:
+                out.append(str(it))
+        return out
+    # 可能是 JSON 字符串
+    if isinstance(val, str):
+        import json
+        try:
+            parsed = json.loads(val)
+            return _opt_to_list(parsed)
+        except Exception:
+            # 用逗号分隔兜底
+            s = val.strip()
+            if s.startswith('[') and s.endswith(']'):
+                # 看起来像 JSON 但解析失败，去掉引号再尝试简单切分
+                s = s.strip('[]')
+            parts = [p.strip().strip('"\'') for p in s.split(',') if p.strip()]
+            return parts
+    # 其它类型兜底
+    return [str(val)]
+
 def create_session(db: Session, user: User, size: int) -> tuple[int, int, int, int]:
     size = max(1, min(int(size or 5), 50))
 
@@ -154,8 +183,8 @@ def get_question(db: Session, user: User, attempt_id: int, seq: int):
         "type": q.type,
         "difficulty": q.difficulty,
         "stem": qv.stem,
-        "options": qv.options or [],
-        "explanation": qv.explanation or None,  # 新增
+        "options": _opt_to_list(getattr(qv, "options", None) or getattr(qv, "choices", None)),  # 关键：强转为 List[str]
+        "explanation": getattr(qv, "explanation", None) or None,
     }
 
 def submit_answer(db: Session, user: User, attempt_id: int, seq: int, user_answer: str, time_spent_ms: int | None = None):

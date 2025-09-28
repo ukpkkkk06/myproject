@@ -71,25 +71,31 @@ def _parse_options(val):
 
 def _options_to_db(val):
     """
-    将前端传来的 options 统一转为存库字符串JSON（数组），兼容：
-    - [{"key":"A","text":"1+1=2"}] / [{"text":"..."}]
-    - ["选项A","选项B"]
+    规范化前端传来的 options，返回 Python 列表[str]，供 JSON 列直接写入。
+    - [{text:'A'}, {text:'B'}] -> ['A','B']
+    - ['A','B'] -> ['A','B']
+    - '{"k":"v"}' 或 其它 -> 尝试解析，最终确保是 list[str]
     """
     if val is None:
         return None
-    import json
+    try:
+        # 若是字符串且长得像 JSON，先解析
+        if isinstance(val, str):
+            parsed = json.loads(val)
+            val = parsed
+    except Exception:
+        pass
+
+    out = []
     if isinstance(val, list):
-        out = []
         for it in val:
             if isinstance(it, dict):
                 out.append((it.get("text") or it.get("content") or "").strip())
             else:
                 out.append(str(it))
-        return json.dumps(out, ensure_ascii=False)
-    try:
-        return json.dumps(val, ensure_ascii=False)
-    except Exception:
-        return None
+        return out
+    # 其它类型：尽量转为单元素列表
+    return [str(val)]
 
 def _normalize_options_for_store(opts: Any) -> str:
     if not opts:
@@ -238,12 +244,12 @@ def update_question(
         qv.stem = body.stem.strip()
 
     if body.options is not None:
-        val = _options_to_db(body.options)
-        if val is not None:
-            if hasattr(qv, "options"):
-                qv.options = val
-            elif hasattr(qv, "choices"):
-                qv.choices = val
+        val_list = _options_to_db(body.options)  # 这里返回 Python 列表[str]
+        if val_list is not None:
+            if hasattr(qv, "options"):            # JSON 列：直接写列表
+                qv.options = val_list
+            elif hasattr(qv, "choices"):          # 文本列：写 JSON 字符串
+                qv.choices = json.dumps(val_list, ensure_ascii=False)
 
     if body.analysis is not None:
         if hasattr(qv, "analysis"):
