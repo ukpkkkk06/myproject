@@ -84,13 +84,12 @@ export interface ErrorBookListResp { total: number; page: number; size: number; 
 
 export interface MyQuestionItem {
   question_id: number
-  type: string
-  difficulty?: number
   stem: string
-  audit_status: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
+  type?: string
+  difficulty?: number
+  audit_status?: string
+  updated_at?: string
+  created_at?: string
 }
 export interface MyQuestionListResp {
   total: number
@@ -105,20 +104,12 @@ export interface QuestionBrief { id: number; stem: string; options?: QuestionOpt
 // 批量获取题干（若后端支持）
 async function getQuestionsBrief(ids: number[]) {
   if (!ids?.length) return { items: [] }
-  // 尝试多个常见路径，任一成功即可
   try { return await request<{ items: QuestionBrief[] }>(`/question-bank/questions/brief?ids=${ids.join(',')}`) } catch {}
   try { return await request<{ items: QuestionBrief[] }>(`/questions/brief?ids=${ids.join(',')}`) } catch {}
-  // 兜底：返回空
   return { items: [] }
 }
 
 // 获取题目详情（占位：后端路径因项目而异，按常见路径尝试）
-async function getQuestionDetail(id: number) {
-  try { return await request<QuestionBrief>(`/question-bank/questions/${id}`) } catch {}
-  try { return await request<QuestionBrief>(`/questions/${id}`) } catch {}
-  // 兜底：占位
-  return { id, stem: `#${id}`, options: [], analysis: '' }
-}
 
 export interface QuestionUpdatePayload {
   stem?: string
@@ -128,23 +119,43 @@ export interface QuestionUpdatePayload {
   is_active?: boolean
 }
 
-// 确保只保留一个定义
-export async function updateQuestion(qid: number, data: any) {
-  return request(`/api/v1/question-bank/questions/${qid}`, { method: 'PUT', data })
+export interface QuestionDetail {
+  id: number
+  stem: string
+  options?: any
+  analysis?: string
+  correct_answer?: string
+  is_active?: boolean
 }
 
-export interface TagItem { id:number; name:string; type?:string; parent_id?:number|null; is_active?:boolean }
+// 标签
+export interface TagItem { id: number; type: 'SUBJECT' | 'LEVEL'; name: string }
 
-export async function listTags(type: string) {
-  return request<TagItem[]>(`/api/v1/tags`, { method: 'GET', data: { type } })
+// 获取标签列表（参数对象）
+function listTags(params: { type?: 'SUBJECT' | 'LEVEL' } = {}) {
+  return request<TagItem[]>('/tags', { method: 'GET', data: params })
 }
 
-export async function getQuestionTags(qid: number) {
-  return request(`/api/v1/question-bank/questions/${qid}/tags`, { method: 'GET' })
+// === 新增题目与标签相关 API ===
+async function getQuestionDetail(id: number): Promise<QuestionDetail> {
+  // 统一保留此实现
+  try { return await request<QuestionDetail>(`/question-bank/questions/${id}`, { method: 'GET' }) }
+  catch {
+    try { return await request<QuestionDetail>(`/questions/${id}`, { method: 'GET' }) }
+    catch { return { id, stem: '', options: [], analysis: '', correct_answer: '', is_active: true } }
+  }
 }
-
-export async function setQuestionTags(qid:number, data:{subject_id?:number; level_id?:number; add_ids?:number[]; remove_ids?:number[]}) {
-  return request(`/api/v1/question-bank/questions/${qid}/tags`, { method:'PUT', data })
+function updateQuestion(id: number, data: any) {
+  return request(`/question-bank/questions/${id}`, { method: 'PUT', data })
+}
+function getQuestionTags(id: number) {
+  return request<{ question_id: number; subject_id?: number|null; level_id?: number|null }>(
+    `/question-bank/questions/${id}/tags`,
+    { method: 'GET' }
+  )
+}
+function setQuestionTags(id: number, data: { subject_id?: number; level_id?: number }) {
+  return request(`/question-bank/questions/${id}/tags`, { method: 'PUT', data })
 }
 
 export const api = {
@@ -207,6 +218,8 @@ export const api = {
     qtype?: string
     difficulty?: number
     active_only?: boolean
+    subject_id?: number
+    level_id?: number
   }) => {
     const payload: any = {
       page: params.page || 1,
@@ -216,12 +229,13 @@ export const api = {
     if (params.keyword) payload.keyword = params.keyword
     if (params.qtype) payload.qtype = params.qtype
     if (typeof params.difficulty === 'number') payload.difficulty = params.difficulty
-    return request<MyQuestionListResp>('/my-questions', { method: 'GET', data: payload })
+    if (typeof params.subject_id === 'number') payload.subject_id = params.subject_id
+    if (typeof params.level_id === 'number') payload.level_id = params.level_id
+    return request('/question-bank/my-questions', { method: 'GET', data: payload })
   },
-  getQuestionsBrief,
+  listTags,
   getQuestionDetail,
   updateQuestion,
-  listTags,
   getQuestionTags,
   setQuestionTags,
 }

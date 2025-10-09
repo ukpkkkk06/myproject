@@ -6,6 +6,7 @@ from app.api.v1.endpoints import (
     health, users, auth, practice,
     error_book as error_book_endpoint,
     question_bank as question_bank_endpoint,
+    tags as tags_endpoint,
 )
 from app.api.v1.endpoints import admin as admin_endpoint
 from app.core.config import settings
@@ -48,6 +49,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router,     prefix="/api/v1", tags=["auth"])
     app.include_router(users.router,    prefix="/api/v1", tags=["users"])
     app.include_router(practice.router, prefix="/api/v1", tags=["practice"])
+    app.include_router(tags_endpoint.router, prefix="/api/v1", tags=["tags"])
     app.include_router(error_book_endpoint.router, prefix="/api/v1", tags=["error-book"])
     app.include_router(question_bank_endpoint.router, prefix="/api/v1", tags=["question-bank"])
     # 新增：管理员接口

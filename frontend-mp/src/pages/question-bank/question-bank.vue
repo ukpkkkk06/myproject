@@ -1,6 +1,5 @@
 <template>
   <view class="qb-page">
-    <!-- 顶部卡片：搜索 + 筛选 -->
     <view class="card head-card">
       <view class="search-row">
         <input
@@ -14,14 +13,14 @@
       </view>
 
       <view class="filter-row">
-        <picker mode="selector" :range="types" @change="onType">
+        <picker mode="selector" :range="subjectNames" @change="onSubject">
           <view class="pill">
-            类型：<text class="pill-val">{{ selType || '全部' }}</text>
+            学科：<text class="pill-val">{{ subjectLabel }}</text>
           </view>
         </picker>
-        <picker mode="selector" :range="difficulties" @change="onDiff">
+        <picker mode="selector" :range="levelNames" @change="onLevel">
           <view class="pill">
-            难度：<text class="pill-val">{{ selDiffLabel }}</text>
+            学段：<text class="pill-val">{{ levelLabel }}</text>
           </view>
         </picker>
         <view class="switch-wrap">
@@ -31,10 +30,8 @@
       </view>
     </view>
 
-    <!-- 列表 -->
     <view class="list">
       <view v-if="!loading && items.length===0" class="empty">暂无题目</view>
-
       <view
         v-for="q in items"
         :key="q.question_id"
@@ -64,7 +61,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { api, type MyQuestionItem } from '@/utils/api'
+import { api, type MyQuestionItem, type TagItem } from '@/utils/api'
 
 const items = ref<MyQuestionItem[]>([])
 const page = ref(1)
@@ -73,13 +70,17 @@ const total = ref(0)
 const loading = ref(false)
 
 const keyword = ref('')
-const selType = ref<string | ''>('')
-const selDiff = ref<number | null>(null)
+const subjectId = ref<number|null>(null)
+const levelId = ref<number|null>(null)
 const activeOnly = ref(false)
 
-const types = ['SC','MC','TF','FILL','ESSAY']
-const difficulties = ['全部','1','2','3','4','5']
-const selDiffLabel = computed(()=> selDiff.value==null ? '全部' : selDiff.value)
+const subjects = ref<Array<{id:number|null; name:string}>>([{ id: null as number|null, name: '全部' }])
+const levels   = ref<Array<{id:number|null; name:string}>>([{ id: null as number|null, name: '全部' }])
+const subjectNames = computed(()=> subjects.value.map(s=>s.name))
+const levelNames   = computed(()=> levels.value.map(s=>s.name))
+const subjectLabel = computed(()=> subjects.value.find(s=>s.id===subjectId.value)?.name || '全部')
+const levelLabel   = computed(()=> levels.value.find(s=>s.id===levelId.value)?.name || '全部')
+
 const hasMore = computed(()=> items.value.length < total.value)
 
 function fmtTime(s?: string){
@@ -94,8 +95,8 @@ async function fetch(p=1, append=false){
       page: p,
       size: size.value,
       keyword: keyword.value || undefined,
-      qtype: selType.value || undefined,
-      difficulty: selDiff.value==null ? undefined : selDiff.value,
+      subject_id: subjectId.value==null ? undefined : subjectId.value,
+      level_id: levelId.value==null ? undefined : levelId.value,
       active_only: activeOnly.value
     })
     total.value = resp?.total ?? 0
@@ -110,17 +111,21 @@ async function fetch(p=1, append=false){
 
 function refresh(){ fetch(1,false) }
 function loadMore(){ if(!loading.value && hasMore.value) fetch(page.value+1,true) }
-function onType(e:any){ selType.value = types[e.detail.value]; refresh() }
-function onDiff(e:any){
-  const idx = e.detail.value
-  selDiff.value = idx===0? null : Number(difficulties[idx])
+function onSubject(e:any){
+  const idx = Number(e.detail.value)
+  subjectId.value = subjects.value[idx].id
+  refresh()
+}
+function onLevel(e:any){
+  const idx = Number(e.detail.value)
+  levelId.value = levels.value[idx].id
   refresh()
 }
 function toggleActive(e:any){ activeOnly.value = !!e.detail.value; refresh() }
 function viewDetail(q:MyQuestionItem){
   uni.navigateTo({ url: '/pages/question-edit/question-edit?id=' + q.question_id })
 }
-function statusCls(s:string){
+function statusCls(s?: string){
   s = (s||'').toLowerCase()
   if(s==='approved') return 'approved'
   if(s==='pending') return 'pending'
@@ -128,8 +133,16 @@ function statusCls(s:string){
   return ''
 }
 
-onMounted(()=>{
+onMounted(async ()=>{
   if(!uni.getStorageSync('token')) return uni.reLaunch({ url:'/pages/login/login' })
+  try {
+    const [subs, levelList] = await Promise.all([
+      api.listTags({ type: 'SUBJECT' }),
+      api.listTags({ type: 'LEVEL' }),
+    ])
+    subjects.value = [{ id: null as number|null, name: '全部' }, ...(subs||[]).map((t:TagItem)=>({ id: t.id, name: t.name }))]
+    levels.value   = [{ id: null as number|null, name: '全部' }, ...(levelList||[]).map((t:TagItem)=>({ id: t.id, name: t.name }))]
+  } catch {}
   fetch(1)
 })
 </script>
@@ -277,6 +290,7 @@ onMounted(()=>{
   display:-webkit-box;
   -webkit-box-orient:vertical;
   -webkit-line-clamp:3;
+  line-clamp:3; /* 标准属性，兼容性提示 */
   overflow:hidden;
 }
 .q-bottom{

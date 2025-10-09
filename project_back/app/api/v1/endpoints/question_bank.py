@@ -3,17 +3,47 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from app.api import deps
+from app.services import question_bank_service
+
+# ==== 新增导入：Pydantic 响应/请求模型 ====
+from app.schemas.question_bank import (
+    MyQuestionListResp,
+    MyQuestionItem,
+    QuestionsBriefResp,
+    QuestionBrief,
+    QuestionUpdate,
+    TagOut,
+    QuestionTagsOut,
+    SetQuestionTagsIn,
+)
+# ==== 新增导入：数据库模型 ====
 from app.models.user import User
 from app.models.question import Question
 from app.models.question_version import QuestionVersion
 from app.models.tag import Tag, QuestionTag
-from app.schemas.question_bank import (
-    QuestionUpdate, TagOut, QuestionTagsOut, SetQuestionTagsIn,
-    MyQuestionListResp, MyQuestionItem, QuestionsBriefResp, QuestionBrief,
-)
-from app.services import question_bank_service
+
+# 说明：
+# - 上面导入的名称正好对应 Pylance 报“未定义”的符号
+# - 若有未使用告警，可以暂时忽略；都在本文件中实际被引用
 
 router = APIRouter()
+
+@router.get("/question-bank/my-questions")
+def my_questions(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    keyword: str | None = None,
+    qtype: str | None = None,
+    difficulty: int | None = Query(None, ge=1, le=5),
+    active_only: bool = False,
+    subject_id: int | None = Query(None),
+    level_id: int | None = Query(None),
+    db: Session = Depends(deps.get_db),
+):
+    return question_bank_service.get_my_questions(
+        db, page, size, keyword, qtype, difficulty, active_only,
+        subject_id=subject_id, level_id=level_id
+    )
 
 @router.get("/my-questions", response_model=MyQuestionListResp)
 def list_my_questions(

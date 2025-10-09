@@ -101,18 +101,22 @@ function normalizeOptions(raw:any): {key?:string; text:string}[] {
 }
 
 async function load(){
-  const d:any = await api.getQuestionDetail(qid.value)
-  form.value.stem = d?.stem ?? d?.title ?? ''
-  form.value.options = normalizeOptions(d?.options ?? d?.choices)
-  if(form.value.options.length===0) form.value.options = [{text:''},{text:''}]
-  form.value.analysis = d?.analysis ?? d?.explanation ?? ''
-  form.value.correct_answer = (d?.correct_answer ?? 'A')
-  form.value.is_active = !!(d?.is_active ?? true)
+  try {
+    const d:any = await api.getQuestionDetail(qid.value)
+    form.value.stem = d?.stem ?? d?.title ?? ''
+    form.value.options = normalizeOptions(d?.options ?? d?.choices)
+    if(form.value.options.length===0) form.value.options = [{text:''},{text:''}]
+    form.value.analysis = d?.analysis ?? d?.explanation ?? ''
+    form.value.correct_answer = (d?.correct_answer ?? 'A')
+    form.value.is_active = !!(d?.is_active ?? true)
+  } catch(e:any){
+    uni.showToast({ icon:'none', title: e?.data?.message || '加载题目失败' })
+  }
 }
 
 async function loadTags(){
-  subjects.value = await api.listTags('SUBJECT').catch(()=>[])
-  levels.value = await api.listTags('LEVEL').catch(()=>[])
+  subjects.value = await api.listTags({ type:'SUBJECT' }).catch(()=>[])
+  levels.value = await api.listTags({ type:'LEVEL' }).catch(()=>[])
   const qt = await api.getQuestionTags(qid.value).catch(()=>null)
   if(qt){
     curSubjectId.value = qt.subject_id ?? null
@@ -142,7 +146,6 @@ async function save(){
       is_active: form.value.is_active,
     }
     await api.updateQuestion(qid.value, payload)
-    // 保存 TAG（学科/学段）
     await api.setQuestionTags(qid.value, {
       subject_id: curSubjectId.value ?? undefined,
       level_id: curLevelId.value ?? undefined,
