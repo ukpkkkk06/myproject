@@ -158,6 +158,49 @@ function setQuestionTags(id: number, data: { subject_id?: number; level_id?: num
   return request(`/question-bank/questions/${id}/tags`, { method: 'PUT', data })
 }
 
+export interface ImportResult {
+  total_rows: number
+  success: number
+  failed: number
+  errors: { row: number; reason: string }[]
+}
+
+function importQuestionsExcel(filePath: string) {
+  const token = uni.getStorageSync('token')
+  const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/,'')
+  return new Promise<ImportResult>((resolve, reject)=>{
+    uni.uploadFile({
+      url: base + '/api/v1/question-bank/import-excel',
+      filePath,
+      name: 'file',
+      header: token ? { Authorization: 'Bearer '+token } : {},
+      success(res){
+        if(res.statusCode>=200 && res.statusCode<300){
+          try { resolve(JSON.parse(res.data)) } catch { reject(res) }
+        } else reject(res)
+      },
+      fail(err){ reject(err) }
+    })
+  })
+}
+
+export function downloadImportTemplate(): Promise<string> {
+  const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/,'')
+  const token = uni.getStorageSync('token')
+  return new Promise((resolve, reject)=>{
+    uni.downloadFile({
+      url: base + '/api/v1/question-bank/import-template',
+      header: token ? { Authorization: 'Bearer '+token } : {},
+      success(res){
+        if(res.statusCode === 200 && res.tempFilePath){
+          resolve(res.tempFilePath)
+        } else reject(res)
+      },
+      fail(err){ reject(err) }
+    })
+  })
+}
+
 export const api = {
   // 健康检查
   health: () => request<{ status: string; db?: string }>('/health', { method: 'GET' }),
@@ -238,6 +281,8 @@ export const api = {
   updateQuestion,
   getQuestionTags,
   setQuestionTags,
+  importQuestionsExcel,
+  downloadImportTemplate,
 }
 
 export interface UserSimple {

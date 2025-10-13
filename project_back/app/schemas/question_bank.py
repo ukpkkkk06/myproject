@@ -1,6 +1,8 @@
 from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 from datetime import datetime
+# from app.services import question_bank_service
+# from app.services.question_bank_service import import_questions_from_excel  # 修复未定义函数
 
 class MyQuestionItem(BaseModel):
     question_id: int
@@ -60,3 +62,13 @@ class QuestionUpdate(BaseModel):
     analysis: Optional[str] = None
     correct_answer: Optional[str] = None
     is_active: Optional[bool] = None
+
+class ImportErrorItem(BaseModel):
+    row: int
+    reason: str
+
+class ImportQuestionsResult(BaseModel):
+    total_rows: int
+    success: int
+    failed: int
+    errors: List[ImportErrorItem] = []

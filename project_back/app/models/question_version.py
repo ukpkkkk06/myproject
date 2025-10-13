@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, BigInteger, ForeignKey, String, Text, JSON, Boolean, DateTime
+from sqlalchemy import Column, Integer, BigInteger, ForeignKey, String, Text, JSON, Boolean, DateTime , text
 from sqlalchemy.sql import func
 from app.db.base import Base
 
@@ -7,7 +7,7 @@ class QuestionVersion(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     question_id = Column(Integer, ForeignKey("QUESTION.id"), nullable=False)
-    version_no = Column(Integer, nullable=False)
+    version_no = Column(Integer, nullable=False, default=1, server_default=text("1"))
     stem = Column(Text, nullable=False)
     options = Column(JSON, nullable=True)
     correct_answer = Column(String(255), nullable=True)

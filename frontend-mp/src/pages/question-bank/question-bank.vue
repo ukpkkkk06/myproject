@@ -30,6 +30,10 @@
       </view>
     </view>
 
+    <view class="toolbar">
+      <button class="mini-btn" @tap="openImport">导入Excel</button>
+    </view>
+
     <view class="list">
       <view v-if="!loading && items.length===0" class="empty">暂无题目</view>
       <view
@@ -131,6 +135,75 @@ function statusCls(s?: string){
   if(s==='pending') return 'pending'
   if(s==='rejected') return 'rejected'
   return ''
+}
+
+async function openImport(){
+  uni.showActionSheet({
+    itemList: ['下载模板', '上传并导入'],
+    success: async (r:any)=>{
+      const idx = r.tapIndex
+      if(idx === 0){
+        // 下载模板
+        try{
+          uni.showLoading({ title:'下载中' })
+          const tempPath = await api.downloadImportTemplate()
+          uni.hideLoading()
+          // 尝试直接打开（微信小程序支持）
+          if (typeof uni.openDocument === 'function') {
+            uni.openDocument({
+              filePath: tempPath,
+              showMenu: true,
+              success(){ uni.showToast({ icon:'none', title:'已打开模板' }) },
+              fail(){ uni.showToast({ icon:'none', title:'已下载到临时目录' }) }
+            })
+          } else {
+            uni.showToast({ icon:'none', title:'已下载' })
+          }
+        }catch(e:any){
+          uni.hideLoading()
+          uni.showToast({ icon:'none', title: e?.data?.message || '下载失败' })
+        }
+      } else if(idx === 1){
+        // 上传并导入
+        const pickAndImport = (files:any[]) => {
+          const file = files?.[0]
+          if(!file) return
+          const filePath = (file.path || file.tempFilePath)
+          if(!filePath) return uni.showToast({ icon:'none', title:'无法读取文件路径' })
+          uni.showLoading({ title:'导入中' })
+          api.importQuestionsExcel(filePath)
+            .then(res=>{
+              uni.showModal({
+                title:'导入完成',
+                content:`总行:${res.total_rows}\n成功:${res.success}\n失败:${res.failed}${
+                  res.failed? '\n错误:\n'+ res.errors.slice(0,5).map(e=>`行${e.row}:${e.reason}`).join('\n') + (res.errors.length>5?'\n...':'') : ''
+                }`,
+                showCancel:false
+              })
+              if(res.success>0) refresh()
+            })
+            .catch((e:any)=> uni.showToast({ icon:'none', title: e?.data?.message || '导入失败' }))
+            .finally(()=> uni.hideLoading())
+        }
+        if (typeof uni.chooseFile === 'function') {
+          uni.chooseFile({
+            extension:['.xlsx'],
+            count:1,
+            success: (r2:any)=> pickAndImport(r2.tempFiles || []),
+          })
+        } else if (typeof uni.chooseMessageFile === 'function') {
+          uni.chooseMessageFile({
+            type:'file',
+            extension:['.xlsx'],
+            count:1,
+            success: (r2:any)=> pickAndImport(r2.tempFiles || []),
+          })
+        } else {
+          uni.showToast({ icon:'none', title:'当前端不支持选择文件' })
+        }
+      }
+    }
+  })
 }
 
 onMounted(async ()=>{
@@ -334,6 +407,8 @@ onMounted(async ()=>{
 }
 .load-btn:active{ opacity:.85; }
 .load-btn[disabled]{ opacity:.55; }
+
+.toolbar{ padding:16rpx 24rpx; display:flex; gap:20rpx; }
 
 @media (min-width:700rpx){
   .head-card, .q-card { max-width:900rpx; margin:0 auto; }

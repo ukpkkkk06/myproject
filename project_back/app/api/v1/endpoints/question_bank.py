@@ -1,9 +1,14 @@
 import json
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.api import deps
 from app.services import question_bank_service
+import tempfile
+from pathlib import Path
+from fastapi.responses import FileResponse
+import logging
+import os
 
 # ==== 新增导入：Pydantic 响应/请求模型 ====
 from app.schemas.question_bank import (
@@ -15,6 +20,7 @@ from app.schemas.question_bank import (
     TagOut,
     QuestionTagsOut,
     SetQuestionTagsIn,
+    ImportQuestionsResult,
 )
 # ==== 新增导入：数据库模型 ====
 from app.models.user import User
@@ -27,6 +33,21 @@ from app.models.tag import Tag, QuestionTag
 # - 若有未使用告警，可以暂时忽略；都在本文件中实际被引用
 
 router = APIRouter()
+
+
+# parents[4] 才是 project_back 根目录
+TEMPLATE_FILE = Path(__file__).resolve().parents[4] / "Import template.xlsx"
+logging.getLogger(__name__).debug(f"Import template path: {TEMPLATE_FILE}")
+
+@router.get("/question-bank/import-template")
+def download_import_template():
+    if not TEMPLATE_FILE.exists():
+        raise HTTPException(status_code=404, detail=f"模板不存在: {TEMPLATE_FILE}")
+    return FileResponse(
+        path=str(TEMPLATE_FILE),
+        filename="题目导入模板.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 @router.get("/question-bank/my-questions")
 def my_questions(
@@ -433,3 +454,25 @@ def set_question_tags(
 
     db.commit()
     return {"ok": True}
+
+@router.post("/question-bank/import-excel", response_model=ImportQuestionsResult)
+def import_excel(
+    file: UploadFile = File(...),
+    db: Session = Depends(deps.get_db),
+    current_user=Depends(deps.get_current_user)
+):
+    if not file.filename.lower().endswith(".xlsx"):
+        raise HTTPException(status_code=400, detail="仅支持 .xlsx 文件")
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+            content = file.file.read()
+            tmp.write(content)
+            tmp_path = tmp.name
+        return question_bank_service.import_questions_from_excel(db, tmp_path, current_user.id)
+    finally:
+        try:
+            if tmp_path and os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except Exception:
+            pass

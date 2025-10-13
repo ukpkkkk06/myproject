@@ -4649,3 +4649,464 @@ Traceback (most recent call last):
 fastapi.exceptions.ResponseValidationError: 1 validation errors:
   {'type': 'list_type', 'loc': ('response', 'options'), 'msg': 'Input should be a valid list', 'input': '["16", "24", "32", "64"]'}
 
+2025-10-10 10:41:17,800 ERROR [app.core.error_handlers] Unhandled error: (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on '127.0.0.1' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymysql\connections.py", line 661, in connect
+    sock = socket.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 865, in create_connection
+    raise exceptions[0]
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 850, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 3301, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 447, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 1264, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 711, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\impl.py", line 175, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 388, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 673, in __init__
+    self.__connect()
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 899, in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 895, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\create.py", line 661, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\default.py", line 629, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymysql\connections.py", line 365, in __init__
+    self.connect()
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymysql\connections.py", line 723, in connect
+    raise exc
+pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on '127.0.0.1' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\auth.py", line 13, in login
+    return auth_service.login(db, body.account, body.password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\auth_service.py", line 13, in login
+    user = db.query(User).filter(User.account == account).first()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\query.py", line 2759, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2365, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2241, in _execute_internal
+    conn = self._connection_for_bind(bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2110, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 1189, in _connection_for_bind
+    conn = bind.connect()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 3277, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 145, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 2440, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 3301, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 447, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 1264, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 711, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\impl.py", line 175, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 388, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 673, in __init__
+    self.__connect()
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 899, in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\pool\base.py", line 895, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\create.py", line 661, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\default.py", line 629, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymysql\connections.py", line 365, in __init__
+    self.connect()
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\pymysql\connections.py", line 723, in connect
+    raise exc
+sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on '127.0.0.1' ([WinError 10061] 由于目标计算机积极拒绝，无法连接。)")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-10 16:01:10,580 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-10 16:01:10,581 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-10 16:01:10,582 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-10 16:01:10,582 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-10 16:01:10,582 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-10 16:01:10,583 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-10 16:01:10,583 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-10 16:01:10,583 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-10 16:01:10,626 DEBUG [python_multipart.multipart] Calling on_part_data with data[0:8829]
+2025-10-10 16:01:10,626 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-10 16:01:10,627 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-10 16:05:10,018 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-10 16:05:10,018 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-10 16:05:10,019 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-10 16:05:10,019 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-10 16:05:10,019 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-10 16:05:10,019 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-10 16:05:10,019 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-10 16:05:10,020 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-10 16:05:10,048 DEBUG [python_multipart.multipart] Calling on_part_data with data[0:8829]
+2025-10-10 16:05:10,048 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-10 16:05:10,048 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-10 16:05:10,132 ERROR [app.core.error_handlers] Unhandled error: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (pymysql.err.IntegrityError) (1048, "Column 'type' cannot be null")
+[SQL: INSERT INTO `QUESTION` (current_version_id, type, difficulty, language_code, source_type, audit_status, is_active) VALUES (%(current_version_id)s, %(type)s, %(difficulty)s, %(language_code)s, %(source_type)s, %(audit_status)s, %(is_active)s)]
+[parameters: {'current_version_id': None, 'type': None, 'difficulty': None, 'language_code': None, 'source_type': None, 'audit_status': 'PENDING', 'is_active': 1}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\question_bank.py", line 472, in import_excel
+    return question_bank_service.import_questions_from_excel(db, tmp_path, current_user.id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\question_bank_service.py", line 124, in import_questions_from_excel
+    db.commit()
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 101, in _go
+    self._raise_for_prerequisite_state(fn.__name__, current_state)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 973, in _raise_for_prerequisite_state
+    raise sa_exc.PendingRollbackError(
+sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (pymysql.err.IntegrityError) (1048, "Column 'type' cannot be null")
+[SQL: INSERT INTO `QUESTION` (current_version_id, type, difficulty, language_code, source_type, audit_status, is_active) VALUES (%(current_version_id)s, %(type)s, %(difficulty)s, %(language_code)s, %(source_type)s, %(audit_status)s, %(is_active)s)]
+[parameters: {'current_version_id': None, 'type': None, 'difficulty': None, 'language_code': None, 'source_type': None, 'audit_status': 'PENDING', 'is_active': 1}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+2025-10-10 16:05:26,926 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-10 16:05:26,926 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-10 16:05:26,926 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-10 16:05:26,926 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-10 16:05:26,926 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-10 16:05:26,928 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-10 16:05:26,928 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-10 16:05:26,928 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-10 16:05:26,951 DEBUG [python_multipart.multipart] Calling on_part_data with data[0:8829]
+2025-10-10 16:05:26,952 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-10 16:05:26,952 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-13 08:30:16,028 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-13 08:30:16,029 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-13 08:30:16,029 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-13 08:30:16,030 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-13 08:30:16,030 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-13 08:30:16,030 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-13 08:30:16,030 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-13 08:30:16,031 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-13 08:30:16,055 DEBUG [python_multipart.multipart] Calling on_part_data with data[0:8829]
+2025-10-13 08:30:16,055 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-13 08:30:16,055 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-13 08:42:11,670 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-13 08:42:11,671 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-13 08:42:11,671 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-13 08:42:11,671 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-13 08:42:11,671 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-13 08:42:11,672 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-13 08:42:11,672 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-13 08:42:11,673 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-13 08:42:11,711 DEBUG [python_multipart.multipart] Calling on_part_data with data[0:8829]
+2025-10-13 08:42:11,712 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-13 08:42:11,712 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-13 08:42:11,808 ERROR [app.core.error_handlers] Unhandled error: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (pymysql.err.IntegrityError) (1048, "Column 'version_no' cannot be null")
+[SQL: INSERT INTO `QUESTION_VERSION` (question_id, version_no, stem, options, correct_answer, explanation, change_note, created_by, is_active) VALUES (%(question_id)s, %(version_no)s, %(stem)s, %(options)s, %(correct_answer)s, %(explanation)s, %(change_note)s, %(created_by)s, %(is_active)s)]
+[parameters: {'question_id': 15, 'version_no': None, 'stem': '测试1题', 'options': '[{"key": "A", "text": "\\u6d4b\\u8bd5"}, {"key": "B", "text": "\\u6d4b\\u8bd5"}, {"key": "C", "text": "\\u6d4b\\u8bd5"}, {"key": "D", "text": "\\u6d4b\\u8bd5"}]', 'correct_answer': 'A', 'explanation': '答案为A', 'change_note': None, 'created_by': 2, 'is_active': 1}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\question_bank.py", line 472, in import_excel
+    return question_bank_service.import_questions_from_excel(db, tmp_path, current_user.id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\question_bank_service.py", line 117, in import_questions_from_excel
+    db.commit()
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 101, in _go
+    self._raise_for_prerequisite_state(fn.__name__, current_state)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 973, in _raise_for_prerequisite_state
+    raise sa_exc.PendingRollbackError(
+sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (pymysql.err.IntegrityError) (1048, "Column 'version_no' cannot be null")
+[SQL: INSERT INTO `QUESTION_VERSION` (question_id, version_no, stem, options, correct_answer, explanation, change_note, created_by, is_active) VALUES (%(question_id)s, %(version_no)s, %(stem)s, %(options)s, %(correct_answer)s, %(explanation)s, %(change_note)s, %(created_by)s, %(is_active)s)]
+[parameters: {'question_id': 15, 'version_no': None, 'stem': '测试1题', 'options': '[{"key": "A", "text": "\\u6d4b\\u8bd5"}, {"key": "B", "text": "\\u6d4b\\u8bd5"}, {"key": "C", "text": "\\u6d4b\\u8bd5"}, {"key": "D", "text": "\\u6d4b\\u8bd5"}]', 'correct_answer': 'A', 'explanation': '答案为A', 'change_note': None, 'created_by': 2, 'is_active': 1}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+2025-10-13 08:45:14,108 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-13 08:45:14,108 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-13 08:45:14,108 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-13 08:45:14,108 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-13 08:45:14,109 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-13 08:45:14,109 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-13 08:45:14,109 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-13 08:45:14,109 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-13 08:45:14,133 DEBUG [python_multipart.multipart] Calling on_part_data with data[0:8829]
+2025-10-13 08:45:14,133 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-13 08:45:14,133 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-13 08:45:14,198 ERROR [app.core.error_handlers] Unhandled error: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (pymysql.err.IntegrityError) (1048, "Column 'version_no' cannot be null")
+[SQL: INSERT INTO `QUESTION_VERSION` (question_id, version_no, stem, options, correct_answer, explanation, change_note, created_by, is_active) VALUES (%(question_id)s, %(version_no)s, %(stem)s, %(options)s, %(correct_answer)s, %(explanation)s, %(change_note)s, %(created_by)s, %(is_active)s)]
+[parameters: {'question_id': 16, 'version_no': None, 'stem': '测试1题', 'options': '[{"key": "A", "text": "\\u6d4b\\u8bd5"}, {"key": "B", "text": "\\u6d4b\\u8bd5"}, {"key": "C", "text": "\\u6d4b\\u8bd5"}, {"key": "D", "text": "\\u6d4b\\u8bd5"}]', 'correct_answer': 'A', 'explanation': '答案为A', 'change_note': None, 'created_by': 2, 'is_active': 1}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\question_bank.py", line 472, in import_excel
+    return question_bank_service.import_questions_from_excel(db, tmp_path, current_user.id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\question_bank_service.py", line 117, in import_questions_from_excel
+    db.commit()
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 101, in _go
+    self._raise_for_prerequisite_state(fn.__name__, current_state)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 973, in _raise_for_prerequisite_state
+    raise sa_exc.PendingRollbackError(
+sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (pymysql.err.IntegrityError) (1048, "Column 'version_no' cannot be null")
+[SQL: INSERT INTO `QUESTION_VERSION` (question_id, version_no, stem, options, correct_answer, explanation, change_note, created_by, is_active) VALUES (%(question_id)s, %(version_no)s, %(stem)s, %(options)s, %(correct_answer)s, %(explanation)s, %(change_note)s, %(created_by)s, %(is_active)s)]
+[parameters: {'question_id': 16, 'version_no': None, 'stem': '测试1题', 'options': '[{"key": "A", "text": "\\u6d4b\\u8bd5"}, {"key": "B", "text": "\\u6d4b\\u8bd5"}, {"key": "C", "text": "\\u6d4b\\u8bd5"}, {"key": "D", "text": "\\u6d4b\\u8bd5"}]', 'correct_answer': 'A', 'explanation': '答案为A', 'change_note': None, 'created_by': 2, 'is_active': 1}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+2025-10-13 08:50:14,069 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-13 08:50:14,069 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-13 08:50:14,069 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-13 08:50:14,069 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-13 08:50:14,070 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-13 08:50:14,070 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-13 08:50:14,070 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-13 08:50:14,070 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-13 08:50:14,092 DEBUG [python_multipart.multipart] Calling on_part_data with data[0:8829]
+2025-10-13 08:50:14,093 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-13 08:50:14,093 DEBUG [python_multipart.multipart] Calling on_end with no data
