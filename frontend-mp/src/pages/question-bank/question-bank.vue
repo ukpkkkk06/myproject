@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { api, type MyQuestionItem, type TagItem } from '@/utils/api'
 
 const items = ref<MyQuestionItem[]>([])
@@ -280,8 +280,19 @@ async function openImport(){
   })
 }
 
+// 🔥 监听题目更新事件
+function handleQuestionUpdate(data: any){
+  console.log('收到题目更新事件:', data)
+  // 静默刷新当前页
+  fetch(page.value, false)
+}
+
 onMounted(async ()=>{
   if(!uni.getStorageSync('token')) return uni.reLaunch({ url:'/pages/login/login' })
+  
+  // 🔥 注册事件监听
+  uni.$on('question-updated', handleQuestionUpdate)
+  
   try {
     const [subs, levelList] = await Promise.all([
       api.listTags({ type: 'SUBJECT' }),
@@ -291,6 +302,11 @@ onMounted(async ()=>{
     levels.value   = [{ id: null as number|null, name: '全部' }, ...(levelList||[]).map((t:TagItem)=>({ id: t.id, name: t.name }))]
   } catch {}
   fetch(1)
+})
+
+// 🔥 页面卸载时移除监听
+onUnmounted(() => {
+  uni.$off('question-updated', handleQuestionUpdate)
 })
 </script>
 

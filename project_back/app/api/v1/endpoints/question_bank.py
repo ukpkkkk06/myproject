@@ -321,6 +321,12 @@ def update_question(
         elif hasattr(q, "is_active"):
             q.is_active = bool(body.is_active)
 
+    # 🔥 新增：保存时默认通过审核
+    if hasattr(qv, "audit_status"):
+        qv.audit_status = "APPROVED"  # 设置为已通过
+    elif hasattr(q, "audit_status"):
+        q.audit_status = "APPROVED"
+
     db.commit()
     return {"ok": True}
 

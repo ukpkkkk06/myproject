@@ -5603,3 +5603,14 @@ Traceback (most recent call last):
     questions = db.query(Question.id, Question.stem).filter(
                                       ^^^^^^^^^^^^^
 AttributeError: type object 'Question' has no attribute 'stem'
+2025-10-15 09:51:54,253 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-15 09:51:54,255 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-15 09:51:54,256 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-15 09:51:54,256 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-15 09:51:54,257 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-15 09:51:54,257 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-15 09:51:54,258 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-15 09:51:54,258 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-15 09:51:54,288 DEBUG [python_multipart.multipart] Calling on_part_data with data[0:8076]
+2025-10-15 09:51:54,290 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-15 09:51:54,290 DEBUG [python_multipart.multipart] Calling on_end with no data

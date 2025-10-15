@@ -117,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { api, type ErrorBookItem } from '@/utils/api'
 
 type Item = ErrorBookItem
@@ -185,11 +185,29 @@ function countLevel(n:number){
   return 'low'
 }
 
-onMounted(()=>{
+// 🔥 监听题目更新事件
+function handleQuestionUpdate(data: any){
+  console.log('错题本收到题目更新事件:', data)
+  // 如果更新的题目在当前列表中，刷新数据
+  const exists = items.value.some(item => item.question_id === data.questionId)
+  if(exists){
+    fetchPage(page.value) // 🔥 修复：改为 fetchPage
+  }
+}
+
+onMounted(async ()=>{
   if(!uni.getStorageSync('token')) {
     return uni.reLaunch({ url:'/pages/login/login' })
   }
   fetchPage(1)
+
+  // 🔥 注册事件监听
+  uni.$on('question-updated', handleQuestionUpdate)
+})
+
+// 🔥 页面卸载时移除监听
+onUnmounted(() => {
+  uni.$off('question-updated', handleQuestionUpdate)
 })
 </script>
 

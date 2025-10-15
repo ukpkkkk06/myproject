@@ -322,11 +322,19 @@ async function save(){
     const kpItems: QuestionKnowledgeItem[] = selectedKpIds.value.map(id => ({ knowledge_id: id }))
     await bindQuestionKnowledge(qid.value, kpItems)
     
+    // 🔥 修复：先发送事件，再提示和返回
+    uni.$emit('question-updated', { 
+      questionId: qid.value,
+      timestamp: Date.now() 
+    })
+    
     uni.showToast({ icon:'success', title:'已保存' })
     setTimeout(()=>goBack(), 400)
   }catch(e:any){
     uni.showToast({ icon:'none', title: e?.data?.message || '保存失败' })
-  }finally{ saving.value=false }
+  }finally{ 
+    saving.value=false 
+  }
 }
 
 function goBack(){
