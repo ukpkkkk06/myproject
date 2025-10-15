@@ -3,16 +3,20 @@ from uuid import uuid4
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from typing import Optional, List
 from sqlalchemy import func
 from app.core.exceptions import AppException
+from app.models.knowledge_point import KnowledgePoint
+from app.models.question_knowledge import QuestionKnowledge
 from app.models.user import User
 from app.models.question import Question
 from app.models.question_version import QuestionVersion
+from app.models.user_answer import UserAnswer
+from app.models.error_book import ErrorBook
+from app.models.tag import Tag, QuestionTag
 from app.models.paper import Paper
 from app.models.paper_question import PaperQuestion
 from app.models.exam_attempt import ExamAttempt
-from app.models.user_answer import UserAnswer
-from app.models.error_book import ErrorBook
 
 log = logging.getLogger("practice_service")
 
@@ -20,7 +24,7 @@ def _norm_sc(ans: str) -> str:
     return (ans or "").strip().upper()
 
 def _new_title() -> str:
-    return f"练习_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid4().hex[:6].upper()}"
+    return f"练习-{datetime.now():%Y%m%d%H%M%S}"
 
 def _err_msg(e: Exception) -> str:
     try:
@@ -59,107 +63,77 @@ def _opt_to_list(val) -> list[str]:
     # 其它类型兜底
     return [str(val)]
 
-def create_session(db: Session, user: User, size: int) -> tuple[int, int, int, int]:
+def _kp_descendants(db, root_id: int) -> List[int]:
+    rows = db.query(KnowledgePoint.id, KnowledgePoint.parent_id).all()
+    by_parent = {}
+    for i, p in rows:
+        by_parent.setdefault(p, []).append(i)
+    res, st = [], [root_id]
+    while st:
+        cur = st.pop()
+        cs = by_parent.get(cur, [])
+        res.extend(cs); st.extend(cs)
+    return res
+
+def create_session(db: Session, user: User, size: int, subject_id: Optional[int] = None, knowledge_id: Optional[int] = None, include_children: bool = False) -> tuple[int, int, int, int]:
+    """创建练习会话；可按学科筛选。异常通过 AppException 抛出，交给统一异常处理器。
+    Args:
+        db (Session): 数据库会话
+        user (User): 用户对象
+        size (int): 题目数量
+        subject_id (Optional[int], optional): 学科 ID. Defaults to None.
+    Raises:
+        AppException: 自定义异常
+    Returns:
+        tuple[int, int, int, int]: 会话 ID, 试卷 ID, 题目总数, 当前题序
+    """
     size = max(1, min(int(size or 5), 50))
 
-    # 1) 复用未完成会话
-    existing = (
-        db.query(ExamAttempt)
-        .filter(ExamAttempt.user_id == user.id, ExamAttempt.status == "IN_PROGRESS")
-        .order_by(ExamAttempt.start_time.desc())
-        .first()
-    )
-    if existing:
-        total = db.query(PaperQuestion).filter(PaperQuestion.paper_id == existing.paper_id).count()
-        return existing.id, existing.paper_id, int(total), 1
+    # 仅当未指定学科时复用未完成会话；指定学科时强制新建，确保筛选生效
+    if subject_id is None:
+        existing = (
+            db.query(ExamAttempt)
+            .filter(ExamAttempt.user_id == user.id, ExamAttempt.status == "IN_PROGRESS")
+            .order_by(ExamAttempt.start_time.desc())
+            .first()
+        )
+        if existing:
+            total = db.query(PaperQuestion).filter(PaperQuestion.paper_id == existing.paper_id).count()
+            return existing.id, existing.paper_id, int(total), 1
+    # 若指定学科，校验其存在
+    if subject_id is not None:
+        tag = db.query(Tag).filter(Tag.id == int(subject_id), Tag.type == "SUBJECT").first()
+        if not tag:
+            raise AppException("学科不存在", code=400, status_code=400)
 
-    # 2) 抽题
-    q_rows = (
-        db.query(Question.id)
-        .filter(Question.is_active == True, Question.type == "SC")
-        .order_by(func.rand())
-        .limit(size)
-        .all()
-    )
-    question_ids = [r.id for r in q_rows]
+    # 按学科抽题
+    q = db.query(Question.id).filter(Question.is_active == True, Question.type == "SC")
+    if subject_id:
+        q = (q.join(QuestionTag, QuestionTag.question_id == Question.id)
+              .join(Tag, Tag.id == QuestionTag.tag_id)
+              .filter(Tag.type == "SUBJECT", Tag.id == int(subject_id)))
+    question_ids = [r.id for r in q.order_by(func.rand()).limit(size).all()]
     if not question_ids:
-        raise AppException("暂无可用题目", code=404, status_code=404)
+        raise AppException("该学科暂无可用题目" if subject_id else "暂无可用题目", code=404, status_code=404)
 
-    # 3) 创建 Paper、PAPER_QUESTION、EXAM_ATTEMPT
+    # 组卷 + 创建会话（失败要回滚并抛出 AppException）
     try:
-        now = datetime.utcnow()
         paper = Paper(
             title=_new_title(),
             is_public=False,
             status="PRACTICE",
             created_by=user.id,
-            created_at=now,
-            updated_at=now,
         )
         db.add(paper); db.flush()
-
         for i, qid in enumerate(question_ids, start=1):
-            db.add(PaperQuestion(paper_id=paper.id, question_id=qid, seq=i, score=1))
+            db.add(PaperQuestion(paper_id=paper.id, question_id=qid, seq=i))
         db.flush()
-
-        next_idx = (
-            db.query(func.coalesce(func.max(ExamAttempt.attempt_index), 0))
-            .filter(ExamAttempt.user_id == user.id, ExamAttempt.paper_id == paper.id)
-            .scalar() or 0
-        ) + 1
-
-        attempt = ExamAttempt(
-            user_id=user.id,
-            paper_id=paper.id,
-            attempt_index=int(next_idx),
-            start_time=now,
-            status="IN_PROGRESS",
-            created_at=now,  # 关键：补上创建时间
-        )
+        attempt = ExamAttempt(user_id=user.id, paper_id=paper.id, status="IN_PROGRESS", start_time=datetime.now())
         db.add(attempt); db.commit()
-
-    except IntegrityError as e:
+        return attempt.id, paper.id, len(question_ids), 1
+    except Exception as e:
         db.rollback()
-        log.exception("create_session IntegrityError")
-        msg = _err_msg(e)
-
-        if "created_at" in msg:
-            raise AppException("创建练习失败：时间戳为空", code=400, status_code=400)
-
-        if "uk_attempt_user_paper_idx" in msg:
-            existed = (
-                db.query(ExamAttempt)
-                .filter(ExamAttempt.user_id == user.id, ExamAttempt.paper_id == paper.id)
-                .order_by(ExamAttempt.attempt_index.desc())
-                .first()
-            )
-            if existed:
-                total = db.query(PaperQuestion).filter(PaperQuestion.paper_id == existed.paper_id).count()
-                return existed.id, existed.paper_id, int(total), 1
-            raise AppException("会话冲突，请稍后重试", code=409, status_code=409)
-
-        if "uk_paper_seq" in msg or "uk_paper_question" in msg:
-            # 极小概率冲突，换一张试卷重试一次
-            now = datetime.utcnow()
-            paper = Paper(
-                title=_new_title(), is_public=False, status="PRACTICE",
-                created_by=user.id, created_at=now, updated_at=now
-            )
-            db.add(paper); db.flush()
-            for i, qid in enumerate(question_ids, start=1):
-                db.add(PaperQuestion(paper_id=paper.id, question_id=qid, seq=i, score=1))
-            db.flush()
-            attempt = ExamAttempt(
-                user_id=user.id, paper_id=paper.id, attempt_index=1,
-                start_time=now, status="IN_PROGRESS",
-                created_at=now,  # 关键：补上创建时间
-            )
-            db.add(attempt); db.commit()
-        else:
-            raise AppException("唯一约束冲突，请稍后重试", code=409, status_code=409)
-
-    total = db.query(PaperQuestion).filter(PaperQuestion.paper_id == paper.id).count()
-    return attempt.id, paper.id, int(total), 1
+        raise
 
 def get_question(db: Session, user: User, attempt_id: int, seq: int):
     attempt = db.query(ExamAttempt).filter(ExamAttempt.id == attempt_id, ExamAttempt.user_id == user.id).first()

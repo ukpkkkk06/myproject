@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from app.api.deps import get_db, get_current_user
@@ -8,8 +8,15 @@ from app.models.role import Role
 from app.models.user_role import UserRole
 from app.services import user_service
 from app.schemas.user import AdminUpdateUserRequest
+import tracemalloc
 
 router = APIRouter()
+
+try:
+    router  # 复用已有 router
+except NameError:
+    from fastapi import APIRouter
+    router = APIRouter()
 
 def _is_admin(db: Session, me: User) -> bool:
     rows = (
@@ -89,3 +96,35 @@ def admin_reset_password(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
     user_service.set_password(db, u, body.password)
     return {"code": 0, "message": "ok"}
+
+@router.get("/admin/mem/stats", tags=["admin"])
+def mem_stats():
+    traced = tracemalloc.is_tracing()
+    current_kb = peak_kb = None
+    if traced:
+        current, peak = tracemalloc.get_traced_memory()
+        current_kb = round(current / 1024, 2)
+        peak_kb = round(peak / 1024, 2)
+    return {"traced": traced, "current_kb": current_kb, "peak_kb": peak_kb}
+
+@router.get("/admin/mem/top", tags=["admin"])
+def mem_top(limit: int = Query(20, ge=1, le=200)):
+    if not tracemalloc.is_tracing():
+        return {"traced": False, "items": []}
+    snapshot = tracemalloc.take_snapshot()
+    stats = snapshot.statistics("lineno")[:limit]
+    items = []
+    for s in stats:
+        tb = s.traceback[0] if s.traceback else None
+        items.append({
+            "file": str(tb) if tb else None,
+            "size_kb": round(s.size / 1024, 2),
+            "count": s.count,
+        })
+    return {"traced": True, "items": items}
+
+@router.post("/admin/mem/reset-peak", tags=["admin"])
+def mem_reset_peak():
+    if tracemalloc.is_tracing():
+        tracemalloc.reset_peak()
+    return {"ok": True}

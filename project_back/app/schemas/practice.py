@@ -1,8 +1,9 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional, List
 
 class CreateSessionRequest(BaseModel):
     size: int = 5
+    subject_id: Optional[int] = None
 
 class CreateSessionResponse(BaseModel):
     attempt_id: int
@@ -36,3 +37,7 @@ class FinishResponse(BaseModel):
     correct_count: int
     accuracy: float
     duration_seconds: int
+
+class SubjectOut(BaseModel):
+    id: int
+    name: str

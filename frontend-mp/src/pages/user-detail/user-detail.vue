@@ -1,56 +1,132 @@
 <template>
   <view class="ud-page">
-    <!-- 顶部仅保留标题 -->
+    <!-- 顶部导航 -->
     <view class="safe-nav">
-      <text class="nav-title">用户详情</text>
+      <view class="nav-content">
+        <text class="nav-icon">👤</text>
+        <text class="nav-title">用户详情</text>
+      </view>
     </view>
 
     <view class="body">
-      <!-- 基本信息 -->
-      <view class="card">
-        <view class="card-title">基本信息</view>
-        <view class="info">
-          <view class="row"><text class="label">用户ID</text><text class="val">{{ u?.id }}</text></view>
-          <view class="row"><text class="label">账号</text><text class="val">{{ u?.account }}</text></view>
-          <view class="row"><text class="label">昵称</text><text class="val">{{ u?.nickname || '—' }}</text></view>
-          <view class="row"><text class="label">邮箱</text><text class="val">{{ u?.email || '—' }}</text></view>
-          <view class="row"><text class="label">状态</text><text class="val">{{ (u?.status || '').toLowerCase() || '—' }}</text></view>
-          <view class="row"><text class="label">角色</text>
-            <text class="val">
-              <text v-for="r in (u?.roles || [])" :key="r.code" class="pill">{{ r.name || r.code }}</text>
-              <text v-if="!u?.roles?.length" class="muted">—</text>
-            </text>
+      <!-- 基本信息卡片 -->
+      <view class="card info-card">
+        <view class="card-header">
+          <text class="card-icon">📋</text>
+          <text class="card-title">基本信息</text>
+        </view>
+        <view class="info-grid">
+          <view class="info-row">
+            <text class="info-label">用户ID</text>
+            <text class="info-value">{{ u?.id }}</text>
           </view>
-          <view class="row"><text class="label">注册时间</text><text class="val">{{ dt(u?.created_at) || '—' }}</text></view>
-          <view class="row"><text class="label">最近登录</text><text class="val">{{ dt(u?.last_login_at) || '—' }}</text></view>
+          <view class="info-row">
+            <text class="info-label">账号</text>
+            <text class="info-value primary">{{ u?.account }}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">昵称</text>
+            <text class="info-value">{{ u?.nickname || '—' }}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">邮箱</text>
+            <text class="info-value">{{ u?.email || '—' }}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">状态</text>
+            <view class="status-badge" :class="'status-' + ((u?.status || '').toLowerCase() || 'active')">
+              <text class="status-dot">●</text>
+              <text>{{ (u?.status || 'active').toLowerCase() }}</text>
+            </view>
+          </view>
+          <view class="info-row">
+            <text class="info-label">角色</text>
+            <view class="roles-wrapper">
+              <text v-for="r in (u?.roles || [])" :key="r.code" class="role-pill">{{ r.name || r.code }}</text>
+              <text v-if="!u?.roles?.length" class="empty-text">—</text>
+            </view>
+          </view>
+          <view class="info-row">
+            <text class="info-label">注册时间</text>
+            <text class="info-value time">{{ dt(u?.created_at) || '—' }}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">最近登录</text>
+            <text class="info-value time">{{ dt(u?.last_login_at) || '—' }}</text>
+          </view>
         </view>
       </view>
 
-      <!-- 编辑资料 -->
-      <view class="card">
-        <view class="card-title small">修改资料</view>
-        <input class="ipt" v-model="form.nickname" placeholder="昵称" placeholder-class="ph" />
-        <input class="ipt" v-model="form.email" placeholder="邮箱（可选）" placeholder-class="ph" />
-        <picker class="picker" mode="selector" :range="statusOptions" @change="onPickStatus">
-          <view class="select">状态：{{ form.status || '未选择' }}</view>
-        </picker>
-        <button class="btn primary wide" :disabled="savingInfo" @tap="saveInfo">
-          {{ savingInfo ? '保存中…' : '保存资料' }}
+      <!-- 编辑资料卡片 -->
+      <view class="card edit-card">
+        <view class="card-header">
+          <text class="card-icon">✏️</text>
+          <text class="card-title">修改资料</text>
+        </view>
+        <view class="form-fields">
+          <view class="field-group">
+            <view class="field-label">
+              <text class="label-icon">✨</text>
+              <text>昵称</text>
+            </view>
+            <input class="ipt" v-model="form.nickname" placeholder="请输入昵称" placeholder-class="ph" />
+          </view>
+          <view class="field-group">
+            <view class="field-label">
+              <text class="label-icon">📧</text>
+              <text>邮箱</text>
+            </view>
+            <input class="ipt" v-model="form.email" placeholder="请输入邮箱（可选）" placeholder-class="ph" />
+          </view>
+          <view class="field-group">
+            <view class="field-label">
+              <text class="label-icon">⚙️</text>
+              <text>状态</text>
+            </view>
+            <picker class="picker" mode="selector" :range="statusOptions" @change="onPickStatus">
+              <view class="select">{{ form.status || '请选择状态' }}</view>
+            </picker>
+          </view>
+        </view>
+        <button class="action-btn primary" :disabled="savingInfo" @tap="saveInfo">
+          <text class="btn-icon">{{ savingInfo ? '⏳' : '💾' }}</text>
+          <text>{{ savingInfo ? '保存中…' : '保存资料' }}</text>
         </button>
       </view>
 
-      <!-- 重置密码 -->
-      <view class="card">
-        <view class="card-title small">重置密码</view>
-        <input class="ipt" v-model="pwd1" password placeholder="新密码（至少6位）" placeholder-class="ph" />
-        <input class="ipt" v-model="pwd2" password placeholder="确认新密码" placeholder-class="ph" />
-        <button class="btn danger wide" :disabled="savingPwd" @tap="resetPwd">
-          {{ savingPwd ? '提交中…' : '更新密码' }}
+      <!-- 重置密码卡片 -->
+      <view class="card pwd-card">
+        <view class="card-header">
+          <text class="card-icon">🔐</text>
+          <text class="card-title">重置密码</text>
+        </view>
+        <view class="form-fields">
+          <view class="field-group">
+            <view class="field-label">
+              <text class="label-icon">🔑</text>
+              <text>新密码</text>
+            </view>
+            <input class="ipt" v-model="pwd1" password placeholder="至少6位字符" placeholder-class="ph" />
+          </view>
+          <view class="field-group">
+            <view class="field-label">
+              <text class="label-icon">🔒</text>
+              <text>确认密码</text>
+            </view>
+            <input class="ipt" v-model="pwd2" password placeholder="再次输入新密码" placeholder-class="ph" />
+          </view>
+        </view>
+        <button class="action-btn danger" :disabled="savingPwd" @tap="resetPwd">
+          <text class="btn-icon">{{ savingPwd ? '⏳' : '🔄' }}</text>
+          <text>{{ savingPwd ? '提交中…' : '更新密码' }}</text>
         </button>
-
-        <!-- 返回控件（扁平通栏） -->
-        <button class="btn ghost wide back-under" @tap="goBack">返回后台</button>
       </view>
+
+      <!-- 返回按钮 -->
+      <button class="action-btn ghost back-btn" @tap="goBack">
+        <text class="btn-icon">↩️</text>
+        <text>返回后台</text>
+      </button>
     </view>
   </view>
 </template>
@@ -72,7 +148,7 @@ const uid = ref<number>(0)
 const u = ref<AdminUserDetail | null>(null)
 
 const form = ref<{ nickname: string; email?: string; status?: string }>({ nickname: '', email: '', status: undefined })
-const statusOptions = ['active', 'disabled']  // 可按后端实际扩展：active/disabled/locked 等
+const statusOptions = ['active', 'disabled']
 function onPickStatus(e:any){ form.value.status = statusOptions[e.detail.value] }
 
 const savingInfo = ref(false)
@@ -93,7 +169,6 @@ async function saveInfo(){
   if(!form.value.nickname.trim()) return toast('昵称不能为空')
   savingInfo.value = true
   try{
-    // 传给后端时把状态转为大写（若后端用大写）
     const payload:any = {
       nickname: form.value.nickname.trim(),
       email: form.value.email?.trim() || null,
@@ -129,71 +204,306 @@ onLoad(async (q:any) => {
 
 <style scoped>
 :root, page, .ud-page {
-  --c-bg1:#e8f2ff; --c-bg2:#f5f9ff; --c-panel:#fff; --c-border:#d8e6f5;
-  --c-primary:#66b4ff; --c-text:#1f2d3d; --c-text-sec:#5f7085;
-  --c-danger:#ff4d4f; --radius:20rpx; --radius-s:14rpx;
+  --c-bg-start:#e8f2ff;
+  --c-bg-end:#f5f9ff;
+  --c-card:#fff;
+  --c-border:#d8e6f5;
+  --c-primary:#66b4ff;
+  --c-primary-dark:#4b9ef0;
+  --c-primary-light:#e6f3ff;
+  --c-text:#1f2d3d;
+  --c-text-sec:#5f7085;
+  --c-text-muted:#8da1b5;
+  --c-success:#38b26f;
+  --c-success-bg:#e8f9f0;
+  --c-danger:#ff4d4f;
+  --c-danger-bg:#fff1f0;
+  --shadow-sm:0 4rpx 12rpx rgba(35,72,130,.06);
+  --shadow-md:0 8rpx 24rpx rgba(35,72,130,.08);
+  --shadow-lg:0 16rpx 48rpx rgba(35,72,130,.12);
+  --radius-lg:24rpx;
+  --radius-md:16rpx;
+  --radius-sm:12rpx;
 }
-.ud-page{ min-height:100vh; background:linear-gradient(180deg,var(--c-bg1),var(--c-bg2)); }
-.safe-nav{ position:fixed; left:0; right:0; top:0; padding-top:env(safe-area-inset-top); height:calc(env(safe-area-inset-top) + 88rpx); display:flex; align-items:flex-end; justify-content:center; padding-bottom:16rpx; background:rgba(255,255,255,.55); border-bottom:1rpx solid rgba(214,230,245,.8); }
-.nav-title{ font-size:40rpx; font-weight:700; color:var(--c-text); }
 
-/* 移除顶部 back-btn 的样式 */
-.body{ padding:calc(env(safe-area-inset-top)+88rpx) 36rpx 120rpx; display:flex; flex-direction:column; gap:34rpx; }
-.card{ background:#fff; border:1rpx solid var(--c-border); border-radius:var(--radius); padding:36rpx; box-shadow:0 8rpx 24rpx rgba(35,72,130,.08); display:flex; flex-direction:column; gap:24rpx; }
-.card-title{ font-size:36rpx; font-weight:600; }
-.card-title.small{ font-size:32rpx; }
-.info{ border:1rpx solid var(--c-border); border-radius:var(--radius-s); overflow:hidden; }
-.row{ display:flex; justify-content:space-between; padding:22rpx 24rpx; border-bottom:1rpx solid var(--c-border); font-size:28rpx; }
-.row:last-child{ border-bottom:none; }
-.label{ color:var(--c-text-sec); }
-.val{ color:var(--c-text); }
-.pill{ display:inline-block; margin-right:10rpx; padding:8rpx 16rpx; border-radius:999rpx; background:#eef6ff; color:#4b9ef0; font-size:24rpx; }
-.muted{ color:#9aa6b2; }
-.ipt{ width:100%; height:92rpx; line-height:92rpx; padding:0 30rpx; font-size:30rpx; background:#fff; border:1rpx solid var(--c-border); border-radius:var(--radius-s); box-sizing:border-box; color:var(--c-text); }
-.ipt:focus{ border-color:var(--c-primary); box-shadow:0 0 0 4rpx #d4ecff; }
-.ph{ color:#9ab2c7; font-size:30rpx; }
-.picker{ width:100%; }
-.select{
-  height:92rpx;
-  line-height:92rpx;
-  padding:0 30rpx;
-  border:1rpx solid var(--c-border);
-  border-radius:var(--radius-s);
-  background:#f7f9fc;
+.ud-page{
+  min-height:100vh;
+  background:linear-gradient(180deg,var(--c-bg-start),var(--c-bg-end));
+}
+
+/* ========== 顶部导航 ========== */
+.safe-nav{
+  position:fixed;
+  left:0;
+  right:0;
+  top:0;
+  padding-top:env(safe-area-inset-top);
+  height:calc(env(safe-area-inset-top) + 96rpx);
+  background:linear-gradient(135deg, #66b4ff 0%, #4a9fff 100%);
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding-bottom:20rpx;
+  box-shadow:var(--shadow-md);
+  z-index:100;
+}
+
+.nav-content{
+  display:flex;
+  align-items:center;
+  gap:12rpx;
+}
+
+.nav-icon{
+  font-size:40rpx;
+  line-height:1;
+}
+
+.nav-title{
+  font-size:36rpx;
+  font-weight:700;
+  color:#fff;
+}
+
+/* ========== 主体 ========== */
+.body{
+  padding:calc(env(safe-area-inset-top) + 116rpx) 32rpx 120rpx;
+  display:flex;
+  flex-direction:column;
+  gap:28rpx;
+}
+
+/* ========== 卡片 ========== */
+.card{
+  background:var(--c-card);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg);
+  padding:32rpx;
+  display:flex;
+  flex-direction:column;
+  gap:24rpx;
+}
+
+.card-header{
+  display:flex;
+  align-items:center;
+  gap:12rpx;
+  padding-bottom:16rpx;
+  border-bottom:2rpx solid #f0f2f5;
+}
+
+.card-icon{
+  font-size:32rpx;
+  line-height:1;
+}
+
+.card-title{
+  font-size:32rpx;
+  font-weight:600;
   color:var(--c-text);
-  font-size:30rpx;
 }
 
-/* 公共按钮样式 */
-.btn{
-  width:auto;
-  border:1rpx solid transparent;
-  border-radius:10rpx;
+/* ========== 信息展示 ========== */
+.info-grid{
+  display:flex;
+  flex-direction:column;
+  gap:20rpx;
+}
+
+.info-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20rpx 24rpx;
+  background:#f7f9fc;
+  border-radius:var(--radius-sm);
+  min-height:80rpx;
+}
+
+.info-label{
+  font-size:26rpx;
+  color:var(--c-text-sec);
+  font-weight:500;
+}
+
+.info-value{
+  font-size:28rpx;
+  color:var(--c-text);
+  font-weight:600;
+  text-align:right;
+  word-break:break-all;
+}
+
+.info-value.primary{
+  color:var(--c-primary-dark);
+}
+
+.info-value.time{
+  font-size:24rpx;
+  color:var(--c-text-muted);
+  font-weight:400;
+}
+
+.status-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8rpx;
+  padding:8rpx 16rpx;
+  border-radius:999rpx;
+  font-size:22rpx;
+  font-weight:600;
+}
+
+.status-dot{
+  font-size:16rpx;
+  line-height:1;
+}
+
+.status-active{
+  background:var(--c-success-bg);
+  color:var(--c-success);
+}
+
+.status-disabled{
+  background:#f0f2f5;
+  color:var(--c-text-muted);
+}
+
+.roles-wrapper{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8rpx;
+  justify-content:flex-end;
+}
+
+.role-pill{
+  padding:6rpx 14rpx;
+  border-radius:999rpx;
+  background:var(--c-primary-light);
+  color:var(--c-primary-dark);
+  font-size:22rpx;
+  font-weight:600;
+}
+
+.empty-text{
+  color:var(--c-text-muted);
+  font-size:24rpx;
+}
+
+/* ========== 表单 ========== */
+.form-fields{
+  display:flex;
+  flex-direction:column;
+  gap:24rpx;
+}
+
+.field-group{
+  display:flex;
+  flex-direction:column;
+  gap:12rpx;
+}
+
+.field-label{
+  display:flex;
+  align-items:center;
+  gap:8rpx;
+  font-size:26rpx;
+  font-weight:600;
+  color:var(--c-text);
+}
+
+.label-icon{
+  font-size:28rpx;
+  line-height:1;
+}
+
+.ipt{
+  width:100%;
+  padding:20rpx 24rpx;
+  font-size:28rpx;
+  color:var(--c-text);
+  background:#f7f9fc;
+  border:2rpx solid var(--c-border);
+  border-radius:var(--radius-sm);
+  transition:all 0.3s;
+}
+
+.ipt:focus{
+  background:#fff;
+  border-color:var(--c-primary);
+  box-shadow:0 0 0 6rpx var(--c-primary-light);
+}
+
+.ph{
+  color:var(--c-text-muted);
+  font-size:26rpx;
+}
+
+.picker{
+  width:100%;
+}
+
+.select{
+  padding:20rpx 24rpx;
+  background:#f7f9fc;
+  border:2rpx solid var(--c-border);
+  border-radius:var(--radius-sm);
+  color:var(--c-text);
+  font-size:28rpx;
+  transition:all 0.3s;
+}
+
+/* ========== 按钮 ========== */
+.action-btn{
+  width:100%;
+  padding:26rpx 0;
+  border-radius:var(--radius-md);
   font-size:30rpx;
   font-weight:600;
-  padding:24rpx 0;
-  box-shadow:none;               /* 去阴影 */
-  transition:opacity .18s;
+  border:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10rpx;
+  transition:all 0.3s;
+  box-shadow:var(--shadow-sm);
 }
-.btn.wide{ width:100%; }         /* 通栏 */
-.btn.primary{
-  color:#fff;
-  background:#66b4ff;            /* 纯色，非渐变 */
-  border-color:#66b4ff;
-}
-.btn.danger{
-  color:#fff;
-  background:#ff4d4f;            /* 纯色红 */
-  border-color:#ff4d4f;
-}
-.btn.ghost{
-  color:#1f2d3d;
-  background:#f2f6fb;            /* 浅灰填充 */
-  border-color:var(--c-border);
-}
-.btn:active{ opacity:.92; }
-.btn[disabled]{ opacity:.55; }
 
-/* 移除小程序 button 默认描边（必须） */
-button::after{ border:none; }
+.action-btn.primary{
+  background:linear-gradient(135deg, #66b4ff 0%, #4a9fff 100%);
+  color:#fff;
+}
+
+.action-btn.danger{
+  background:linear-gradient(135deg, var(--c-danger) 0%, #d73a3c 100%);
+  color:#fff;
+}
+
+.action-btn.ghost{
+  background:#f7f9fc;
+  color:var(--c-text-sec);
+  border:2rpx solid var(--c-border);
+}
+
+.action-btn:active:not([disabled]){
+  box-shadow:var(--shadow-md);
+  transform:translateY(-2rpx);
+}
+
+.action-btn[disabled]{
+  opacity:0.6;
+}
+
+.btn-icon{
+  font-size:32rpx;
+  line-height:1;
+}
+
+.back-btn{
+  margin-top:12rpx;
+}
+
+button::after{
+  border:none;
+}
 </style>

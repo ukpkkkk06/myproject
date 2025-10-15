@@ -1,0 +1,37 @@
+"filename", "language", "MS SQL", "TypeScript", "JSON", "Python", "vue", "Log", "comment", "blank", "total"
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages.json", "JSON", 0, 0, 24, 0, 0, 0, 0, 0, 24
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\error-book\error-book.vue", "vue", 0, 0, 0, 0, 142, 0, 3, 16, 161
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\index\index.vue", "vue", 0, 0, 0, 0, 241, 0, 8, 20, 269
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\lobby\lobby.vue", "vue", 0, 0, 0, 0, 113, 0, 0, 16, 129
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\login\login.vue", "vue", 0, 0, 0, 0, 143, 0, 0, 23, 166
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\practice\practice.vue", "vue", 0, 0, 0, 0, 172, 0, 6, 2, 180
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\profile\profile.vue", "vue", 0, 0, 0, 0, 139, 0, 5, 12, 156
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\question-bank\question-bank.vue", "vue", 0, 0, 0, 0, 387, 0, 0, 31, 418
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\question-detail\question-detail.vue", "vue", 0, 0, 0, 0, 102, 0, 0, 11, 113
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\question-edit\question-edit.vue", "vue", 0, 0, 0, 0, 190, 0, 1, 19, 210
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\register\register.vue", "vue", 0, 0, 0, 0, 141, 0, 0, 20, 161
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\pages\user-detail\user-detail.vue", "vue", 0, 0, 0, 0, 176, 0, 5, 19, 200
+"c:\Users\yjq\Desktop\myproject\frontend-mp\src\utils\api.ts", "TypeScript", 0, 150, 0, 0, 0, 0, 7, 16, 173
+"c:\Users\yjq\Desktop\myproject\project_back\alembic\versions\b3d874edf9d3_set_default_for_version_no_on_question_.py", "Python", 0, 0, 0, 11, 0, 0, 10, 8, 29
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\__init__.py", "Python", 0, 0, 0, 7, 0, 0, 1, 2, 10
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\admin.py", "Python", 0, 0, 0, 83, 0, 0, 0, 8, 91
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\auth.py", "Python", 0, 0, 0, 4, 0, 0, 3, 1, 8
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\question_bank.py", "Python", 0, 0, 0, 405, 0, 0, 32, 42, 479
+"c:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\tags.py", "Python", 0, 0, 0, 16, 0, 0, 0, 3, 19
+"c:\Users\yjq\Desktop\myproject\project_back\app\main.py", "Python", 0, 0, 0, 9, 0, 0, 1, 0, 10
+"c:\Users\yjq\Desktop\myproject\project_back\app\models\question.py", "Python", 0, 0, 0, 4, 0, 0, 0, 1, 5
+"c:\Users\yjq\Desktop\myproject\project_back\app\models\question_version.py", "Python", 0, 0, 0, 2, 0, 0, 2, 2, 6
+"c:\Users\yjq\Desktop\myproject\project_back\app\models\role.py", "Python", 0, 0, 0, 1, 0, 0, 0, 1, 2
+"c:\Users\yjq\Desktop\myproject\project_back\app\models\tag.py", "Python", 0, 0, 0, 19, 0, 0, 2, 4, 25
+"c:\Users\yjq\Desktop\myproject\project_back\app\models\user.py", "Python", 0, 0, 0, 1, 0, 0, 0, 2, 3
+"c:\Users\yjq\Desktop\myproject\project_back\app\models\user_role.py", "Python", 0, 0, 0, 3, 0, 0, 0, 0, 3
+"c:\Users\yjq\Desktop\myproject\project_back\app\schemas\practice.py", "Python", 0, 0, 0, 3, 0, 0, 0, 1, 4
+"c:\Users\yjq\Desktop\myproject\project_back\app\schemas\question_bank.py", "Python", 0, 0, 0, 60, 0, 0, 2, 12, 74
+"c:\Users\yjq\Desktop\myproject\project_back\app\schemas\user.py", "Python", 0, 0, 0, 4, 0, 0, 0, 1, 5
+"c:\Users\yjq\Desktop\myproject\project_back\app\services\practice_service.py", "Python", 0, 0, 0, 23, 0, 0, 5, 1, 29
+"c:\Users\yjq\Desktop\myproject\project_back\app\services\question_bank_service.py", "Python", 0, 0, 0, 202, 0, 0, 7, 25, 234
+"c:\Users\yjq\Desktop\myproject\project_back\app\services\user_service.py", "Python", 0, 0, 0, 56, 0, 0, 7, 15, 78
+"c:\Users\yjq\Desktop\myproject\project_back\logs\app.log", "Log", 0, 0, 0, 0, 0, 4191, 0, 37, 4228
+"c:\Users\yjq\Desktop\myproject\project_back\sql\00_init.sql", "MS SQL", 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\yjq\Desktop\myproject\project_back\sql\test.sql", "MS SQL", 15, 0, 0, 0, 0, 0, 0, 6, 21
+"Total", "-", 15, 150, 24, 913, 1946, 4191, 107, 378, 7724

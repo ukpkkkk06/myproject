@@ -75,12 +75,34 @@ export interface UserInfo {
   last_login_at?: string | null
 }
 
-export interface CreateSessionResp { attempt_id: number; paper_id: number; total: number; first_seq: number }
+export interface CreateSessionResp {
+  attempt_id: number
+  paper_id: number
+  total: number
+  // 兼容两种返回字段名
+  start_seq?: number
+  first_seq?: number
+}
 export interface QuestionView { seq: number; question_id: number; type: string; difficulty?: number; stem: string; options: string[]; explanation?: string }
 export interface SubmitAnswerResp { seq: number; correct: boolean; correct_answer: string; total: number }
 
-export interface ErrorBookItem { id: number; question_id: number; wrong_count: number; first_wrong_time?: string; last_wrong_time?: string; next_review_time?: string; mastered: boolean }
-export interface ErrorBookListResp { total: number; page: number; size: number; items: ErrorBookItem[] }
+export interface ErrorBookItem { 
+  id: number
+  question_id: number
+  wrong_count: number
+  first_wrong_time?: string
+  last_wrong_time?: string
+  next_review_time?: string
+  mastered: boolean
+  stem: string  // 🔥 题干字段
+}
+
+export interface ErrorBookListResponse {
+  total: number
+  page: number
+  size: number
+  items: ErrorBookItem[]
+}
 
 export interface MyQuestionItem {
   question_id: number
@@ -201,60 +223,110 @@ export function downloadImportTemplate(): Promise<string> {
   })
 }
 
-export const api = {
+class API {
   // 健康检查
-  health: () => request<{ status: string; db?: string }>('/health', { method: 'GET' }),
+  health() {
+    return request<{ status: string; db?: string }>('/health', { method: 'GET' })
+  }
 
   // 用户分页列表
-  users: (skip = 0, limit = 10, account?: string, email?: string) =>
-    request<UsersPage>('/users', { method: 'GET', data: { skip, limit, account, email } }),
+  users(skip = 0, limit = 10, account?: string, email?: string) {
+    return request<UsersPage>('/users', { method: 'GET', data: { skip, limit, account, email } })
+  }
 
-  // 更新用户（示例：昵称/邮箱/状态）
-  updateUser: (id: number, data: Partial<Pick<User, 'nickname' | 'email' | 'status'>>) =>
-    request<User>(`/users/${id}`, { method: 'PUT', data }),
+  // 更新用户
+  updateUser(id: number, data: Partial<Pick<User, 'nickname' | 'email' | 'status'>>) {
+    return request<User>(`/users/${id}`, { method: 'PUT', data })
+  }
 
   // 删除用户
-  deleteUser: (id: number) =>
-    request<void>(`/users/${id}`, { method: 'DELETE' }),
+  deleteUser(id: number) {
+    return request<void>(`/users/${id}`, { method: 'DELETE' })
+  }
 
   // 登录/注册
-  login: (account: string, password: string) =>
-    request<Token>('/login', { method: 'POST' as const, data: { account, password } }),
+  login(account: string, password: string) {
+    return request<Token>('/login', { method: 'POST', data: { account, password } })
+  }
 
-  register: (account: string, password: string, email?: string, nickname?: string) =>
-    request<User>('/register', { method: 'POST' as const, data: { account, password, email, nickname } }),
+  register(account: string, password: string, email?: string, nickname?: string) {
+    return request<User>('/register', { method: 'POST', data: { account, password, email, nickname } })
+  }
 
   // 个人信息
-  me: () => request<UserInfo>('/me', { method: 'GET' }),
-  updateMyNickname: (nickname: string) =>
-    request<UserInfo>('/me/nickname', { method: 'PUT', data: { nickname } }),
-  changeMyPassword: (old_password: string, new_password: string) =>
-    request<void>('/me/password', { method: 'PUT', data: { old_password, new_password } }),
-  // 简化用户列表（去掉 URLSearchParams，直接用 data）
-  usersSimple: (skip = 0, limit = 20, account?: string, email?: string) =>
-    request<UsersSimplePage>('/users/simple', { method: 'GET', data: { skip, limit, account, email } }),
+  me() {
+    return request<UserInfo>('/me', { method: 'GET' })
+  }
+
+  updateMyNickname(nickname: string) {
+    return request<UserInfo>('/me/nickname', { method: 'PUT', data: { nickname } })
+  }
+
+  changeMyPassword(old_password: string, new_password: string) {
+    return request<void>('/me/password', { method: 'PUT', data: { old_password, new_password } })
+  }
+
+  usersSimple(skip = 0, limit = 20, account?: string, email?: string) {
+    return request<UsersSimplePage>('/users/simple', { method: 'GET', data: { skip, limit, account, email } })
+  }
 
   // 创建练习
-  createPractice: (size = 5) => request<CreateSessionResp>('/practice/sessions', { method: 'POST', data: { size } }),
+  createPractice(size = 5, subjectId?: number, knowledgeId?: number, includeChildren: boolean = true) {
+    return request<CreateSessionResp>('/practice/sessions', {
+      method: 'POST',
+      data: { size, subject_id: subjectId, knowledge_id: knowledgeId, include_children: includeChildren }
+    })
+  }
+
+  // 获取学科列表
+  listSubjects() {
+    return request<Subject[]>('/practice/subjects', { method: 'GET' })
+  }
+
+  // 获取知识点树
+  listKnowledgeTree() {
+    return listKnowledgeTree()
+  }
+
   // 获取练习题目
-  getPracticeQuestion: (attemptId: number, seq: number) =>
-    request<QuestionView>(`/practice/sessions/${attemptId}/questions/${seq}`, { method: 'GET' }),
+  getPracticeQuestion(attemptId: number, seq: number) {
+    return request<QuestionView>(`/practice/sessions/${attemptId}/questions/${seq}`, { method: 'GET' })
+  }
+
   // 提交练习答案
-  submitPracticeAnswer: (attemptId: number, seq: number, user_answer: string, time_spent_ms?: number) =>
-    request<SubmitAnswerResp>(`/practice/sessions/${attemptId}/answers`, { method: 'POST', data: { seq, user_answer, time_spent_ms } }),
+  submitPracticeAnswer(attemptId: number, seq: number, user_answer: string, time_spent_ms?: number) {
+    return request<SubmitAnswerResp>(`/practice/sessions/${attemptId}/answers`, { 
+      method: 'POST', 
+      data: { seq, user_answer, time_spent_ms } 
+    })
+  }
+
   // 完成练习
-  finishPractice: (attemptId: number) =>
-    request<{ total: number; answered: number; correct_count: number; accuracy: number; duration_seconds: number }>(
-      `/practice/sessions/${attemptId}/finish`, { method: 'POST' }
-    ),
-  // 获取我的错题本（使用通用 request 封装，避免未定义变量）
-  getMyErrorBook: (page = 1, size = 10, onlyDue = false, includeMastered = false) =>
-    request<ErrorBookListResp>('/error-book', {
+  finishPractice(attemptId: number) {
+    return request<{ 
+      total: number
+      answered: number
+      correct_count: number
+      accuracy: number
+      duration_seconds: number 
+    }>(`/practice/sessions/${attemptId}/finish`, { method: 'POST' })
+  }
+
+  // 获取我的错题本
+  getMyErrorBook(
+    page: number = 1,
+    size: number = 10,
+    only_due: boolean = false,
+    include_mastered: boolean = false
+  ) {
+    return request<ErrorBookListResponse>('/error-book', { 
       method: 'GET',
-      data: { page, size, only_due: onlyDue, include_mastered: includeMastered }
-    }),
+      data: { page, size, only_due, include_mastered }
+    })
+  }
+
   // 获取我的题目
-  getMyQuestions: (params: {
+  getMyQuestions(params: {
     page?: number
     size?: number
     keyword?: string
@@ -263,11 +335,11 @@ export const api = {
     active_only?: boolean
     subject_id?: number
     level_id?: number
-  }) => {
+  }) {
     const payload: any = {
       page: params.page || 1,
       size: params.size || 10,
-      active_only: params.active_only === true ? true : false,
+      active_only: params.active_only === true,
     }
     if (params.keyword) payload.keyword = params.keyword
     if (params.qtype) payload.qtype = params.qtype
@@ -275,15 +347,47 @@ export const api = {
     if (typeof params.subject_id === 'number') payload.subject_id = params.subject_id
     if (typeof params.level_id === 'number') payload.level_id = params.level_id
     return request('/question-bank/my-questions', { method: 'GET', data: payload })
-  },
-  listTags,
-  getQuestionDetail,
-  updateQuestion,
-  getQuestionTags,
-  setQuestionTags,
-  importQuestionsExcel,
-  downloadImportTemplate,
+  }
+
+  // 标签相关
+  listTags(params: { type?: 'SUBJECT' | 'LEVEL' } = {}) {
+    return listTags(params)
+  }
+
+  getQuestionDetail(id: number) {
+    return getQuestionDetail(id)
+  }
+
+  updateQuestion(id: number, data: any) {
+    return updateQuestion(id, data)
+  }
+
+  getQuestionTags(id: number) {
+    return getQuestionTags(id)
+  }
+
+  setQuestionTags(id: number, data: { subject_id?: number; level_id?: number }) {
+    return setQuestionTags(id, data)
+  }
+
+  importQuestionsExcel(filePath: string) {
+    return importQuestionsExcel(filePath)
+  }
+
+  downloadImportTemplate() {
+    return downloadImportTemplate()
+  }
+
+  getQuestionKnowledge(qid: number) {
+    return getQuestionKnowledge(qid)
+  }
+
+  bindQuestionKnowledge(qid: number, items: QuestionKnowledgeItem[]) {
+    return bindQuestionKnowledge(qid, items)
+  }
 }
+
+export const api = new API()
 
 export interface UserSimple {
   id: number
@@ -315,4 +419,53 @@ export async function adminUpdateUser(uid: number, data: { nickname?: string; em
 
 export async function adminResetUserPassword(uid: number, password: string) {
   return await request<void>(`/admin/users/${uid}/password`, { method: 'PUT', data: { password } })
+}
+
+export interface Subject { id:number; name:string }
+
+// 知识点树节点
+export interface KnowledgeNode {
+  id: number
+  name: string
+  parent_id?: number | null
+  level?: number | null
+  children?: KnowledgeNode[]
+}
+
+// 题目-知识点绑定项
+export interface QuestionKnowledgeItem {
+  knowledge_id: number
+  weight?: number
+}
+
+// 获取知识点树
+export function listKnowledgeTree() {
+  return request<KnowledgeNode[]>('/knowledge/tree', { method: 'GET' })
+}
+
+// 获取某题目已绑定的知识点
+export function getQuestionKnowledge(qid: number) {
+  return request<Array<{ knowledge_id: number; weight?: number; path?: string }>>(
+    `/questions/${qid}/knowledge`,
+    { method: 'GET' }
+  )
+}
+
+// 覆盖式绑定题目的知识点
+export function bindQuestionKnowledge(qid: number, items: QuestionKnowledgeItem[]) {
+  return request<{ ok: boolean }>(`/questions/${qid}/knowledge`, {
+    method: 'PUT',
+    data: items,
+  })
+}
+
+// 兼容旧导出：委托到 api（避免外部仍 import 旧方法时报错）
+export function listSubjects(): Promise<Subject[]> { return api.listSubjects() }
+export function createPractice(
+  size:number,
+  subjectId?: number,
+  knowledgeId?: number,
+  includeChildren: boolean = true
+): Promise<CreateSessionResp> {
+  return api.createPractice(size, subjectId, knowledgeId, includeChildren)
 }

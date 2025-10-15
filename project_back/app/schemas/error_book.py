@@ -9,7 +9,11 @@ class ErrorBookItem(BaseModel):
     first_wrong_time: Optional[datetime] = None
     last_wrong_time: Optional[datetime] = None
     next_review_time: Optional[datetime] = None
-    mastered: bool
+    mastered: bool = False
+    stem: str = ""
+    
+    class Config:
+        from_attributes = True
 
 class ErrorBookListResp(BaseModel):
     total: int

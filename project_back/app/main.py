@@ -1,17 +1,24 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from app.api.v1.endpoints import (
     health, users, auth, practice,
     error_book as error_book_endpoint,
     question_bank as question_bank_endpoint,
     tags as tags_endpoint,
+    knowledge as knowledge_endpoint,
 )
 from app.api.v1.endpoints import admin as admin_endpoint
 from app.core.config import settings
 from starlette.middleware.cors import CORSMiddleware
 from app.core.error_handlers import register_exception_handlers
+import tracemalloc
+
+# 开关：默认开启，设置为 0/false/off 可关闭
+if os.getenv("ENABLE_TRACEMALLOC", "1").lower() in ("1", "true", "yes", "on"):
+    if not tracemalloc.is_tracing():
+        tracemalloc.start()
 
 def setup_logging():
     log_dir = r"C:\Users\yjq\Desktop\myproject\project_back\logs"
@@ -50,10 +57,14 @@ def create_app() -> FastAPI:
     app.include_router(users.router,    prefix="/api/v1", tags=["users"])
     app.include_router(practice.router, prefix="/api/v1", tags=["practice"])
     app.include_router(tags_endpoint.router, prefix="/api/v1", tags=["tags"])
-    app.include_router(error_book_endpoint.router, prefix="/api/v1", tags=["error-book"])
+    app.include_router(error_book_endpoint.router, prefix="/api/v1/error-book", tags=["error-book"])
     app.include_router(question_bank_endpoint.router, prefix="/api/v1", tags=["question-bank"])
     # 新增：管理员接口
     app.include_router(admin_endpoint.router, prefix="/api/v1", tags=["admin"])
+    # 新增：知识库接口
+    api_router = APIRouter()
+    api_router.include_router(knowledge_endpoint.router, tags=["knowledge"])
+    app.include_router(api_router, prefix="/api/v1")
 
     return app
 
