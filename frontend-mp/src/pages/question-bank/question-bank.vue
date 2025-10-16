@@ -99,7 +99,15 @@
           </view>
 
           <view class="card-footer">
-            <view class="status-badge" :class="'status-' + (q.audit_status || 'draft').toLowerCase()">
+            <view 
+              class="status-badge" 
+              :class="{
+                'status-approved': (q.audit_status || '').toLowerCase() === 'approved',
+                'status-pending': (q.audit_status || '').toLowerCase() === 'pending',
+                'status-rejected': (q.audit_status || '').toLowerCase() === 'rejected',
+                'status-draft': !(q.audit_status) || (q.audit_status || '').toLowerCase() === 'draft'
+              }"
+            >
               <text class="status-dot">●</text>
               <text class="status-text">{{ formatStatus(q.audit_status) }}</text>
             </view>
@@ -189,8 +197,9 @@ async function fetch(p=1, append=false){
     })
     total.value = resp?.total ?? 0
     const list = resp?.items ?? []
-    if(!append) items.value = list
-    else items.value = items.value.concat(list)
+    // 🔥 强制创建新数组引用以确保响应式更新
+    if(!append) items.value = [...list]
+    else items.value = [...items.value, ...list]
     page.value = resp?.page ?? p
   } catch(e:any){
     uni.showToast({ icon:'none', title: e?.data?.message || '加载失败' })
@@ -283,8 +292,10 @@ async function openImport(){
 // 🔥 监听题目更新事件
 function handleQuestionUpdate(data: any){
   console.log('收到题目更新事件:', data)
-  // 静默刷新当前页
-  fetch(page.value, false)
+  // 🔥 添加短暂延迟确保后端数据已更新,然后静默刷新当前页
+  setTimeout(() => {
+    fetch(page.value, false)
+  }, 100)
 }
 
 onMounted(async ()=>{

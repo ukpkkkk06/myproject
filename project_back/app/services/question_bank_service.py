@@ -45,6 +45,22 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
             stem = cell_str(r, 1)
             if not stem:
                 raise ValueError("题干为空")
+            
+            # 🔥 检查题干是否重复（仅当前用户、仅激活题目）
+            # 明确指定 JOIN 条件，避免歧义
+            existing = db.query(QuestionVersion).join(
+                Question, 
+                QuestionVersion.question_id == Question.id
+            ).filter(
+                QuestionVersion.stem == stem,
+                QuestionVersion.created_by == user_id,
+                Question.is_active == True,
+                QuestionVersion.is_active == 1
+            ).first()
+            
+            if existing:
+                raise ValueError(f"题目重复：您已创建过相同题干的题目（题目ID: {existing.question_id}）")
+            
             A = cell_str(r, 2)
             B = cell_str(r, 3)
             C = cell_str(r, 4)
@@ -175,7 +191,7 @@ def list_my_questions(
 
     total = q.count()
     rows = (
-        q.order_by(Question.updated_at.desc(), Question.id.desc())
+        q.order_by(Question.id.asc())
          .offset((page - 1) * size)
          .limit(size)
          .all()
@@ -225,7 +241,7 @@ def get_my_questions(
 
     total = q.count()
     rows = (q
-            .order_by(Question.updated_at.desc(), Question.id.desc())
+            .order_by(Question.id.asc())
             .offset((page-1)*size).limit(size).all())
     return {
         "total": total,
