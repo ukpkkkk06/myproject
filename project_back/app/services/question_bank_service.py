@@ -10,7 +10,7 @@ from sqlalchemy import select, exists
 import json
 from app.models.user import User  # 修复未定义 User
 
-HEADER_EXPECT = ["题干","选项A","选项B","选项C","选项D","题型（单选/多选/填空）","正确选项（单选/多选填ABCD，填空填答案）","解析","学科（数学，英语，化学，物理，语文）","学段（小学，初中，高中，大学）"]
+HEADER_EXPECT = ["题干","选项A","选项B","选项C","选项D","题型(单选/多选/填空)","正确答案（单选多选请填入ABCD,填空直接填入答案，不同方式用;隔开如:BEIJNG;beijng）","解析","学科（数学，英语，化学，物理，语文）","学段（小学，初中，高中，大学）"]
 ANSWER_KEYS = ["A","B","C","D"]
 QUESTION_TYPES = {"单选": "SC", "多选": "MC", "填空": "FILL"}  # 🆕 添加填空题型
 
@@ -80,9 +80,13 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
             
             # 🆕 根据题型验证答案
             if qtype == "SC":
+                if not all([A, B, C, D]):
+                    raise ValueError("单选题必须填写所有选项A/B/C/D")
                 if correct not in ANSWER_KEYS:
                     raise ValueError("单选题正确选项必须是 A/B/C/D 之一")
             elif qtype == "MC":
+                if not all([A, B, C, D]):
+                    raise ValueError("多选题必须填写所有选项A/B/C/D")
                 if not correct or len(correct) < 2:
                     raise ValueError("多选题至少要有2个正确答案")
                 if not all(c in ANSWER_KEYS for c in correct):
@@ -92,16 +96,23 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
             elif qtype == "FILL":
                 # 🆕 填空题验证
                 if not correct:
-                    raise ValueError("填空题答案不能为空")
-                # 填空题不需要选项，设置为空列表
-                A = B = C = D = ""
+                    raise ValueError("填空题答案不能为空，请在'正确答案'列填写文本答案（支持用分号分隔多个答案，如：北京;beijing）")
+                # 🆕 提示用户：填空题不需要填写选项
+                if any([A, B, C, D]):
+                    raise ValueError("填空题不需要填写选项A/B/C/D，请将这些列留空")
 
-            options = [
-                {"key":"A","text":A},
-                {"key":"B","text":B},
-                {"key":"C","text":C},
-                {"key":"D","text":D},
-            ]
+            # 🆕 根据题型设置选项
+            if qtype == "FILL":
+                # 填空题不需要选项
+                options = None
+            else:
+                # 单选题和多选题需要选项
+                options = [
+                    {"key":"A","text":A},
+                    {"key":"B","text":B},
+                    {"key":"C","text":C},
+                    {"key":"D","text":D},
+                ]
 
             # 🆕 根据题型创建 Question
             q = Question(type=qtype, is_active=True)
@@ -113,10 +124,18 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
             # 关键：设置 version_no=1，并置 is_active
             qv = QuestionVersion(question_id=q.id, version_no=1, is_active=1)
             setattr(qv, "stem", stem)
-            if hasattr(qv, "options"):
-                qv.options = options
-            elif hasattr(qv, "choices"):
-                qv.choices = json.dumps([o["text"] for o in options], ensure_ascii=False)
+            
+            # 🆕 根据题型设置 options
+            if qtype == "FILL":
+                # 填空题不设置 options
+                if hasattr(qv, "options"):
+                    qv.options = None
+            else:
+                # 单选题和多选题设置 options
+                if hasattr(qv, "options"):
+                    qv.options = options
+                elif hasattr(qv, "choices"):
+                    qv.choices = json.dumps([o["text"] for o in options], ensure_ascii=False)
 
             if hasattr(qv, "analysis"):
                 qv.analysis = analysis

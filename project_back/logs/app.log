@@ -6067,3 +6067,47 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (1054, "Unknown 
 [SQL: SELECT `KNOWLEDGE_POINT`.id AS `KNOWLEDGE_POINT_id`, `KNOWLEDGE_POINT`.name AS `KNOWLEDGE_POINT_name`, `KNOWLEDGE_POINT`.parent_id AS `KNOWLEDGE_POINT_parent_id`, `KNOWLEDGE_POINT`.description AS `KNOWLEDGE_POINT_description`, `KNOWLEDGE_POINT`.depth AS `KNOWLEDGE_POINT_depth`, `KNOWLEDGE_POINT`.sort_order AS `KNOWLEDGE_POINT_sort_order`, `KNOWLEDGE_POINT`.created_at AS `KNOWLEDGE_POINT_created_at` 
 FROM `KNOWLEDGE_POINT`]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-20 14:30:19,984 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-20 14:30:19,986 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-20 14:30:19,987 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-20 14:30:19,987 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-20 14:30:19,987 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-20 14:30:19,987 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-20 14:30:19,988 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-20 14:30:19,988 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-20 14:30:19,989 DEBUG [python_multipart.multipart] Calling on_part_data with data[244:9337]
+2025-10-20 14:30:19,990 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-20 14:30:19,990 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-20 14:31:07,860 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-20 14:31:07,862 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-20 14:31:07,862 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-20 14:31:07,863 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-20 14:31:07,863 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-20 14:31:07,863 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-20 14:31:07,864 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-20 14:31:07,864 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-20 14:31:07,864 DEBUG [python_multipart.multipart] Calling on_part_data with data[244:9337]
+2025-10-20 14:31:07,864 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-20 14:31:07,865 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-20 14:33:58,933 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-20 14:33:58,933 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-20 14:33:58,934 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-20 14:33:58,934 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-20 14:33:58,935 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-20 14:33:58,935 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-20 14:33:58,935 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-20 14:33:58,935 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-20 14:33:58,936 DEBUG [python_multipart.multipart] Calling on_part_data with data[244:9337]
+2025-10-20 14:33:58,936 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-20 14:33:58,937 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-20 14:36:43,577 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-20 14:36:43,578 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-20 14:36:43,578 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-20 14:36:43,579 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-20 14:36:43,579 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-20 14:36:43,580 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-20 14:36:43,580 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-20 14:36:43,580 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-20 14:36:43,580 DEBUG [python_multipart.multipart] Calling on_part_data with data[244:10586]
+2025-10-20 14:36:43,581 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-20 14:36:43,581 DEBUG [python_multipart.multipart] Calling on_end with no data

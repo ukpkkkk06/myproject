@@ -10,6 +10,41 @@
       </view>
 
       <view class="form">
+        <!-- 🔥 题型选择 -->
+        <view class="field-group">
+          <view class="label">
+            <text class="label-icon">📑</text>
+            <text>题型</text>
+            <text class="required">*</text>
+          </view>
+          <view class="type-selector">
+            <view 
+              class="type-option" 
+              :class="{ active: form.type === 'SC' }"
+              @tap="changeType('SC')"
+            >
+              <text class="type-icon">⭕</text>
+              <text class="type-label">单选题</text>
+            </view>
+            <view 
+              class="type-option" 
+              :class="{ active: form.type === 'MC' }"
+              @tap="changeType('MC')"
+            >
+              <text class="type-icon">☑️</text>
+              <text class="type-label">多选题</text>
+            </view>
+            <view 
+              class="type-option" 
+              :class="{ active: form.type === 'FILL' }"
+              @tap="changeType('FILL')"
+            >
+              <text class="type-icon">✍️</text>
+              <text class="type-label">填空题</text>
+            </view>
+          </view>
+        </view>
+
         <!-- 题干 -->
         <view class="field-group">
           <view class="label">
@@ -17,11 +52,11 @@
             <text>题干</text>
             <text class="required">*</text>
           </view>
-          <textarea class="ipt area" v-model="form.stem" placeholder="请输入题干内容" />
+          <textarea class="ipt area" v-model="form.stem" :placeholder="form.type === 'FILL' ? '请输入题干，用____表示填空位置' : '请输入题干内容'" />
         </view>
 
-        <!-- 选项 -->
-        <view class="field-group">
+        <!-- 🔥 选项（仅单选/多选显示） -->
+        <view v-if="form.type !== 'FILL'" class="field-group">
           <view class="label">
             <text class="label-icon">📋</text>
             <text>选项</text>
@@ -34,9 +69,14 @@
                 <input class="opt-input" v-model="op.text" :placeholder="'请输入选项 ' + keyOf(i)" />
               </view>
               <view class="opt-actions">
-                <label class="correct-label" :class="{ active: form.correct_answer===keyOf(i) }" @tap="setCorrect(i)">
+                <!-- 🔥 单选：radio / 多选：checkbox -->
+                <label v-if="form.type === 'SC'" class="correct-label" :class="{ active: form.correct_answer===keyOf(i) }" @tap="setCorrect(i)">
                   <radio :checked="form.correct_answer===keyOf(i)" color="#66b4ff" />
                   <text>正确答案</text>
+                </label>
+                <label v-else class="correct-label" :class="{ active: isMultiCorrect(i) }" @tap="toggleMultiCorrect(i)">
+                  <checkbox :checked="isMultiCorrect(i)" color="#38b26f" />
+                  <text>正确选项</text>
                 </label>
                 <button class="mini-btn danger" @tap="removeOpt(i)">
                   <text class="btn-icon">🗑️</text>
@@ -48,6 +88,25 @@
               <text class="plus-icon">+</text>
               <text>新增选项</text>
             </button>
+          </view>
+        </view>
+
+        <!-- 🔥 填空答案（仅填空题显示） -->
+        <view v-else class="field-group">
+          <view class="label">
+            <text class="label-icon">🎯</text>
+            <text>正确答案</text>
+            <text class="required">*</text>
+          </view>
+          <textarea 
+            class="ipt area" 
+            v-model="form.correct_answer" 
+            placeholder="请输入正确答案，多个答案用分号分隔，例如：北京;beijing;Beijing"
+            style="min-height:120rpx;"
+          />
+          <view class="hint-text">
+            <text class="hint-icon">💡</text>
+            <text>提示：支持多个答案，用分号(;)分隔。答题时匹配任一答案即为正确。</text>
           </view>
         </view>
 
@@ -223,12 +282,14 @@ const form = ref<{
   correct_answer: string
   analysis: string
   is_active: boolean
+  type: string // 🔥 添加题型字段
 }>({
   stem: '',
   options: [],
   correct_answer: 'A',
   analysis: '',
   is_active: true,
+  type: 'SC', // 🔥 默认单选
 })
 
 const subjects = ref<TagItem[]>([])
@@ -272,11 +333,70 @@ const parentKpOptions = computed(() => {
 function noop(){}
 function keyOf(i:number){ return String.fromCharCode(65 + i) }
 function setCorrect(i:number){ form.value.correct_answer = keyOf(i) }
-function addOpt(){ form.value.options.push({ text: '' }) }
-function removeOpt(i:number){
-  form.value.options.splice(i,1)
-  if(form.value.correct_answer === keyOf(i)) form.value.correct_answer = keyOf(0)
+function addOpt(){ 
+  if(form.value.options.length >= 26) {
+    return uni.showToast({ icon:'none', title:'选项数量已达上限' })
+  }
+  form.value.options.push({ text: '' }) 
 }
+function removeOpt(i:number){
+  if(form.value.options.length <= 2) {
+    return uni.showToast({ icon:'none', title:'至少保留2个选项' })
+  }
+  const key = keyOf(i)
+  form.value.options.splice(i,1)
+  // 🔥 单选：如果删除的是正确答案，重置为A
+  if(form.value.type === 'SC' && form.value.correct_answer === key) {
+    form.value.correct_answer = keyOf(0)
+  }
+  // 🔥 多选：如果删除的是正确答案之一，从答案中移除
+  if(form.value.type === 'MC') {
+    form.value.correct_answer = form.value.correct_answer.split('').filter(c => c !== key).join('')
+  }
+}
+
+// 🔥 题型切换
+function changeType(type: string) {
+  if(form.value.type === type) return
+  form.value.type = type
+  if(type === 'FILL') {
+    // 切换到填空题：清空选项，重置答案
+    form.value.options = []
+    form.value.correct_answer = ''
+  } else if(type === 'SC') {
+    // 切换到单选：初始化选项，单个答案
+    if(form.value.options.length === 0) {
+      form.value.options = [{ text: '' }, { text: '' }]
+    }
+    form.value.correct_answer = 'A'
+  } else if(type === 'MC') {
+    // 切换到多选：初始化选项，多个答案
+    if(form.value.options.length === 0) {
+      form.value.options = [{ text: '' }, { text: '' }]
+    }
+    form.value.correct_answer = 'AB'
+  }
+}
+
+// 🔥 多选题：判断某选项是否是正确答案
+function isMultiCorrect(i: number): boolean {
+  const key = keyOf(i)
+  return form.value.correct_answer.includes(key)
+}
+
+// 🔥 多选题：切换某选项的正确/错误状态
+function toggleMultiCorrect(i: number) {
+  const key = keyOf(i)
+  const current = form.value.correct_answer
+  if(current.includes(key)) {
+    // 已选中，取消
+    form.value.correct_answer = current.split('').filter(c => c !== key).sort().join('')
+  } else {
+    // 未选中，添加并排序
+    form.value.correct_answer = (current + key).split('').sort().join('')
+  }
+}
+
 function removeKp(id: number){
   selectedKpIds.value = selectedKpIds.value.filter(x => x !== id)
 }
@@ -370,10 +490,16 @@ async function load(){
   try {
     const d:any = await api.getQuestionDetail(qid.value)
     form.value.stem = d?.stem ?? d?.title ?? ''
+    form.value.type = d?.type ?? 'SC' // 🔥 加载题型
     form.value.options = normalizeOptions(d?.options ?? d?.choices)
-    if(form.value.options.length===0) form.value.options = [{text:''},{text:''}]
+    // 🔥 根据题型处理选项
+    if(form.value.type === 'FILL') {
+      form.value.options = [] // 填空题没有选项
+    } else if(form.value.options.length === 0) {
+      form.value.options = [{text:''},{text:''}]
+    }
     form.value.analysis = d?.analysis ?? d?.explanation ?? ''
-    form.value.correct_answer = (d?.correct_answer ?? 'A')
+    form.value.correct_answer = (d?.correct_answer ?? (form.value.type === 'FILL' ? '' : 'A'))
     form.value.is_active = !!(d?.is_active ?? true)
   } catch(e:any){
     uni.showToast({ icon:'none', title: e?.data?.message || '加载题目失败' })
@@ -417,16 +543,39 @@ function onLevelPick(e:any){
 
 async function save(){
   if(!form.value.stem.trim()){ return uni.showToast({ icon:'none', title:'请填写题干' }) }
-  if(form.value.options.length<2){ return uni.showToast({ icon:'none', title:'至少两个选项' }) }
+  // 🔥 根据题型验证
+  if(form.value.type === 'FILL') {
+    if(!form.value.correct_answer.trim()) {
+      return uni.showToast({ icon:'none', title:'请填写正确答案' })
+    }
+  } else {
+    if(form.value.options.length < 2) {
+      return uni.showToast({ icon:'none', title:'至少两个选项' })
+    }
+    if(form.value.type === 'MC' && form.value.correct_answer.length < 2) {
+      return uni.showToast({ icon:'none', title:'多选题至少选择2个正确答案' })
+    }
+  }
+  
   saving.value = true
   try{
-    const payload = {
+    // 🔥 根据题型构建 payload
+    const payload: any = {
       stem: form.value.stem,
-      options: form.value.options.map((o: {key?:string; text:string}, i:number)=> ({ key: o.key ?? keyOf(i), text: o.text })),
       correct_answer: form.value.correct_answer,
       analysis: form.value.analysis,
       is_active: form.value.is_active,
+      type: form.value.type, // 🔥 发送题型
     }
+    
+    // 🔥 仅单选/多选题发送 options
+    if(form.value.type !== 'FILL') {
+      payload.options = form.value.options.map((o: {key?:string; text:string}, i:number)=> ({ 
+        key: o.key ?? keyOf(i), 
+        text: o.text 
+      }))
+    }
+    
     await api.updateQuestion(qid.value, payload)
     await api.setQuestionTags(qid.value, {
       subject_id: curSubjectId.value ?? undefined,
@@ -552,6 +701,72 @@ onLoad((opt:any)=>{
   display:flex;
   flex-direction:column;
   gap:16rpx;
+}
+
+/* 🔥 题型选择器 */
+.type-selector{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:16rpx;
+}
+
+.type-option{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8rpx;
+  padding:24rpx 16rpx;
+  background:#f7f9fc;
+  border:2rpx solid var(--c-border);
+  border-radius:var(--radius-md);
+  transition:all 0.3s;
+  cursor:pointer;
+}
+
+.type-option:active{
+  transform:scale(0.96);
+}
+
+.type-option.active{
+  background:var(--c-primary-light);
+  border-color:var(--c-primary);
+}
+
+.type-icon{
+  font-size:48rpx;
+  line-height:1;
+}
+
+.type-label{
+  font-size:24rpx;
+  font-weight:600;
+  color:var(--c-text);
+}
+
+.type-option.active .type-label{
+  color:var(--c-primary-dark);
+}
+
+/* 🔥 提示文本 */
+.hint-text{
+  display:flex;
+  align-items:flex-start;
+  gap:8rpx;
+  padding:16rpx;
+  background:#fffbf0;
+  border-left:4rpx solid var(--c-warn);
+  border-radius:var(--radius-sm);
+  font-size:24rpx;
+  line-height:1.6;
+  color:var(--c-text-sec);
+  margin-top:8rpx;
+}
+
+.hint-icon{
+  font-size:26rpx;
+  line-height:1;
+  flex-shrink:0;
+  margin-top:2rpx;
 }
 
 .label{

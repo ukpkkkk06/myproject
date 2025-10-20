@@ -17,6 +17,12 @@
           <text class="badge-text">{{ qid }}</text>
         </view>
 
+        <!-- 🔥 题目类型标签 -->
+        <view class="type-badge" :class="'type-' + (q?.type || 'SC').toLowerCase()">
+          <text class="type-icon">{{ getTypeIcon(q?.type || 'SC') }}</text>
+          <text class="type-text">{{ getTypeName(q?.type || 'SC') }}</text>
+        </view>
+
         <!-- 题干 -->
         <view class="section stem-section">
           <view class="section-header">
@@ -26,21 +32,33 @@
           <view class="stem-content">{{ q?.stem || '加载中…' }}</view>
         </view>
 
-        <!-- 选项 -->
-        <view class="section options-section">
+        <!-- 🔥 选项（仅单选/多选显示）-->
+        <view v-if="q?.type !== 'FILL'" class="section options-section">
           <view class="section-header">
             <text class="section-icon">✅</text>
             <text class="section-title">选项</text>
           </view>
           <view v-if="q?.options?.length" class="options-list">
-            <view v-for="(op, idx) in q?.options" :key="idx" class="option-item">
+            <view v-for="(op, idx) in q?.options" :key="idx" class="option-item" :class="{ correct: isCorrectOption(op.key || String.fromCharCode(65+idx)) }">
               <view class="option-badge">{{ op.key || String.fromCharCode(65+idx) }}</view>
               <text class="option-text">{{ op.text || op.content }}</text>
+              <text v-if="isCorrectOption(op.key || String.fromCharCode(65+idx))" class="correct-mark">✓</text>
             </view>
           </view>
           <view v-else class="empty-hint">
             <text class="empty-icon">📭</text>
             <text class="empty-text">暂无选项</text>
+          </view>
+        </view>
+
+        <!-- 🔥 正确答案 -->
+        <view class="section answer-section">
+          <view class="section-header">
+            <text class="section-icon">🎯</text>
+            <text class="section-title">正确答案</text>
+          </view>
+          <view class="answer-content">
+            <text class="answer-text">{{ formatAnswer(q?.correct_answer, q?.type) }}</text>
           </view>
         </view>
 
@@ -111,7 +129,39 @@ import {
 
 const qid = ref<number>(0)
 const wrongCount = ref<number>(0)
-const q = ref<QuestionBrief | null>(null)
+// 🔥 扩展 QuestionBrief 类型以包含 type 和 correct_answer
+const q = ref<(QuestionBrief & { type?: string; correct_answer?: string }) | null>(null)
+
+// 🔥 题目类型相关函数
+function getTypeIcon(type: string): string {
+  const icons = { SC: '⭕', MC: '☑️', FILL: '✍️' }
+  return icons[type as keyof typeof icons] || '⭕'
+}
+
+function getTypeName(type: string): string {
+  const names = { SC: '单选题', MC: '多选题', FILL: '填空题' }
+  return names[type as keyof typeof names] || '单选题'
+}
+
+function isCorrectOption(key: string): boolean {
+  if (!q.value?.correct_answer) return false
+  const answer = q.value.correct_answer.toUpperCase()
+  return answer.includes(key.toUpperCase())
+}
+
+function formatAnswer(answer: string | undefined, type: string | undefined): string {
+  if (!answer) return '—'
+  if (type === 'FILL') {
+    // 填空题：显示所有可能的答案
+    return answer.split(';').join(' 或 ')
+  }
+  if (type === 'MC') {
+    // 多选题：显示所有选项字母
+    return answer.split('').join(', ')
+  }
+  // 单选题：直接显示
+  return answer
+}
 
 function getErrorLevel(count: number): string {
   if (count === 0) return 'zero'
@@ -137,9 +187,11 @@ async function loadDetail(){
       stem: (raw.stem ?? raw.title ?? '') as string,
       options: (raw.options ?? raw.choices ?? []) as any[],
       analysis: (raw.analysis ?? raw.explanation ?? '') as string,
-    }
+      type: (raw.type ?? 'SC') as string, // 🔥 添加题目类型
+      correct_answer: (raw.correct_answer ?? '') as string, // 🔥 添加正确答案
+    } as any
   }catch{
-    q.value = { id: qid.value, stem: `#${qid.value}`, options: [], analysis: '' } as any
+    q.value = { id: qid.value, stem: `#${qid.value}`, options: [], analysis: '', type: 'SC', correct_answer: '' } as any
   }
 }
 
@@ -295,6 +347,47 @@ onLoad(async (opt:any)=>{
   font-weight:700;
 }
 
+/* 🔥 题目类型标签 */
+.type-badge{
+  position:absolute;
+  top:88rpx;
+  right:32rpx;
+  display:flex;
+  align-items:center;
+  gap:6rpx;
+  padding:8rpx 16rpx;
+  border-radius:999rpx;
+  font-size:22rpx;
+  font-weight:600;
+}
+
+.type-sc{
+  background:#e6f3ff;
+  color:#4a9fff;
+  border:2rpx solid #4a9fff;
+}
+
+.type-mc{
+  background:#e8f9f0;
+  color:#38b26f;
+  border:2rpx solid #38b26f;
+}
+
+.type-fill{
+  background:#fff7e3;
+  color:#ffb020;
+  border:2rpx solid #ffb020;
+}
+
+.type-icon{
+  font-size:20rpx;
+  line-height:1;
+}
+
+.type-text{
+  font-size:22rpx;
+}
+
 .badge-icon{
   font-size:20rpx;
   color:var(--c-primary-dark);
@@ -361,10 +454,26 @@ onLoad(async (opt:any)=>{
   background:#f7f9fc;
   border-radius:var(--radius-sm);
   transition:all 0.3s;
+  position:relative;
 }
 
 .option-item:active{
   background:#eef3f7;
+}
+
+/* 🔥 正确选项高亮 */
+.option-item.correct{
+  background:#e8f9f0;
+  border:2rpx solid var(--c-success);
+}
+
+.correct-mark{
+  position:absolute;
+  top:16rpx;
+  right:16rpx;
+  font-size:32rpx;
+  color:var(--c-success);
+  font-weight:700;
 }
 
 .option-badge{
@@ -387,6 +496,28 @@ onLoad(async (opt:any)=>{
   line-height:1.6;
   color:var(--c-text);
   padding-top:4rpx;
+}
+
+/* ========== 解析 ========== */
+.answer-section{
+  padding-top:28rpx;
+  margin-top:28rpx;
+  border-top:1rpx solid #f0f2f5;
+}
+
+.answer-content{
+  padding:20rpx 24rpx;
+  background:linear-gradient(135deg, #e6f3ff 0%, #d6ebff 100%);
+  border-left:4rpx solid var(--c-primary);
+  border-radius:var(--radius-sm);
+}
+
+.answer-text{
+  font-size:30rpx;
+  line-height:1.8;
+  color:var(--c-primary-dark);
+  font-weight:700;
+  word-break:break-word;
 }
 
 /* ========== 解析 ========== */

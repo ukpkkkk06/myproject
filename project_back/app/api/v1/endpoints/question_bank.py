@@ -225,10 +225,16 @@ def question_detail(
     QV = QuestionVersion
     analysis_col = getattr(QV, "analysis", None) or getattr(QV, "explanation", None)
     options_col = getattr(QV, "options", None) or getattr(QV, "choices", None)
+    correct_answer_col = getattr(QV, "correct_answer", None) or getattr(QV, "answer", None)
 
-    cols = [Question.id.label("id"), QV.stem.label("stem")]
+    cols = [
+        Question.id.label("id"), 
+        Question.type.label("type"),  # 🔥 添加题型
+        QV.stem.label("stem")
+    ]
     if options_col is not None: cols.append(options_col.label("options"))
     if analysis_col is not None: cols.append(analysis_col.label("analysis"))
+    if correct_answer_col is not None: cols.append(correct_answer_col.label("correct_answer"))  # 🔥 添加正确答案
 
     r = (db.query(*cols)
             .outerjoin(QV, Question.current_version_id == QV.id)
@@ -236,12 +242,22 @@ def question_detail(
             .first())
     if not r:
         raise HTTPException(status_code=404, detail="题目不存在")
-    return QuestionBrief(
-        id=r.id,
-        stem=r.stem or f"#{qid}",
-        options=_parse_options(getattr(r, "options", None)),
-        analysis=(getattr(r, "analysis", None) or None),
-    )
+    
+    # 🔥 构建返回对象，包含所有字段
+    result = {
+        "id": r.id,
+        "stem": r.stem or f"#{qid}",
+        "options": _parse_options(getattr(r, "options", None)),
+        "analysis": getattr(r, "analysis", None) or None,
+    }
+    
+    # 🔥 添加 type 和 correct_answer 字段（如果存在）
+    if hasattr(r, "type"):
+        result["type"] = r.type
+    if hasattr(r, "correct_answer"):
+        result["correct_answer"] = r.correct_answer
+    
+    return QuestionBrief(**result)
 
 @router.get("/questions/{qid:int}", response_model=QuestionBrief)
 def question_detail_alt(

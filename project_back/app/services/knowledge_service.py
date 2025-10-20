@@ -27,9 +27,17 @@ def list_tree(db: Session) -> List[Dict]:
 
 def create(db: Session, name: str, parent_id: Optional[int], description: Optional[str], depth: Optional[int]):
     if parent_id:
-        if not db.query(KnowledgePoint.id).filter(KnowledgePoint.id == parent_id).first():
+        parent = db.query(KnowledgePoint).filter(KnowledgePoint.id == parent_id).first()
+        if not parent:
             raise AppException("父级知识点不存在", code=400, status_code=400)
-    node = KnowledgePoint(name=name, parent_id=parent_id, description=description, depth=depth)
+        # 🔥 自动计算 level：父级的 level + 1
+        calculated_level = (parent.level or 0) + 1
+    else:
+        # 🔥 根节点的 level = 0
+        calculated_level = 0
+    
+    # 🔥 使用计算出的 level，忽略传入的 depth 参数（depth 字段已废弃）
+    node = KnowledgePoint(name=name, parent_id=parent_id, description=description, level=calculated_level)
     db.add(node); db.commit(); db.refresh(node)
     return node
 
@@ -43,12 +51,47 @@ def update(db: Session, kid: int, name: Optional[str], parent_id: Optional[int],
         # 防循环
         if kid in descendants_ids(db, parent_id):
             raise AppException("不能将父级设置为自己的子孙节点", code=400, status_code=400)
+    
+    # 🔥 更新基本字段
     if name is not None: node.name = name
     if description is not None: node.description = description
-    if depth is not None: node.depth = depth
-    if parent_id is not None: node.parent_id = parent_id
+    
+    # 🔥 如果修改了 parent_id，需要重新计算 level
+    if parent_id is not None and parent_id != node.parent_id:
+        node.parent_id = parent_id
+        if parent_id is None:
+            # 变成根节点
+            node.level = 0
+        else:
+            # 获取新父节点的 level
+            parent = db.query(KnowledgePoint).filter(KnowledgePoint.id == parent_id).first()
+            if parent:
+                node.level = (parent.level or 0) + 1
+            else:
+                raise AppException("父级知识点不存在", code=400, status_code=400)
+        
+        # 🔥 递归更新所有子孙节点的 level
+        _update_descendants_level(db, kid)
+    
     db.commit(); db.refresh(node)
     return node
+
+def _update_descendants_level(db: Session, parent_id: int):
+    """递归更新所有子孙节点的 level"""
+    parent = db.query(KnowledgePoint).filter(KnowledgePoint.id == parent_id).first()
+    if not parent:
+        return
+    
+    parent_level = parent.level or 0
+    children = db.query(KnowledgePoint).filter(KnowledgePoint.parent_id == parent_id).all()
+    
+    for child in children:
+        child.level = parent_level + 1
+        db.add(child)
+        # 递归更新子节点的子节点
+        _update_descendants_level(db, child.id)
+    
+    db.commit()
 
 def delete(db: Session, kid: int):
     node = db.query(KnowledgePoint).get(kid)
