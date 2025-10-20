@@ -87,11 +87,12 @@
               <text class="badge-icon">#</text>
               <text class="badge-id">{{ q.question_id }}</text>
             </view>
-            <view class="card-meta">
+            <!-- 暂时隐藏题目类型和难度显示 -->
+            <!-- <view class="card-meta">
               <text class="meta-type">{{ q.type || '未分类' }}</text>
               <text class="meta-divider">|</text>
               <text class="meta-diff">{{ q.difficulty ?? '未定级' }}</text>
-            </view>
+            </view> -->
           </view>
 
           <view class="card-body">

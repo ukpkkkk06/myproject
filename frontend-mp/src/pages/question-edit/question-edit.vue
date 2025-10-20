@@ -102,10 +102,16 @@
         <view class="field-group kp-group">
           <view class="label-row">
             <view class="label">
-              <text class="label-icon">🎯</text>
+              <text class="label-icon">�</text>
               <text>知识点</text>
             </view>
-            <view class="kp-count">{{ selectedKpIds.length }} 个</view>
+            <view style="display: flex; gap: 12rpx; align-items: center;">
+              <view class="kp-count">{{ selectedKpIds.length }} 个</view>
+              <button class="add-kp-btn" @tap="showAddKpDialog">
+                <text class="add-kp-icon">➕</text>
+                <text>新增</text>
+              </button>
+            </view>
           </view>
 
           <!-- 已选知识点 -->
@@ -157,6 +163,41 @@
         </view>
       </view>
     </view>
+
+    <!-- 🔥 新增知识点弹窗 -->
+    <view v-if="addKpDialogVisible" class="modal-mask" @tap="closeAddKpDialog">
+      <view class="modal-dialog" @tap.stop="noop">
+        <view class="modal-header">
+          <text class="modal-title">➕ 新增知识点</text>
+          <text class="modal-close" @tap="closeAddKpDialog">✕</text>
+        </view>
+        <view class="modal-body">
+          <view class="modal-field">
+            <text class="modal-label">知识点名称 <text class="required">*</text></text>
+            <input class="modal-input" v-model="newKpForm.name" placeholder="请输入知识点名称" />
+          </view>
+          <view class="modal-field">
+            <text class="modal-label">父级知识点</text>
+            <picker mode="selector" :range="parentKpOptions" range-key="label" @change="onParentKpChange">
+              <view class="modal-picker">
+                <text>{{ newKpForm.parentLabel || '无（顶级知识点）' }}</text>
+                <text class="picker-arrow">›</text>
+              </view>
+            </picker>
+          </view>
+          <view class="modal-field">
+            <text class="modal-label">描述</text>
+            <textarea class="modal-textarea" v-model="newKpForm.description" placeholder="可选" />
+          </view>
+        </view>
+        <view class="modal-footer">
+          <button class="modal-btn cancel" @tap="closeAddKpDialog">取消</button>
+          <button class="modal-btn primary" :disabled="addKpSaving" @tap="saveNewKp">
+            {{ addKpSaving ? '保存中...' : '确定' }}
+          </button>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -166,6 +207,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import {
   api,
   listKnowledgeTree,
+  createKnowledgePoint,
   bindQuestionKnowledge,
   getQuestionKnowledge,
   type TagItem,
@@ -210,6 +252,23 @@ const filteredKp = computed(()=> {
   return kpOptions.value.filter(o => o.label.toLowerCase().includes(kw))
 })
 
+// 🔥 新增知识点相关状态
+const addKpDialogVisible = ref(false)
+const addKpSaving = ref(false)
+const newKpForm = ref({
+  name: '',
+  parent_id: null as number | null,
+  parentLabel: '',
+  description: ''
+})
+
+const parentKpOptions = computed(() => {
+  return [
+    { id: null, label: '无（顶级知识点）' },
+    ...kpOptions.value
+  ]
+})
+
 function noop(){}
 function keyOf(i:number){ return String.fromCharCode(65 + i) }
 function setCorrect(i:number){ form.value.correct_answer = keyOf(i) }
@@ -224,6 +283,60 @@ function removeKp(id: number){
 function onKpCheckboxChange(e: any){
   const vals = (e?.detail?.value || []) as string[]
   selectedKpIds.value = vals.map(v => Number(v))
+}
+
+// 🔥 新增知识点相关函数
+function showAddKpDialog() {
+  newKpForm.value = {
+    name: '',
+    parent_id: null,
+    parentLabel: '',
+    description: ''
+  }
+  addKpDialogVisible.value = true
+}
+
+function closeAddKpDialog() {
+  addKpDialogVisible.value = false
+}
+
+function onParentKpChange(e: any) {
+  const idx = Number(e?.detail?.value ?? 0)
+  const selected = parentKpOptions.value[idx]
+  newKpForm.value.parent_id = selected.id
+  newKpForm.value.parentLabel = selected.label
+}
+
+async function saveNewKp() {
+  const name = newKpForm.value.name.trim()
+  if (!name) {
+    return uni.showToast({ icon: 'none', title: '请输入知识点名称' })
+  }
+  
+  addKpSaving.value = true
+  try {
+    const created = await createKnowledgePoint({
+      name,
+      parent_id: newKpForm.value.parent_id,
+      description: newKpForm.value.description || undefined
+    })
+    
+    uni.showToast({ icon: 'success', title: '创建成功' })
+    
+    // 🔥 重新加载知识点树
+    await loadKnowledge()
+    
+    // 🔥 自动选中新创建的知识点
+    if (created?.id && !selectedKpIds.value.includes(created.id)) {
+      selectedKpIds.value.push(created.id)
+    }
+    
+    closeAddKpDialog()
+  } catch (e: any) {
+    uni.showToast({ icon: 'none', title: e?.data?.message || '创建失败' })
+  } finally {
+    addKpSaving.value = false
+  }
 }
 
 function flattenTree(nodes: KnowledgeNode[], prefix = ''): KpOpt[] {
@@ -673,7 +786,201 @@ onLoad((opt:any)=>{
   border-radius:999rpx;
 }
 
-.selected-kp{
+/* ========== 新增知识点按钮 ========== */
+.add-kp-btn {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 20rpx;
+  background: linear-gradient(135deg, var(--c-primary) 0%, #4a9fff 100%);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: 999rpx;
+  border: none;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s;
+}
+.add-kp-btn:active {
+  transform: scale(0.95);
+  box-shadow: var(--shadow-md);
+}
+.add-kp-icon {
+  font-size: 26rpx;
+}
+
+/* ========== 弹窗样式 ========== */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 60rpx;
+}
+
+.modal-dialog {
+  width: 100%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-60rpx) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 36rpx;
+  background: linear-gradient(135deg, var(--c-primary) 0%, #4a9fff 100%);
+  color: #fff;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.modal-close {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.modal-close:active {
+  opacity: 0.7;
+  transform: scale(0.9);
+}
+
+.modal-body {
+  padding: 36rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.modal-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.modal-input,
+.modal-textarea {
+  width: 100%;
+  padding: 20rpx 18rpx;
+  font-size: 28rpx;
+  color: var(--c-text);
+  background: #f7f9fc;
+  border: 2rpx solid var(--c-border);
+  border-radius: var(--radius-sm);
+  transition: all 0.3s;
+}
+
+.modal-input:focus,
+.modal-textarea:focus {
+  background: #fff;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 6rpx var(--c-primary-light);
+}
+
+.modal-textarea {
+  min-height: 140rpx;
+  line-height: 1.6;
+}
+
+.modal-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 18rpx;
+  background: #f7f9fc;
+  border: 2rpx solid var(--c-border);
+  border-radius: var(--radius-sm);
+  font-size: 28rpx;
+  color: var(--c-text);
+  transition: all 0.3s;
+}
+.modal-picker:active {
+  background: #fff;
+  border-color: var(--c-primary);
+}
+
+.picker-arrow {
+  font-size: 40rpx;
+  color: var(--c-text-muted);
+  font-weight: 300;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 20rpx;
+  padding: 24rpx 36rpx 36rpx;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 24rpx 0;
+  border-radius: var(--radius-md);
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+  transition: all 0.3s;
+}
+
+.modal-btn.cancel {
+  background: #f7f9fc;
+  color: var(--c-text-light);
+  border: 2rpx solid var(--c-border);
+}
+.modal-btn.cancel:active {
+  background: #eef3f7;
+}
+
+.modal-btn.primary {
+  background: linear-gradient(135deg, var(--c-primary) 0%, #4a9fff 100%);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.modal-btn.primary:active:not([disabled]) {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2rpx);
+}
+.modal-btn.primary[disabled] {
+  opacity: 0.6;
+}
+
+.selected-kp {
   margin-bottom:16rpx;
 }
 .empty-state{

@@ -16,11 +16,11 @@ def tree(db: Session = Depends(get_db)):
 
 @router.post("/knowledge", response_model=KnowledgeNode)
 def create(body: KnowledgeCreate, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
-    return knowledge_service.create(db, body.name, body.parent_id, body.description, body.level)
+    return knowledge_service.create(db, body.name, body.parent_id, body.description, body.depth)
 
 @router.put("/knowledge/{kid}", response_model=KnowledgeNode)
 def update(kid: int, body: KnowledgeUpdate, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
-    return knowledge_service.update(db, kid, body.name, body.parent_id, body.description, body.level)
+    return knowledge_service.update(db, kid, body.name, body.parent_id, body.description, body.depth)
 
 @router.delete("/knowledge/{kid}")
 def remove(kid: int, db: Session = Depends(get_db), me: User = Depends(get_current_user)):

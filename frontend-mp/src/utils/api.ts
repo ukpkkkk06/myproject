@@ -428,7 +428,7 @@ export interface KnowledgeNode {
   id: number
   name: string
   parent_id?: number | null
-  level?: number | null
+  depth?: number | null
   children?: KnowledgeNode[]
 }
 
@@ -441,6 +441,11 @@ export interface QuestionKnowledgeItem {
 // 获取知识点树
 export function listKnowledgeTree() {
   return request<KnowledgeNode[]>('/knowledge/tree', { method: 'GET' })
+}
+
+// 创建知识点
+export function createKnowledgePoint(data: { name: string; parent_id?: number | null; description?: string; level?: number }) {
+  return request<KnowledgeNode>('/knowledge', { method: 'POST', data })
 }
 
 // 获取某题目已绑定的知识点

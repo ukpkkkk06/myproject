@@ -13,27 +13,27 @@ def list_tree(db: Session) -> List[Dict]:
 
     def build(pid: Optional[int]) -> List[Dict]:
         result: List[Dict] = []
-        for n in sorted(by_parent.get(pid, []), key=lambda x: (x.level or 0, x.id)):
+        for n in sorted(by_parent.get(pid, []), key=lambda x: ((x.depth or 0), x.id)):
             result.append({
                 "id": n.id,
                 "name": n.name,
                 "parent_id": n.parent_id,
-                "level": n.level,
+                "depth": n.depth,
                 "children": build(n.id)
             })
         return result
 
     return build(None)
 
-def create(db: Session, name: str, parent_id: Optional[int], description: Optional[str], level: Optional[int]):
+def create(db: Session, name: str, parent_id: Optional[int], description: Optional[str], depth: Optional[int]):
     if parent_id:
         if not db.query(KnowledgePoint.id).filter(KnowledgePoint.id == parent_id).first():
             raise AppException("父级知识点不存在", code=400, status_code=400)
-    node = KnowledgePoint(name=name, parent_id=parent_id, description=description, level=level)
+    node = KnowledgePoint(name=name, parent_id=parent_id, description=description, depth=depth)
     db.add(node); db.commit(); db.refresh(node)
     return node
 
-def update(db: Session, kid: int, name: Optional[str], parent_id: Optional[int], description: Optional[str], level: Optional[int]):
+def update(db: Session, kid: int, name: Optional[str], parent_id: Optional[int], description: Optional[str], depth: Optional[int]):
     node = db.query(KnowledgePoint).get(kid)
     if not node:
         raise AppException("知识点不存在", code=404, status_code=404)
@@ -45,7 +45,7 @@ def update(db: Session, kid: int, name: Optional[str], parent_id: Optional[int],
             raise AppException("不能将父级设置为自己的子孙节点", code=400, status_code=400)
     if name is not None: node.name = name
     if description is not None: node.description = description
-    if level is not None: node.level = level
+    if depth is not None: node.depth = depth
     if parent_id is not None: node.parent_id = parent_id
     db.commit(); db.refresh(node)
     return node
