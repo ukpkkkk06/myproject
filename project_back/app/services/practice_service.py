@@ -21,7 +21,21 @@ from app.models.exam_attempt import ExamAttempt
 log = logging.getLogger("practice_service")
 
 def _norm_sc(ans: str) -> str:
+    """标准化单选答案：去空格，转大写"""
     return (ans or "").strip().upper()
+
+def _norm_mc(ans: str) -> str:
+    """标准化多选答案：去空格，转大写，字母排序，去重
+    例如: 'BCA' -> 'ABC', 'AAB' -> 'AB'
+    """
+    return ''.join(sorted(set((ans or "").strip().upper())))
+
+def _norm_fill(ans: str) -> str:
+    """标准化填空答案：去除首尾空格，转小写
+    支持多个答案用分号分隔，任意一个匹配即正确
+    例如: "北京" -> "北京", " BEIJING " -> "beijing"
+    """
+    return (ans or "").strip().lower()
 
 def _new_title() -> str:
     return f"练习-{datetime.now():%Y%m%d%H%M%S}"
@@ -75,22 +89,37 @@ def _kp_descendants(db, root_id: int) -> List[int]:
         res.extend(cs); st.extend(cs)
     return res
 
-def create_session(db: Session, user: User, size: int, subject_id: Optional[int] = None, knowledge_id: Optional[int] = None, include_children: bool = False) -> tuple[int, int, int, int]:
-    """创建练习会话；可按学科筛选。异常通过 AppException 抛出，交给统一异常处理器。
+def create_session(
+    db: Session, 
+    user: User, 
+    size: int, 
+    subject_id: Optional[int] = None, 
+    knowledge_id: Optional[int] = None, 
+    include_children: bool = False,
+    question_types: Optional[List[str]] = None
+) -> tuple[int, int, int, int]:
+    """创建练习会话；可按学科和题型筛选。异常通过 AppException 抛出，交给统一异常处理器。
     Args:
         db (Session): 数据库会话
         user (User): 用户对象
         size (int): 题目数量
         subject_id (Optional[int], optional): 学科 ID. Defaults to None.
+        knowledge_id (Optional[int], optional): 知识点 ID. Defaults to None.
+        include_children (bool, optional): 是否包含子知识点. Defaults to False.
+        question_types (Optional[List[str]], optional): 题型列表 ['SC', 'MC']. Defaults to None (全部题型).
     Raises:
         AppException: 自定义异常
     Returns:
         tuple[int, int, int, int]: 会话 ID, 试卷 ID, 题目总数, 当前题序
     """
     size = max(1, min(int(size or 5), 50))
+    
+    # 默认支持所有题型
+    if question_types is None or not question_types:
+        question_types = ["SC", "MC", "FILL"]  # 🆕 添加填空题
 
-    # 仅当未指定学科时复用未完成会话；指定学科时强制新建，确保筛选生效
-    if subject_id is None:
+    # 仅当未指定学科和题型时复用未完成会话；否则强制新建，确保筛选生效
+    if subject_id is None and (question_types == ["SC", "MC", "FILL"] or question_types is None):
         existing = (
             db.query(ExamAttempt)
             .filter(ExamAttempt.user_id == user.id, ExamAttempt.status == "IN_PROGRESS")
@@ -106,8 +135,13 @@ def create_session(db: Session, user: User, size: int, subject_id: Optional[int]
         if not tag:
             raise AppException("学科不存在", code=400, status_code=400)
 
-    # 按学科抽题
-    q = db.query(Question.id).filter(Question.is_active == True, Question.type == "SC")
+    # 按学科和题型抽题
+    q = db.query(Question.id).filter(Question.is_active == True)
+    
+    # 题型筛选
+    if question_types:
+        q = q.filter(Question.type.in_(question_types))
+    
     if subject_id:
         q = (q.join(QuestionTag, QuestionTag.question_id == Question.id)
               .join(Tag, Tag.id == QuestionTag.tag_id)
@@ -173,7 +207,18 @@ def submit_answer(db: Session, user: User, attempt_id: int, seq: int, user_answe
     q = db.query(Question).filter(Question.id == pq.question_id).first()
     qv = db.query(QuestionVersion).filter(QuestionVersion.id == q.current_version_id).first()
 
-    correct = _norm_sc(user_answer) == _norm_sc(qv.correct_answer)
+    # 🔥 根据题型选择不同的验证方式
+    if q.type == "MC":
+        # 多选题：比较排序后的字母集合
+        correct = _norm_mc(user_answer) == _norm_mc(qv.correct_answer)
+    elif q.type == "FILL":
+        # 🆕 填空题：支持多答案(分号分隔),任一匹配即正确
+        correct_answers = [_norm_fill(a) for a in qv.correct_answer.split(';')]
+        user_ans = _norm_fill(user_answer)
+        correct = user_ans in correct_answers
+    else:
+        # 单选题：比较单个字母
+        correct = _norm_sc(user_answer) == _norm_sc(qv.correct_answer)
 
     ua = db.query(UserAnswer).filter(
         UserAnswer.attempt_id == attempt.id, UserAnswer.question_id == q.id

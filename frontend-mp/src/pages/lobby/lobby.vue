@@ -57,6 +57,40 @@
           </view>
         </view>
 
+        <!-- 🆕 题型选择卡片 -->
+        <view class="select-card">
+          <view class="select-header">
+            <text class="select-icon">📋</text>
+            <text class="select-label">题型筛选</text>
+          </view>
+          <view class="type-options">
+            <view 
+              class="type-option" 
+              :class="{ active: questionTypes.includes('SC') }"
+              @tap="toggleType('SC')"
+            >
+              <text class="type-icon">○</text>
+              <text>单选题</text>
+            </view>
+            <view 
+              class="type-option" 
+              :class="{ active: questionTypes.includes('MC') }"
+              @tap="toggleType('MC')"
+            >
+              <text class="type-icon">☑</text>
+              <text>多选题</text>
+            </view>
+            <view 
+              class="type-option" 
+              :class="{ active: questionTypes.includes('FILL') }"
+              @tap="toggleType('FILL')"
+            >
+              <text class="type-icon">___</text>
+              <text>填空题</text>
+            </view>
+          </view>
+        </view>
+
         <!-- 功能按钮网格 -->
         <view class="action-grid">
           <button class="action-btn primary" @tap="startPractice">
@@ -119,6 +153,21 @@ function onPickKp(e:any){ kpIdx.value = Number(e.detail.value) - 1 }
 const includeChildren = ref(true)
 function onToggleChildren(e:any){ includeChildren.value = !!e.detail.value }
 
+/* 🆕 题型筛选 */
+const questionTypes = ref<string[]>(['SC', 'MC', 'FILL'])  // 🆕 默认全选,包含填空题
+function toggleType(type: string) {
+  const idx = questionTypes.value.indexOf(type)
+  if (idx >= 0) {
+    // 取消选择(但至少保留一个)
+    if (questionTypes.value.length > 1) {
+      questionTypes.value.splice(idx, 1)
+    }
+  } else {
+    // 添加选择
+    questionTypes.value.push(type)
+  }
+}
+
 /* 扁平化知识点树为"路径"便于选择 */
 function flattenKp(nodes: KnowledgeNode[], prefix = ''): KpOpt[] {
   const out: KpOpt[] = []
@@ -148,7 +197,7 @@ async function startPractice(){
   const knowledgeId = selKp?.id
 
   try{
-    const r = await api.createPractice(5, subjectId, knowledgeId, includeChildren.value)
+    const r = await api.createPractice(5, subjectId, knowledgeId, includeChildren.value, questionTypes.value)
     uni.navigateTo({ url: `/pages/practice/practice?attemptId=${r.attempt_id}&total=${r.total}&seq=${r.start_seq ?? r.first_seq ?? 1}` })
   }catch(e:any){
     const msg = e?.data?.message || e?.data?.detail || '创建练习失败'
@@ -406,7 +455,48 @@ function logout(){
   font-weight:600;
 }
 
-/* 🎨 功能按钮网格 - 优化版 */
+/* � 题型选择样式 */
+.type-options{
+  display:flex;
+  gap:16rpx;
+  margin-top:8rpx;
+}
+
+.type-option{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8rpx;
+  padding:20rpx 16rpx;
+  background:#fff;
+  border:2rpx solid var(--c-border);
+  border-radius:var(--radius-s);
+  font-size:26rpx;
+  color:var(--c-text-sec);
+  font-weight:500;
+  transition:all .25s ease;
+  cursor:pointer;
+}
+
+.type-option.active{
+  background:linear-gradient(135deg, var(--c-primary-light), #e8f5ff);
+  border-color:var(--c-primary);
+  color:var(--c-primary-dark);
+  font-weight:700;
+  box-shadow:0 4rpx 12rpx rgba(102,180,255,.2);
+}
+
+.type-option:active{
+  transform:scale(.95);
+}
+
+.type-icon{
+  font-size:28rpx;
+  line-height:1;
+}
+
+/* �🎨 功能按钮网格 - 优化版 */
 .action-grid{
   display:grid;
   grid-template-columns:repeat(2, 1fr);  /* 始终 2 列 */

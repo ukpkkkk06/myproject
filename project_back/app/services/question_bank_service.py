@@ -10,8 +10,9 @@ from sqlalchemy import select, exists
 import json
 from app.models.user import User  # 修复未定义 User
 
-HEADER_EXPECT = ["题干","选项A","选项B","选项C","选项D","正确选项（请填入ABCD）","解析","学科（数学，英语，化学，物理，语文）","学段（小学，初中，高中，大学）"]
+HEADER_EXPECT = ["题干","选项A","选项B","选项C","选项D","题型（单选/多选/填空）","正确选项（单选/多选填ABCD，填空填答案）","解析","学科（数学，英语，化学，物理，语文）","学段（小学，初中，高中，大学）"]
 ANSWER_KEYS = ["A","B","C","D"]
+QUESTION_TYPES = {"单选": "SC", "多选": "MC", "填空": "FILL"}  # 🆕 添加填空题型
 
 def _get_or_none(tag_map: Dict[str, Tag], name: str):
     if not name:
@@ -65,12 +66,35 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
             B = cell_str(r, 3)
             C = cell_str(r, 4)
             D = cell_str(r, 5)
-            correct = cell_str(r, 6).upper()
-            analysis = cell_str(r, 7)
-            subject_name = cell_str(r, 8)
-            level_name = cell_str(r, 9)
-            if correct not in ANSWER_KEYS:
-                raise ValueError("正确选项必须是 A/B/C/D")
+            qtype_str = cell_str(r, 6)  # 🆕 题型列（单选/多选）
+            correct = cell_str(r, 7).upper()  # 🆕 正确答案移到第7列
+            analysis = cell_str(r, 8)  # 🆕 解析移到第8列
+            subject_name = cell_str(r, 9)  # 🆕 学科移到第9列
+            level_name = cell_str(r, 10)  # 🆕 学段移到第10列
+            
+            # 🆕 验证题型
+            if qtype_str not in QUESTION_TYPES:
+                raise ValueError(f"题型必须是'单选'、'多选'或'填空'，当前值：{qtype_str}")
+            
+            qtype = QUESTION_TYPES[qtype_str]  # SC 或 MC 或 FILL
+            
+            # 🆕 根据题型验证答案
+            if qtype == "SC":
+                if correct not in ANSWER_KEYS:
+                    raise ValueError("单选题正确选项必须是 A/B/C/D 之一")
+            elif qtype == "MC":
+                if not correct or len(correct) < 2:
+                    raise ValueError("多选题至少要有2个正确答案")
+                if not all(c in ANSWER_KEYS for c in correct):
+                    raise ValueError(f"多选题正确选项必须是 A/B/C/D 的组合，如 ABC，当前值：{correct}")
+                # 标准化多选答案：去重并排序（例如 "BCA" -> "ABC"）
+                correct = "".join(sorted(set(correct)))
+            elif qtype == "FILL":
+                # 🆕 填空题验证
+                if not correct:
+                    raise ValueError("填空题答案不能为空")
+                # 填空题不需要选项，设置为空列表
+                A = B = C = D = ""
 
             options = [
                 {"key":"A","text":A},
@@ -79,8 +103,8 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
                 {"key":"D","text":D},
             ]
 
-            # 创建 Question（默认单选题）
-            q = Question(type='SC', is_active=True)
+            # 🆕 根据题型创建 Question
+            q = Question(type=qtype, is_active=True)
             if hasattr(q, "created_by"):
                 setattr(q, "created_by", user_id)
             db.add(q)

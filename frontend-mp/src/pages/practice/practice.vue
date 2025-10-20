@@ -36,12 +36,14 @@
         <text class="stem">{{ q?.stem }}</text>
       </view>
 
-      <!-- 选项 - 优化布局 -->
+      <!-- 选项 - 优化布局,支持单选/多选/填空 -->
       <view class="options-title">
         <text class="options-icon">🎯</text>
-        <text>请选择答案</text>
+        <text>{{ q?.type === 'MC' ? '请选择答案（多选）' : (q?.type === 'FILL' ? '请输入答案' : '请选择答案') }}</text>
       </view>
-      <radio-group @change="onChoose" :disabled="!!feedback">
+      
+      <!-- 单选题 - radio-group -->
+      <radio-group v-if="q?.type === 'SC'" @change="onChoose" :disabled="!!feedback">
         <label
           v-for="(opt,i) in q?.options || []"
           :key="i"
@@ -57,16 +59,56 @@
           <text class="opt-text">{{ opt }}</text>
           <!-- 添加状态图标 -->
           <view v-if="feedback" class="status-icon">
-            <text v-if="feedback.correct_answer === letters[i]">✓</text>
+            <text v-if="feedback.correct_answer.includes(letters[i])">✓</text>
             <text v-else-if="!feedback.correct && sel === letters[i]">✗</text>
           </view>
         </label>
       </radio-group>
+      
+      <!-- 多选题 - checkbox-group -->
+      <checkbox-group v-else-if="q?.type === 'MC'" @change="onChooseMulti" :disabled="!!feedback">
+        <label
+          v-for="(opt,i) in q?.options || []"
+          :key="i"
+          class="opt"
+          :class="optionClassMulti(letters[i])"
+        >
+          <view class="opt-header">
+            <view class="bullet multi" :class="bulletClassMulti(letters[i])">
+              <text class="b-text">{{ letters[i] }}</text>
+            </view>
+            <checkbox :value="letters[i]" :checked="multiSel.includes(letters[i])" color="#66b4ff" style="display:none" />
+          </view>
+          <text class="opt-text">{{ opt }}</text>
+          <!-- 添加状态图标 -->
+          <view v-if="feedback" class="status-icon">
+            <text v-if="feedback.correct_answer.includes(letters[i])">✓</text>
+            <text v-else-if="!feedback.correct && multiSel.includes(letters[i])">✗</text>
+          </view>
+        </label>
+      </checkbox-group>
+      
+      <!-- 🆕 填空题 - input输入框 -->
+      <view v-else-if="q?.type === 'FILL'" class="fill-input-wrap">
+        <input 
+          v-model="fillAnswer"
+          :disabled="!!feedback"
+          class="fill-input"
+          :class="{ 'fill-correct': feedback?.correct, 'fill-wrong': feedback && !feedback.correct }"
+          placeholder="请输入答案"
+          @input="onFillInput"
+        />
+        <text class="fill-hint">💡 支持多个答案用分号分隔,如: 答案1;答案2</text>
+        <view v-if="feedback && !feedback.correct" class="fill-answer-hint">
+          <text class="hint-label">正确答案：</text>
+          <text class="hint-value">{{ feedback.correct_answer }}</text>
+        </view>
+      </view>
 
-      <!-- 提交按钮 - 优化样式 -->
+      <!-- 提交按钮 - 优化样式,支持单选/多选/填空 -->
       <button
         class="btn primary submit"
-        :disabled="!sel || posting || !!feedback"
+        :disabled="getSubmitDisabled() || posting || !!feedback"
         @tap="submit"
       >
         <text class="btn-icon" v-if="!posting">✓</text>
@@ -122,9 +164,9 @@
       </view>
     </view>
 
-    <!-- 悬浮提示 -->
-    <view v-if="!feedback && sel" class="float-tip">
-      <text>已选择：{{ sel }}</text>
+    <!-- 悬浮提示 - 支持单选/多选/填空 -->
+    <view v-if="!feedback && (sel || multiSel.length || fillAnswer.trim())" class="float-tip">
+      <text>已{{ q?.type === 'FILL' ? '输入' : '选择' }}：{{ q?.type === 'MC' ? multiSel.sort().join('') : (q?.type === 'FILL' ? fillAnswer : sel) }}</text>
     </view>
   </view>
 </template>
@@ -137,7 +179,9 @@ const attemptId = ref(0)
 const total = ref(0)
 const seq = ref(1)
 const q = ref<QuestionView|null>(null)
-const sel = ref('')
+const sel = ref('')  // 单选答案
+const multiSel = ref<string[]>([])  // 🆕 多选答案数组
+const fillAnswer = ref('')  // 🆕 填空题答案
 const feedback = ref<SubmitAnswerResp|null>(null)
 const loaded = ref(false)
 const posting = ref(false)
@@ -145,24 +189,61 @@ const letters = ['A','B','C','D','E','F']
 let t0 = 0
 
 function toast(t:string){ uni.showToast({ icon:'none', title:t }) }
-function onChoose(e:any){ sel.value = e.detail.value }
+
+// 单选事件
+function onChoose(e:any){ 
+  sel.value = e.detail.value 
+}
+
+// 🆕 多选事件
+function onChooseMulti(e:any){ 
+  multiSel.value = e.detail.value || []
+}
+
+// 🆕 填空题输入事件
+function onFillInput(e:any){ 
+  fillAnswer.value = e.detail.value 
+}
+
+// 🆕 判断提交按钮是否禁用
+function getSubmitDisabled() {
+  if (q.value?.type === 'MC') return !multiSel.value.length
+  if (q.value?.type === 'FILL') return !fillAnswer.value.trim()
+  return !sel.value
+}
+
 const progressPct = computed(()=> {
   if(!total.value) return 0
   const done = seq.value - 1 + (feedback.value ? 1 : 0)
   return Math.min(100, Math.round(done / total.value * 100))
 })
 
+// 单选样式
 function optionClass(letter:string){
   if(!feedback.value) return { chosen: sel.value === letter }
-  const right = feedback.value.correct_answer === letter
+  const right = feedback.value.correct_answer.includes(letter)
   const wrongChosen = !feedback.value.correct && sel.value === letter
   return { right, wrong: wrongChosen, chosen: sel.value === letter }
 }
 function bulletClass(letter:string){
   if(!feedback.value) return { chosen: sel.value === letter }
-  const right = feedback.value.correct_answer === letter
+  const right = feedback.value.correct_answer.includes(letter)
   const wrongChosen = !feedback.value.correct && sel.value === letter
   return { right, wrong: wrongChosen, chosen: sel.value === letter }
+}
+
+// 🆕 多选样式
+function optionClassMulti(letter:string){
+  if(!feedback.value) return { chosen: multiSel.value.includes(letter) }
+  const right = feedback.value.correct_answer.includes(letter)
+  const wrongChosen = !feedback.value.correct && multiSel.value.includes(letter) && !right
+  return { right, wrong: wrongChosen, chosen: multiSel.value.includes(letter) }
+}
+function bulletClassMulti(letter:string){
+  if(!feedback.value) return { chosen: multiSel.value.includes(letter) }
+  const right = feedback.value.correct_answer.includes(letter)
+  const wrongChosen = !feedback.value.correct && multiSel.value.includes(letter) && !right
+  return { right, wrong: wrongChosen, chosen: multiSel.value.includes(letter) }
 }
 
 async function loadQuestion(s:number){
@@ -171,6 +252,8 @@ async function loadQuestion(s:number){
     q.value = await api.getPracticeQuestion(attemptId.value, s)
     seq.value = s
     sel.value = ''
+    multiSel.value = []  // 🆕 重置多选
+    fillAnswer.value = ''  // 🆕 重置填空
     feedback.value = null
     t0 = Date.now()
     await nextTick()
@@ -179,11 +262,26 @@ async function loadQuestion(s:number){
 }
 
 async function submit(){
-  if(!sel.value || posting.value) return
+  // 🆕 根据题型获取答案
+  let answer = ''
+  if(q.value?.type === 'MC') {
+    if(!multiSel.value.length) return
+    // 多选答案排序后拼接
+    answer = multiSel.value.sort().join('')
+  } else if(q.value?.type === 'FILL') {
+    // 🆕 填空题答案
+    if(!fillAnswer.value.trim()) return
+    answer = fillAnswer.value.trim()
+  } else {
+    if(!sel.value) return
+    answer = sel.value
+  }
+  
+  if(posting.value) return
   posting.value = true
   try{
     const spent = Date.now()-t0
-    feedback.value = await api.submitPracticeAnswer(attemptId.value, seq.value, sel.value, spent)
+    feedback.value = await api.submitPracticeAnswer(attemptId.value, seq.value, answer, spent)
   } catch(e:any){
     toast(e?.data?.message || '提交失败')
   } finally { posting.value = false }
@@ -561,12 +659,86 @@ onMounted(async ()=>{
   font-weight:700;
 }
 
+/* 🆕 多选题方形样式 */
+.bullet.multi{
+  border-radius:12rpx;
+}
+
 .bullet.chosen{
   border-color:var(--c-primary);
   background:linear-gradient(135deg,#a9d6ff,#66b4ff);
   color:#fff;
   box-shadow:0 4rpx 12rpx rgba(102,180,255,.4);
   transform:scale(1.1);
+}
+
+/* 🆕 填空题样式 */
+.fill-input-wrap{
+  margin-bottom:32rpx;
+  display:flex;
+  flex-direction:column;
+  gap:16rpx;
+}
+
+.fill-input{
+  width:100%;
+  padding:24rpx 32rpx;
+  border:2rpx solid var(--c-border);
+  border-radius:var(--radius);
+  font-size:28rpx;
+  background:#fff;
+  color:var(--c-text);
+  transition:all .25s ease;
+  box-shadow:var(--shadow-sm);
+}
+
+.fill-input:focus{
+  border-color:var(--c-primary);
+  box-shadow:0 0 0 4rpx var(--c-primary-light), var(--shadow-md);
+  outline:none;
+}
+
+.fill-input.fill-correct{
+  border-color:var(--c-green);
+  background:var(--c-green-bg);
+  color:var(--c-green);
+  font-weight:600;
+}
+
+.fill-input.fill-wrong{
+  border-color:var(--c-red);
+  background:var(--c-red-bg);
+  color:var(--c-red);
+  font-weight:600;
+}
+
+.fill-hint{
+  display:block;
+  font-size:24rpx;
+  color:var(--c-text-sec);
+  padding-left:8rpx;
+}
+
+.fill-answer-hint{
+  display:flex;
+  align-items:center;
+  gap:12rpx;
+  padding:20rpx 24rpx;
+  background:var(--c-green-bg);
+  border:2rpx solid var(--c-green-border);
+  border-radius:var(--radius-s);
+}
+
+.hint-label{
+  font-size:26rpx;
+  color:var(--c-text-sec);
+  font-weight:600;
+}
+
+.hint-value{
+  font-size:28rpx;
+  color:var(--c-green);
+  font-weight:700;
 }
 
 .bullet.right{
