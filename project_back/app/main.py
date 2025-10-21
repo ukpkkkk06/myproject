@@ -1,15 +1,8 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from fastapi import FastAPI, APIRouter
-from app.api.v1.endpoints import (
-    health, users, auth, practice,
-    error_book as error_book_endpoint,
-    question_bank as question_bank_endpoint,
-    tags as tags_endpoint,
-    knowledge as knowledge_endpoint,
-)
-from app.api.v1.endpoints import admin as admin_endpoint
+from fastapi import FastAPI
+from app import api_router  # 导入统一的路由配置
 from app.core.config import settings
 from starlette.middleware.cors import CORSMiddleware
 from app.core.error_handlers import register_exception_handlers
@@ -51,20 +44,8 @@ def create_app() -> FastAPI:
     def root():
         return {"message": "Hello World"}
 
-    # 仅挂载一次 /api/v1 前缀
-    app.include_router(health.router,   prefix="/api/v1", tags=["health"])
-    app.include_router(auth.router,     prefix="/api/v1", tags=["auth"])
-    app.include_router(users.router,    prefix="/api/v1", tags=["users"])
-    app.include_router(practice.router, prefix="/api/v1", tags=["practice"])
-    app.include_router(tags_endpoint.router, prefix="/api/v1", tags=["tags"])
-    app.include_router(error_book_endpoint.router, prefix="/api/v1/error-book", tags=["error-book"])
-    app.include_router(question_bank_endpoint.router, prefix="/api/v1", tags=["question-bank"])
-    # 新增：管理员接口
-    app.include_router(admin_endpoint.router, prefix="/api/v1", tags=["admin"])
-    # 新增：知识库接口
-    api_router = APIRouter()
-    api_router.include_router(knowledge_endpoint.router, tags=["knowledge"])
-    app.include_router(api_router, prefix="/api/v1")
+    # 统一挂载所有 API 路由
+    app.include_router(api_router)
 
     return app
 

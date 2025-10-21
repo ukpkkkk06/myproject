@@ -21,7 +21,8 @@ def _get_or_none(tag_map: Dict[str, Tag], name: str):
 
 def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> ImportQuestionsResult:
     try:
-        wb = load_workbook(file_path)
+        # 🚀 优化：使用只读模式和data_only模式，大幅减少内存占用
+        wb = load_workbook(file_path, read_only=True, data_only=True)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"无法读取Excel: {e}")
     ws = wb.active
@@ -291,3 +292,298 @@ def get_my_questions(
         "page": page,
         "items": [dict(r._mapping) for r in rows],
     }
+
+
+def get_questions_brief(db: Session, id_list: list[int], user_id: int, is_admin: bool):
+    """批量获取题目简要信息（题干/选项/解析）"""
+    from app.core.exceptions import NotFoundException
+    
+    if not id_list:
+        return []
+    
+    # 兼容字段名
+    QV = QuestionVersion
+    analysis_col = getattr(QV, "analysis", None) or getattr(QV, "explanation", None)
+    options_col = getattr(QV, "options", None) or getattr(QV, "choices", None)
+    
+    cols = [Question.id.label("id"), QV.stem.label("stem")]
+    if options_col is not None: 
+        cols.append(options_col.label("options"))
+    if analysis_col is not None: 
+        cols.append(analysis_col.label("analysis"))
+    
+    q = (
+        db.query(*cols)
+          .outerjoin(QV, Question.current_version_id == QV.id)
+          .filter(Question.id.in_(id_list))
+    )
+    
+    # 🔒 非管理员只能查看自己创建的题目
+    if not is_admin:
+        q = q.filter(QV.created_by == user_id)
+    
+    rows = q.all()
+    by_id = {r.id: r for r in rows}
+    
+    result = []
+    for qid in id_list:
+        r = by_id.get(qid)
+        if r:
+            result.append(r)
+    
+    return result
+
+
+def get_question_detail(db: Session, qid: int, user_id: int, is_admin: bool):
+    """获取单个题目详情"""
+    from app.core.exceptions import NotFoundException, ForbiddenException
+    
+    QV = QuestionVersion
+    analysis_col = getattr(QV, "analysis", None) or getattr(QV, "explanation", None)
+    options_col = getattr(QV, "options", None) or getattr(QV, "choices", None)
+    correct_answer_col = getattr(QV, "correct_answer", None) or getattr(QV, "answer", None)
+    
+    cols = [
+        Question.id.label("id"), 
+        Question.type.label("type"),
+        Question.is_active.label("is_active"),
+        QV.stem.label("stem")
+    ]
+    if options_col is not None: 
+        cols.append(options_col.label("options"))
+    if analysis_col is not None: 
+        cols.append(analysis_col.label("analysis"))
+    if correct_answer_col is not None: 
+        cols.append(correct_answer_col.label("correct_answer"))
+    
+    q = (db.query(*cols)
+            .outerjoin(QV, Question.current_version_id == QV.id)
+            .filter(Question.id == qid))
+    
+    # 🔒 非管理员只能查看自己创建的题目
+    if not is_admin:
+        q = q.filter(QV.created_by == user_id)
+    
+    r = q.first()
+    if not r:
+        raise NotFoundException("题目不存在或无权限访问")
+    
+    return r
+
+
+def get_question_owner_id(q: Question, db: Session) -> int | None:
+    """获取题目的创建者ID"""
+    # 1) Question.created_by 优先
+    if hasattr(q, "created_by"):
+        return getattr(q, "created_by")
+    # 2) 回退到版本表的 created_by
+    if hasattr(q, "current_version_id") and q.current_version_id:
+        return db.query(QuestionVersion.created_by)\
+                 .filter(QuestionVersion.id == q.current_version_id)\
+                 .scalar()
+    return None
+
+
+def update_question(db: Session, qid: int, body, user_id: int, is_admin: bool):
+    """更新题目信息"""
+    from app.core.exceptions import NotFoundException, ForbiddenException
+    
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise NotFoundException("题目不存在")
+    
+    owner_id = get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != user_id):
+        raise ForbiddenException("无权限")
+    
+    # 获取题目版本（优先 current_version_id，其次按最新一条兜底）
+    QV = QuestionVersion
+    qv = None
+    if hasattr(q, "current_version_id") and q.current_version_id:
+        qv = db.query(QV).filter(QV.id == q.current_version_id).first()
+    if not qv:
+        qv = db.query(QV).filter(QV.question_id == q.id).order_by(QV.id.desc()).first()
+    if not qv:
+        raise NotFoundException("题目版本不存在")
+    
+    # 更新字段
+    if body.stem is not None:
+        qv.stem = body.stem.strip()
+    
+    if body.options is not None:
+        val_list = _options_to_db_list(body.options)
+        if val_list is not None:
+            if hasattr(qv, "options"):
+                qv.options = val_list
+            elif hasattr(qv, "choices"):
+                qv.choices = json.dumps(val_list, ensure_ascii=False)
+    
+    if body.analysis is not None:
+        if hasattr(qv, "analysis"):
+            qv.analysis = body.analysis
+        elif hasattr(qv, "explanation"):
+            qv.explanation = body.analysis
+    
+    if body.correct_answer is not None:
+        ca = (body.correct_answer or "").strip().upper()[:8]
+        if hasattr(qv, "correct_answer"):
+            qv.correct_answer = ca
+        elif hasattr(qv, "answer"):
+            qv.answer = ca
+    
+    # is_active 应该更新到 Question 表
+    if body.is_active is not None:
+        q.is_active = bool(body.is_active)
+        if hasattr(qv, "is_active"):
+            qv.is_active = bool(body.is_active)
+    
+    # 更新题目类型
+    if body.type is not None:
+        allowed_types = ["SC", "MC", "FILL"]
+        if body.type in allowed_types:
+            q.type = body.type
+        else:
+            raise HTTPException(status_code=400, detail=f"题目类型必须是以下之一: {allowed_types}")
+    
+    # 保存时默认通过审核
+    if hasattr(qv, "audit_status"):
+        qv.audit_status = "APPROVED"
+    elif hasattr(q, "audit_status"):
+        q.audit_status = "APPROVED"
+    
+    db.commit()
+    return {"ok": True}
+
+
+def _options_to_db_list(val):
+    """规范化前端传来的 options，返回 Python 列表[str]"""
+    if val is None:
+        return None
+    try:
+        if isinstance(val, str):
+            parsed = json.loads(val)
+            val = parsed
+    except Exception:
+        pass
+    
+    out = []
+    if isinstance(val, list):
+        for it in val:
+            if isinstance(it, dict):
+                out.append((it.get("text") or it.get("content") or "").strip())
+            else:
+                out.append(str(it))
+        return out
+    return [str(val)]
+
+
+def list_tags(db: Session, type_filter: str | None = None):
+    """获取标签列表"""
+    q = db.query(Tag)
+    if type_filter:
+        q = q.filter(Tag.type == type_filter)
+    rows = q.order_by(Tag.type.asc(), Tag.name.asc()).all()
+    return rows
+
+
+def get_question_tags(db: Session, qid: int, user_id: int, is_admin: bool):
+    """获取题目的标签"""
+    from app.core.exceptions import NotFoundException, ForbiddenException
+    
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise NotFoundException("题目不存在")
+    
+    owner_id = get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != user_id):
+        raise ForbiddenException("无权限访问此题目")
+    
+    rows = (
+        db.query(QuestionTag.tag_id, Tag.type)
+        .join(Tag, Tag.id == QuestionTag.tag_id)
+        .filter(QuestionTag.question_id == qid)
+        .all()
+    )
+    
+    subject_id = next((tid for tid, tp in rows if tp == "SUBJECT"), None)
+    level_id = next((tid for tid, tp in rows if tp == "LEVEL"), None)
+    
+    return {
+        "subject_id": subject_id,
+        "level_id": level_id,
+        "tag_ids": [tid for tid, _ in rows],
+    }
+
+
+def set_question_tags(db: Session, qid: int, body, user_id: int, is_admin: bool):
+    """设置题目的标签"""
+    from app.core.exceptions import NotFoundException, ForbiddenException
+    
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise NotFoundException("题目不存在")
+    
+    owner_id = get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != user_id):
+        raise ForbiddenException("无权限")
+    
+    # SUBJECT 互斥
+    if body.subject_id is not None:
+        old_sids = [
+            tid for (tid,) in db.query(QuestionTag.tag_id)
+            .join(Tag, Tag.id == QuestionTag.tag_id)
+            .filter(QuestionTag.question_id == qid, Tag.type == "SUBJECT").all()
+        ]
+        if old_sids:
+            db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid,
+                QuestionTag.tag_id.in_(old_sids)
+            ).delete(synchronize_session=False)
+        if body.subject_id:
+            ok = db.query(Tag.id).filter(Tag.id == body.subject_id, Tag.type == "SUBJECT").first()
+            if not ok:
+                raise HTTPException(status_code=400, detail="subject_id 非法")
+            exists = db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid, QuestionTag.tag_id == body.subject_id
+            ).first()
+            if not exists:
+                db.add(QuestionTag(question_id=qid, tag_id=body.subject_id))
+    
+    # LEVEL 互斥
+    if body.level_id is not None:
+        old_lids = [
+            tid for (tid,) in db.query(QuestionTag.tag_id)
+            .join(Tag, Tag.id == QuestionTag.tag_id)
+            .filter(QuestionTag.question_id == qid, Tag.type == "LEVEL").all()
+        ]
+        if old_lids:
+            db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid,
+                QuestionTag.tag_id.in_(old_lids)
+            ).delete(synchronize_session=False)
+        if body.level_id:
+            ok = db.query(Tag.id).filter(Tag.id == body.level_id, Tag.type == "LEVEL").first()
+            if not ok:
+                raise HTTPException(status_code=400, detail="level_id 非法")
+            exists = db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid, QuestionTag.tag_id == body.level_id
+            ).first()
+            if not exists:
+                db.add(QuestionTag(question_id=qid, tag_id=body.level_id))
+    
+    # 可选批量增删
+    if body.remove_ids:
+        db.query(QuestionTag).filter(
+            QuestionTag.question_id == qid,
+            QuestionTag.tag_id.in_(body.remove_ids)
+        ).delete(synchronize_session=False)
+    if body.add_ids:
+        for tid in body.add_ids:
+            exists = db.query(QuestionTag).filter(
+                QuestionTag.question_id == qid, QuestionTag.tag_id == tid
+            ).first()
+            if not exists:
+                db.add(QuestionTag(question_id=qid, tag_id=tid))
+    
+    db.commit()
+    return {"ok": True}

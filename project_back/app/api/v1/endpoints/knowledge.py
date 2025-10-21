@@ -13,20 +13,38 @@ from app.models.question_version import QuestionVersion
 router = APIRouter()
 
 @router.get("/knowledge/tree", response_model=List[KnowledgeNode])
-def tree(db: Session = Depends(get_db)):
-    return knowledge_service.list_tree(db)
+def tree(db: Session = Depends(get_db), me: User = Depends(get_current_user)):
+    """
+    获取知识点树
+    🔒 权限控制: 
+    - 管理员可以看到所有知识点
+    - 普通用户只能看到自己创建的知识点
+    """
+    return knowledge_service.list_tree(db, user=me)
 
 @router.post("/knowledge", response_model=KnowledgeNode)
 def create(body: KnowledgeCreate, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
-    return knowledge_service.create(db, body.name, body.parent_id, body.description, body.depth)
+    """
+    创建知识点
+    🔒 记录创建者
+    """
+    return knowledge_service.create(db, body.name, body.parent_id, body.description, body.depth, user=me)
 
 @router.put("/knowledge/{kid}", response_model=KnowledgeNode)
 def update(kid: int, body: KnowledgeUpdate, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
-    return knowledge_service.update(db, kid, body.name, body.parent_id, body.description, body.depth)
+    """
+    更新知识点
+    🔒 权限控制: 只能修改自己创建的知识点
+    """
+    return knowledge_service.update(db, kid, body.name, body.parent_id, body.description, body.depth, user=me)
 
 @router.delete("/knowledge/{kid}")
 def remove(kid: int, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
-    knowledge_service.delete(db, kid)
+    """
+    删除知识点
+    🔒 权限控制: 只能删除自己创建的知识点
+    """
+    knowledge_service.delete(db, kid, user=me)
     return {"ok": True}
 
 # 🔒 获取题目作者ID辅助函数
@@ -41,6 +59,12 @@ def _get_question_owner_id(q: Question, db: Session) -> Optional[int]:
 
 @router.put("/questions/{qid}/knowledge")
 def bind_question_knowledge(qid: int = Path(...), items: List[QuestionKnowledgeItem] = Body(...), db: Session = Depends(get_db), me: User = Depends(get_current_user)):
+    """
+    绑定题目与知识点
+    🔒 权限控制：
+    1. 验证用户是否有权修改该题目
+    2. 验证用户是否有权使用这些知识点
+    """
     # 🔒 权限控制：验证用户是否有权修改该题目
     q = db.query(Question).filter(Question.id == qid).first()
     if not q:
@@ -52,7 +76,8 @@ def bind_question_knowledge(qid: int = Path(...), items: List[QuestionKnowledgeI
     if not is_admin and (owner_id is not None) and (owner_id != uid):
         raise HTTPException(403, "无权限修改此题目")
     
-    knowledge_service.bind_question_knowledge(db, qid, [i.dict() for i in items])
+    # 🔒 传递用户信息以验证知识点权限
+    knowledge_service.bind_question_knowledge(db, qid, [i.dict() for i in items], user=me)
     return {"ok": True}
 
 # 构造知识点路径

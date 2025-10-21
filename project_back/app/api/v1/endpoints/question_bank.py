@@ -24,13 +24,6 @@ from app.schemas.question_bank import (
 )
 # ==== 新增导入：数据库模型 ====
 from app.models.user import User
-from app.models.question import Question
-from app.models.question_version import QuestionVersion
-from app.models.tag import Tag, QuestionTag
-
-# 说明：
-# - 上面导入的名称正好对应 Pylance 报“未定义”的符号
-# - 若有未使用告警，可以暂时忽略；都在本文件中实际被引用
 
 router = APIRouter()
 
@@ -135,34 +128,6 @@ def _parse_options(val):
                 res.append({"key": chr(65+i), "text": str(it)})
     return res or None
 
-def _options_to_db(val):
-    """
-    规范化前端传来的 options，返回 Python 列表[str]，供 JSON 列直接写入。
-    - [{text:'A'}, {text:'B'}] -> ['A','B']
-    - ['A','B'] -> ['A','B']
-    - '{"k":"v"}' 或 其它 -> 尝试解析，最终确保是 list[str]
-    """
-    if val is None:
-        return None
-    try:
-        # 若是字符串且长得像 JSON，先解析
-        if isinstance(val, str):
-            parsed = json.loads(val)
-            val = parsed
-    except Exception:
-        pass
-
-    out = []
-    if isinstance(val, list):
-        for it in val:
-            if isinstance(it, dict):
-                out.append((it.get("text") or it.get("content") or "").strip())
-            else:
-                out.append(str(it))
-        return out
-    # 其它类型：尽量转为单元素列表
-    return [str(val)]
-
 def _normalize_options_for_store(opts: Any) -> str:
     if not opts:
         return json.dumps([], ensure_ascii=False)
@@ -193,37 +158,14 @@ def questions_brief(ids: str = Query(..., description="逗号分隔的题目ID�
     id_list = list(dict.fromkeys(id_list))[:100]
     if not id_list:
         return {"items": []}
-
-    # 🔒 权限控制：只能访问自己创建的题目
+    
+    # 调用 service 层
     uid = getattr(me, "id", None)
     is_admin = bool(getattr(me, "is_admin", False))
-
-    # 兼容字段名
-    QV = QuestionVersion
-    analysis_col = getattr(QV, "analysis", None) or getattr(QV, "explanation", None)
-    options_col = getattr(QV, "options", None) or getattr(QV, "choices", None)
-
-    cols = [Question.id.label("id"), QV.stem.label("stem")]
-    if options_col is not None: cols.append(options_col.label("options"))
-    if analysis_col is not None: cols.append(analysis_col.label("analysis"))
-
-    q = (
-        db.query(*cols)
-          .outerjoin(QV, Question.current_version_id == QV.id)
-          .filter(Question.id.in_(id_list))
-    )
+    rows = question_bank_service.get_questions_brief(db, id_list, uid, is_admin)
     
-    # 🔒 非管理员只能查看自己创建的题目
-    if not is_admin:
-        q = q.filter(QV.created_by == uid)
-    
-    rows = q.all()
-    by_id = {r.id: r for r in rows}
     items = []
-    for qid in id_list:
-        r = by_id.get(qid)
-        if not r:
-            continue
+    for r in rows:
         items.append(QuestionBrief(
             id=r.id,
             stem=r.stem or f"#{r.id}",
@@ -246,37 +188,12 @@ def question_detail(
     db: Session = Depends(deps.get_db),
     me: User = Depends(deps.get_current_user),
 ):
-    # 🔒 权限控制：只能访问自己创建的题目
+    # 调用 service 层
     uid = getattr(me, "id", None)
     is_admin = bool(getattr(me, "is_admin", False))
+    r = question_bank_service.get_question_detail(db, qid, uid, is_admin)
     
-    QV = QuestionVersion
-    analysis_col = getattr(QV, "analysis", None) or getattr(QV, "explanation", None)
-    options_col = getattr(QV, "options", None) or getattr(QV, "choices", None)
-    correct_answer_col = getattr(QV, "correct_answer", None) or getattr(QV, "answer", None)
-
-    cols = [
-        Question.id.label("id"), 
-        Question.type.label("type"),  # 🔥 添加题型
-        QV.stem.label("stem")
-    ]
-    if options_col is not None: cols.append(options_col.label("options"))
-    if analysis_col is not None: cols.append(analysis_col.label("analysis"))
-    if correct_answer_col is not None: cols.append(correct_answer_col.label("correct_answer"))  # 🔥 添加正确答案
-
-    q = (db.query(*cols)
-            .outerjoin(QV, Question.current_version_id == QV.id)
-            .filter(Question.id == qid))
-    
-    # 🔒 非管理员只能查看自己创建的题目
-    if not is_admin:
-        q = q.filter(QV.created_by == uid)
-    
-    r = q.first()
-    if not r:
-        raise HTTPException(status_code=404, detail="题目不存在或无权限访问")
-    
-    # 🔥 构建返回对象，包含所有字段
+    # 构建返回对象
     result = {
         "id": r.id,
         "stem": r.stem or f"#{qid}",
@@ -284,11 +201,13 @@ def question_detail(
         "analysis": getattr(r, "analysis", None) or None,
     }
     
-    # 🔥 添加 type 和 correct_answer 字段（如果存在）
+    # 添加 type、correct_answer 和 is_active 字段(如果存在)
     if hasattr(r, "type"):
         result["type"] = r.type
     if hasattr(r, "correct_answer"):
         result["correct_answer"] = r.correct_answer
+    if hasattr(r, "is_active"):
+        result["is_active"] = bool(r.is_active)
     
     return QuestionBrief(**result)
 
@@ -300,18 +219,6 @@ def question_detail_alt(
 ):
     return question_detail(qid=qid, db=db, me=me)
 
-# 兼容获取题目作者ID
-def _get_question_owner_id(q: Question, db) -> Optional[int]:
-    # 1) Question.created_by 优先
-    if hasattr(q, "created_by"):
-        return getattr(q, "created_by")
-    # 2) 回退到版本表的 created_by
-    if hasattr(q, "current_version_id") and q.current_version_id:
-        return db.query(QuestionVersion.created_by)\
-                 .filter(QuestionVersion.id == q.current_version_id)\
-                 .scalar()
-    return None
-
 @router.put("/question-bank/questions/{qid:int}")
 def update_question(
     qid: int,
@@ -319,73 +226,10 @@ def update_question(
     db: Session = Depends(deps.get_db),
     me: User = Depends(deps.get_current_user),
 ):
-    q = db.query(Question).filter(Question.id == qid).first()
-    if not q:
-        raise HTTPException(status_code=404, detail="题目不存在")
-
+    # 调用 service 层
     uid = getattr(me, "id", None)
     is_admin = bool(getattr(me, "is_admin", False))
-    owner_id = _get_question_owner_id(q, db)
-    if not is_admin and (owner_id is not None) and (owner_id != uid):
-        raise HTTPException(status_code=403, detail="无权限")
-
-    # 获取题目版本（优先 current_version_id，其次按最新一条兜底）
-    QV = QuestionVersion
-    qv = None
-    if hasattr(q, "current_version_id") and q.current_version_id:
-        qv = db.query(QV).filter(QV.id == q.current_version_id).first()
-    if not qv:
-        qv = db.query(QV).filter(QV.question_id == q.id).order_by(QV.id.desc()).first()
-    if not qv:
-        raise HTTPException(status_code=404, detail="题目版本不存在")
-
-    # 更新字段
-    if body.stem is not None:
-        qv.stem = body.stem.strip()
-
-    if body.options is not None:
-        val_list = _options_to_db(body.options)  # 这里返回 Python 列表[str]
-        if val_list is not None:
-            if hasattr(qv, "options"):            # JSON 列：直接写列表
-                qv.options = val_list
-            elif hasattr(qv, "choices"):          # 文本列：写 JSON 字符串
-                qv.choices = json.dumps(val_list, ensure_ascii=False)
-
-    if body.analysis is not None:
-        if hasattr(qv, "analysis"):
-            qv.analysis = body.analysis
-        elif hasattr(qv, "explanation"):
-            qv.explanation = body.analysis
-
-    if body.correct_answer is not None:
-        ca = (body.correct_answer or "").strip().upper()[:8]
-        if hasattr(qv, "correct_answer"):
-            qv.correct_answer = ca
-        elif hasattr(qv, "answer"):
-            qv.answer = ca
-
-    if body.is_active is not None:
-        if hasattr(qv, "is_active"):
-            qv.is_active = bool(body.is_active)
-        elif hasattr(q, "is_active"):
-            q.is_active = bool(body.is_active)
-
-    # 🔥 新增：更新题目类型
-    if body.type is not None:
-        allowed_types = ["SC", "MC", "FILL"]  # 单选、多选、填空
-        if body.type in allowed_types:
-            q.type = body.type
-        else:
-            raise HTTPException(status_code=400, detail=f"题目类型必须是以下之一: {allowed_types}")
-
-    # 🔥 新增：保存时默认通过审核
-    if hasattr(qv, "audit_status"):
-        qv.audit_status = "APPROVED"  # 设置为已通过
-    elif hasattr(q, "audit_status"):
-        q.audit_status = "APPROVED"
-
-    db.commit()
-    return {"ok": True}
+    return question_bank_service.update_question(db, qid, body, uid, is_admin)
 
 @router.put("/questions/{qid:int}")
 def update_question_alt(
@@ -404,10 +248,8 @@ def list_tags(
     db: Session = Depends(deps.get_db),
     me: User = Depends(deps.get_current_user),
 ):
-    q = db.query(Tag)
-    if type:
-        q = q.filter(Tag.type == type)
-    rows = q.order_by(Tag.type.asc(), Tag.name.asc()).all()
+    # 调用 service 层
+    rows = question_bank_service.list_tags(db, type)
     return [
         TagOut(
             id=t.id,
@@ -425,30 +267,11 @@ def get_question_tags(
     db: Session = Depends(deps.get_db),
     me: User = Depends(deps.get_current_user),
 ):
-    # 🔒 权限控制：验证用户是否有权访问该题目
-    q = db.query(Question).filter(Question.id == qid).first()
-    if not q:
-        raise HTTPException(404, "题目不存在")
-    
+    # 调用 service 层
     uid = getattr(me, "id", None)
     is_admin = bool(getattr(me, "is_admin", False))
-    owner_id = _get_question_owner_id(q, db)
-    if not is_admin and (owner_id is not None) and (owner_id != uid):
-        raise HTTPException(403, "无权限访问此题目")
-    
-    rows = (
-        db.query(QuestionTag.tag_id, Tag.type)
-        .join(Tag, Tag.id == QuestionTag.tag_id)
-        .filter(QuestionTag.question_id == qid)
-        .all()
-    )
-    subject_id = next((tid for tid, tp in rows if tp == "SUBJECT"), None)
-    level_id = next((tid for tid, tp in rows if tp == "LEVEL"), None)
-    return QuestionTagsOut(
-        subject_id=subject_id,
-        level_id=level_id,
-        tag_ids=[tid for tid, _ in rows],
-    )
+    result = question_bank_service.get_question_tags(db, qid, uid, is_admin)
+    return QuestionTagsOut(**result)
 
 # 设置题目的标签
 @router.put("/question-bank/questions/{qid:int}/tags")
@@ -458,76 +281,10 @@ def set_question_tags(
     db: Session = Depends(deps.get_db),
     me: User = Depends(deps.get_current_user),
 ):
-    q = db.query(Question).filter(Question.id == qid).first()
-    if not q:
-        raise HTTPException(404, "题目不存在")
-
+    # 调用 service 层
     uid = getattr(me, "id", None)
     is_admin = bool(getattr(me, "is_admin", False))
-    owner_id = _get_question_owner_id(q, db)
-    if not is_admin and (owner_id is not None) and (owner_id != uid):
-        raise HTTPException(403, "无权限")
-
-    # SUBJECT 互斥
-    if body.subject_id is not None:
-        old_sids = [
-            tid for (tid,) in db.query(QuestionTag.tag_id)
-            .join(Tag, Tag.id == QuestionTag.tag_id)
-            .filter(QuestionTag.question_id == qid, Tag.type == "SUBJECT").all()
-        ]
-        if old_sids:
-            db.query(QuestionTag).filter(
-                QuestionTag.question_id == qid,
-                QuestionTag.tag_id.in_(old_sids)
-            ).delete(synchronize_session=False)
-        if body.subject_id:
-            ok = db.query(Tag.id).filter(Tag.id == body.subject_id, Tag.type == "SUBJECT").first()
-            if not ok:
-                raise HTTPException(400, "subject_id 非法")
-            exists = db.query(QuestionTag).filter(
-                QuestionTag.question_id == qid, QuestionTag.tag_id == body.subject_id
-            ).first()
-            if not exists:
-                db.add(QuestionTag(question_id=qid, tag_id=body.subject_id))
-
-    # LEVEL 互斥
-    if body.level_id is not None:
-        old_lids = [
-            tid for (tid,) in db.query(QuestionTag.tag_id)
-            .join(Tag, Tag.id == QuestionTag.tag_id)
-            .filter(QuestionTag.question_id == qid, Tag.type == "LEVEL").all()
-        ]
-        if old_lids:
-            db.query(QuestionTag).filter(
-                QuestionTag.question_id == qid,
-                QuestionTag.tag_id.in_(old_lids)
-            ).delete(synchronize_session=False)
-        if body.level_id:
-            ok = db.query(Tag.id).filter(Tag.id == body.level_id, Tag.type == "LEVEL").first()
-            if not ok:
-                raise HTTPException(400, "level_id 非法")
-            exists = db.query(QuestionTag).filter(
-                QuestionTag.question_id == qid, QuestionTag.tag_id == body.level_id
-            ).first()
-            if not exists:
-                db.add(QuestionTag(question_id=qid, tag_id=body.level_id))
-
-    # 可选批量增删
-    if body.remove_ids:
-        db.query(QuestionTag).filter(
-            QuestionTag.question_id == qid,
-            QuestionTag.tag_id.in_(body.remove_ids)
-        ).delete(synchronize_session=False)
-    if body.add_ids:
-        for tid in body.add_ids:
-            exists = db.query(QuestionTag).filter(
-                QuestionTag.question_id == qid, QuestionTag.tag_id == tid
-            ).first()
-            if not exists:
-                db.add(QuestionTag(question_id=qid, tag_id=tid))
-
-    db.commit()
-    return {"ok": True}
+    return question_bank_service.set_question_tags(db, qid, body, uid, is_admin)
 
 @router.post("/question-bank/import-excel", response_model=ImportQuestionsResult)
 def import_excel(

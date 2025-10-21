@@ -1,0 +1,277 @@
+CREATE DATABASE `myexam_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+-- myexam_db.`ROLE` definition
+
+CREATE TABLE `ROLE` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(64) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_role_code` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.`USER` definition
+
+CREATE TABLE `USER` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `nickname` varchar(100) DEFAULT NULL,
+  `account` varchar(64) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'ACTIVE',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `last_login_at` datetime DEFAULT NULL,
+  `password_hash` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_account` (`account`),
+  UNIQUE KEY `uk_user_email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.alembic_version definition
+
+CREATE TABLE `alembic_version` (
+  `version_num` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`version_num`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- myexam_db.KNOWLEDGE_POINT definition
+
+CREATE TABLE `KNOWLEDGE_POINT` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `parent_id` bigint unsigned DEFAULT NULL,
+  `description` text,
+  `created_by` bigint unsigned DEFAULT NULL COMMENT '创建者用户ID',
+  `level` int DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_kp_name_parent` (`name`,`parent_id`),
+  KEY `idx_knowledge_point_parent` (`parent_id`),
+  KEY `idx_knowledge_point_level` (`level`),
+  KEY `idx_kp_created_by` (`created_by`),
+  CONSTRAINT `fk_kp_parent` FOREIGN KEY (`parent_id`) REFERENCES `KNOWLEDGE_POINT` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.PAPER definition
+
+CREATE TABLE `PAPER` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `exam_type` varchar(64) DEFAULT NULL,
+  `year` varchar(8) DEFAULT NULL,
+  `difficulty` tinyint DEFAULT NULL,
+  `created_by` bigint unsigned DEFAULT NULL,
+  `is_public` tinyint(1) NOT NULL DEFAULT '0',
+  `status` varchar(32) NOT NULL DEFAULT 'DRAFT',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_paper_created_by` (`created_by`),
+  CONSTRAINT `fk_paper_creator` FOREIGN KEY (`created_by`) REFERENCES `USER` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.TAG definition
+
+CREATE TABLE `TAG` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) NOT NULL,
+  `type` varchar(64) DEFAULT NULL,
+  `parent_id` bigint unsigned DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_tag_name_parent` (`name`,`parent_id`),
+  KEY `idx_tag_parent` (`parent_id`),
+  CONSTRAINT `fk_tag_parent` FOREIGN KEY (`parent_id`) REFERENCES `TAG` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.USER_ROLE definition
+
+CREATE TABLE `USER_ROLE` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `role_id` bigint unsigned NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_role` (`user_id`,`role_id`),
+  KEY `idx_user_role_role` (`role_id`),
+  CONSTRAINT `fk_user_role_role` FOREIGN KEY (`role_id`) REFERENCES `ROLE` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_user_role_user` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `USER_ROLE_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `ROLE` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `USER_ROLE_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.EXAM_ATTEMPT definition
+
+CREATE TABLE `EXAM_ATTEMPT` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `paper_id` bigint unsigned NOT NULL,
+  `attempt_index` int NOT NULL DEFAULT '1',
+  `start_time` datetime NOT NULL,
+  `submit_time` datetime DEFAULT NULL,
+  `total_score` decimal(10,2) DEFAULT NULL,
+  `calculated_accuracy` decimal(6,4) DEFAULT NULL,
+  `status` varchar(32) NOT NULL DEFAULT 'IN_PROGRESS',
+  `duration_seconds` int DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_attempt_user_paper_idx` (`user_id`,`paper_id`,`attempt_index`),
+  KEY `idx_attempt_paper` (`paper_id`),
+  CONSTRAINT `fk_attempt_paper` FOREIGN KEY (`paper_id`) REFERENCES `PAPER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_attempt_user` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.ERROR_BOOK definition
+
+CREATE TABLE `ERROR_BOOK` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `question_id` bigint unsigned NOT NULL,
+  `first_wrong_time` datetime DEFAULT NULL,
+  `last_wrong_time` datetime DEFAULT NULL,
+  `wrong_count` int NOT NULL DEFAULT '0',
+  `next_review_time` datetime DEFAULT NULL,
+  `mastered` tinyint(1) NOT NULL DEFAULT '0',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_error_user_question` (`user_id`,`question_id`),
+  UNIQUE KEY `uk_error_book_user_question` (`user_id`,`question_id`),
+  KEY `idx_error_question` (`question_id`),
+  KEY `idx_error_book_user_mastered` (`user_id`,`mastered`),
+  KEY `idx_error_book_last_wrong` (`user_id`,`last_wrong_time`),
+  CONSTRAINT `fk_error_question` FOREIGN KEY (`question_id`) REFERENCES `QUESTION` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_error_user` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.PAPER_QUESTION definition
+
+CREATE TABLE `PAPER_QUESTION` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `paper_id` bigint unsigned NOT NULL,
+  `question_id` bigint unsigned NOT NULL,
+  `seq` int NOT NULL,
+  `section` varchar(64) DEFAULT NULL,
+  `score` decimal(10,2) NOT NULL DEFAULT '0.00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_paper_question` (`paper_id`,`question_id`),
+  UNIQUE KEY `uk_paper_seq` (`paper_id`,`seq`),
+  KEY `idx_pq_question` (`question_id`),
+  CONSTRAINT `fk_pq_paper` FOREIGN KEY (`paper_id`) REFERENCES `PAPER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_pq_question` FOREIGN KEY (`question_id`) REFERENCES `QUESTION` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=228 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.QUESTION definition
+
+CREATE TABLE `QUESTION` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `current_version_id` bigint unsigned DEFAULT NULL,
+  `type` varchar(32) NOT NULL,
+  `difficulty` tinyint DEFAULT NULL,
+  `language_code` varchar(16) DEFAULT NULL,
+  `source_type` varchar(32) DEFAULT NULL,
+  `audit_status` varchar(32) NOT NULL DEFAULT 'PENDING',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_question_type` (`type`),
+  KEY `idx_question_active` (`is_active`),
+  KEY `fk_question_current_version` (`current_version_id`),
+  KEY `idx_question_active_difficulty` (`is_active`,`difficulty`),
+  KEY `idx_question_active_type` (`is_active`,`type`),
+  CONSTRAINT `fk_question_current_version` FOREIGN KEY (`current_version_id`) REFERENCES `QUESTION_VERSION` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.QUESTION_KNOWLEDGE definition
+
+CREATE TABLE `QUESTION_KNOWLEDGE` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `question_id` bigint unsigned NOT NULL,
+  `knowledge_id` bigint unsigned NOT NULL,
+  `weight` tinyint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_question_knowledge` (`question_id`,`knowledge_id`),
+  KEY `idx_question_knowledge_knowledge` (`knowledge_id`),
+  KEY `idx_question_knowledge_question` (`question_id`),
+  CONSTRAINT `fk_qk_kp` FOREIGN KEY (`knowledge_id`) REFERENCES `KNOWLEDGE_POINT` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_qk_question` FOREIGN KEY (`question_id`) REFERENCES `QUESTION` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.QUESTION_TAG definition
+
+CREATE TABLE `QUESTION_TAG` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `question_id` bigint unsigned NOT NULL,
+  `tag_id` bigint unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_question_tag` (`question_id`,`tag_id`),
+  KEY `idx_qt_tag` (`tag_id`),
+  KEY `idx_question_tag_tag` (`tag_id`),
+  CONSTRAINT `fk_qt_question` FOREIGN KEY (`question_id`) REFERENCES `QUESTION` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_qt_tag` FOREIGN KEY (`tag_id`) REFERENCES `TAG` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=264 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.QUESTION_VERSION definition
+
+CREATE TABLE `QUESTION_VERSION` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `question_id` bigint unsigned NOT NULL,
+  `version_no` int NOT NULL,
+  `stem` text NOT NULL,
+  `options` json DEFAULT NULL,
+  `correct_answer` varchar(255) DEFAULT NULL,
+  `explanation` text,
+  `change_note` varchar(255) DEFAULT NULL,
+  `created_by` bigint unsigned DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_question_version` (`question_id`,`version_no`),
+  KEY `idx_qv_question` (`question_id`),
+  KEY `idx_qv_created_by` (`created_by`),
+  CONSTRAINT `fk_qv_creator` FOREIGN KEY (`created_by`) REFERENCES `USER` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_qv_question` FOREIGN KEY (`question_id`) REFERENCES `QUESTION` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- myexam_db.USER_ANSWER definition
+
+CREATE TABLE `USER_ANSWER` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `attempt_id` bigint unsigned NOT NULL,
+  `user_id` bigint unsigned NOT NULL,
+  `question_id` bigint unsigned NOT NULL,
+  `paper_id` bigint unsigned DEFAULT NULL,
+  `user_answer` varchar(1024) DEFAULT NULL,
+  `is_correct` tinyint(1) DEFAULT NULL,
+  `score_obtained` decimal(10,2) DEFAULT NULL,
+  `time_spent_ms` int DEFAULT NULL,
+  `answer_time` datetime DEFAULT NULL,
+  `first_flag` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_answer_attempt_question` (`attempt_id`,`question_id`),
+  KEY `idx_answer_user` (`user_id`),
+  KEY `idx_answer_question` (`question_id`),
+  KEY `idx_answer_paper` (`paper_id`),
+  CONSTRAINT `fk_answer_attempt` FOREIGN KEY (`attempt_id`) REFERENCES `EXAM_ATTEMPT` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_answer_paper` FOREIGN KEY (`paper_id`) REFERENCES `PAPER` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_answer_question` FOREIGN KEY (`question_id`) REFERENCES `QUESTION` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_answer_user` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=203 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

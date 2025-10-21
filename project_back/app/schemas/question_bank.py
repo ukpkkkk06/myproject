@@ -33,6 +33,7 @@ class QuestionBrief(BaseModel):
     analysis: Optional[str] = None
     type: Optional[str] = None  # 🔥 添加题型字段 (SC/MC/FILL)
     correct_answer: Optional[str] = None  # 🔥 添加正确答案字段
+    is_active: Optional[bool] = True  # 🔥 添加启用状态字段
 
 class QuestionsBriefResp(BaseModel):
     items: List[QuestionBrief]

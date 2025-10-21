@@ -6702,3 +6702,49 @@ Traceback (most recent call last):
   File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\encoders.py", line 332, in jsonable_encoder
     raise ValueError(errors) from e
 ValueError: [TypeError('cannot convert dictionary update sequence element #0 to a sequence'), TypeError('vars() argument must have __dict__ attribute')]
+2025-10-21 10:09:08,797 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-21 10:09:08,798 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-21 10:09:08,798 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-21 10:09:08,798 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-21 10:09:08,799 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-21 10:09:08,799 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-21 10:09:08,799 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-21 10:09:08,800 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-21 10:09:08,801 DEBUG [python_multipart.multipart] Calling on_part_data with data[244:10586]
+2025-10-21 10:09:08,801 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-21 10:09:08,802 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-21 10:09:22,036 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-21 10:09:22,037 DEBUG [python_multipart.multipart] Calling on_header_field with data[54:73]
+2025-10-21 10:09:22,037 DEBUG [python_multipart.multipart] Calling on_header_value with data[75:159]
+2025-10-21 10:09:22,037 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-21 10:09:22,037 DEBUG [python_multipart.multipart] Calling on_header_field with data[161:173]
+2025-10-21 10:09:22,038 DEBUG [python_multipart.multipart] Calling on_header_value with data[175:240]
+2025-10-21 10:09:22,038 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-21 10:09:22,038 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-21 10:09:22,039 DEBUG [python_multipart.multipart] Calling on_part_data with data[244:8320]
+2025-10-21 10:09:22,039 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-21 10:09:22,040 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-21 10:21:19,931 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题
+2025-10-21 13:20:12,988 INFO [practice_service] [RANDOM模式] 用户25开始随机抽题
+2025-10-21 14:25:23,567 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:25:23,574 INFO [httpx] HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+2025-10-21 14:31:22,439 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:31:22,482 INFO [httpx] HTTP Request: GET http://testserver/api/v1/health "HTTP/1.1 200 OK"
+2025-10-21 14:31:22,484 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:31:22,489 INFO [httpx] HTTP Request: GET http://testserver/api/v1/me "HTTP/1.1 401 Unauthorized"
+2025-10-21 14:31:35,569 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:31:35,607 INFO [httpx] HTTP Request: GET http://testserver/api/v1/health "HTTP/1.1 200 OK"
+2025-10-21 14:31:35,608 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:31:35,614 INFO [httpx] HTTP Request: GET http://testserver/api/v1/me "HTTP/1.1 401 Unauthorized"
+2025-10-21 14:34:38,804 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:34:38,847 INFO [httpx] HTTP Request: GET http://testserver/api/v1/health "HTTP/1.1 200 OK"
+2025-10-21 14:34:38,849 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:34:38,854 INFO [httpx] HTTP Request: GET http://testserver/api/v1/me "HTTP/1.1 401 Unauthorized"
+2025-10-21 14:34:38,855 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:34:38,861 INFO [httpx] HTTP Request: GET http://testserver/api/v1/tags "HTTP/1.1 401 Unauthorized"
+2025-10-21 14:35:08,348 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:35:08,399 INFO [httpx] HTTP Request: GET http://testserver/api/v1/health "HTTP/1.1 200 OK"
+2025-10-21 14:35:08,400 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:35:08,405 INFO [httpx] HTTP Request: GET http://testserver/api/v1/me "HTTP/1.1 401 Unauthorized"
+2025-10-21 14:35:08,406 DEBUG [asyncio] Using proactor: IocpProactor
+2025-10-21 14:35:08,412 INFO [httpx] HTTP Request: GET http://testserver/api/v1/tags "HTTP/1.1 401 Unauthorized"

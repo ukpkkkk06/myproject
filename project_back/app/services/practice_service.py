@@ -78,6 +78,7 @@ def _opt_to_list(val) -> list[str]:
     return [str(val)]
 
 def _kp_descendants(db, root_id: int) -> List[int]:
+    # 🚀 优化：只查询ID字段，减少内存占用
     rows = db.query(KnowledgePoint.id, KnowledgePoint.parent_id).all()
     by_parent = {}
     for i, p in rows:
@@ -279,17 +280,24 @@ def get_weak_point_questions_smart(
         all_kps.update(ancestors)
     
     # 3. 计算每个知识点的综合权重
+    # 🚀 优化：批量查询所有知识点，减少数据库查询次数
+    kp_list = db.query(
+        KnowledgePoint.id, 
+        KnowledgePoint.depth
+    ).filter(KnowledgePoint.id.in_(all_kps)).all()
+    kp_depth_map = {kp.id: kp.depth for kp in kp_list}
+    
     kp_weights = []
     for kp_id in all_kps:
-        kp = db.query(KnowledgePoint).filter(KnowledgePoint.id == kp_id).first()
-        if not kp:
+        depth = kp_depth_map.get(kp_id)
+        if depth is None:
             continue
         
         # 继承权重（含祖先影响）
         inherited = calculate_inherited_weight(db, user_id, kp_id, cache)
         
         # 深度系数（越深越重要）
-        depth_coeff = calculate_depth_coefficient(kp.depth or 0)
+        depth_coeff = calculate_depth_coefficient(depth or 0)
         
         # 最终权重
         final_weight = inherited * depth_coeff
@@ -298,7 +306,7 @@ def get_weak_point_questions_smart(
             kp_weights.append({
                 'kp_id': kp_id,
                 'weight': final_weight,
-                'level': kp.depth or 0
+                'level': depth or 0
             })
     
     if not kp_weights:

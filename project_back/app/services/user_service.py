@@ -266,6 +266,9 @@ def register(db: Session, account: str, password: str, nickname: str | None = No
     if email and db.query(User).filter(User.email == email).first():
         raise AppException("邮箱已存在", code=409, status_code=409)
 
+    # 🔥 检查是否是第一个用户(系统初始化)
+    is_first_user = db.query(User).count() == 0
+
     user = User(
         account=account,
         nickname=nickname or account,
@@ -275,6 +278,23 @@ def register(db: Session, account: str, password: str, nickname: str | None = No
     db.add(user)
     try:
         db.flush()
+        
+        # 🔥 如果是第一个用户,自动设为管理员
+        if is_first_user:
+            # 创建或获取管理员角色
+            admin_role = db.query(Role).filter(Role.code == "ADMIN").first()
+            if not admin_role:
+                admin_role = Role(
+                    code="ADMIN", 
+                    name="管理员", 
+                    description="拥有全部权限,可以访问和管理所有用户的数据"
+                )
+                db.add(admin_role)
+                db.flush()
+            
+            # 分配管理员角色
+            db.add(UserRole(user_id=user.id, role_id=admin_role.id, created_at=datetime.utcnow()))
+        
         # 绑定默认角色（直接写关联，避免 user.roles 属性缺失）
         role = db.query(Role).filter(or_(Role.code == DEFAULT_ROLE_CODE, Role.name == DEFAULT_ROLE_CODE)).first()
         if not role:
@@ -282,6 +302,7 @@ def register(db: Session, account: str, password: str, nickname: str | None = No
             db.add(role); db.flush()
         if not db.query(UserRole).filter(UserRole.user_id==user.id, UserRole.role_id==role.id).first():
             db.add(UserRole(user_id=user.id, role_id=role.id, created_at=datetime.utcnow()))
+        
         db.commit()
     except IntegrityError:
         db.rollback()

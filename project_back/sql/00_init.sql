@@ -18,24 +18,26 @@ CREATE TABLE `ROLE` (
     `code`          VARCHAR(64) NOT NULL,
     `name`          VARCHAR(100) NOT NULL,
     `description`   TEXT NULL,
-    `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `created_at`    DATETIME NOT NULL,
+    `updated_at`    DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_role_code (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 2. 用户
-
 CREATE TABLE `USER` (
     `id`            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     `nickname`      VARCHAR(100) NULL,
     `account`       VARCHAR(64) NOT NULL,
     `email`         VARCHAR(255) NULL,
-    `status`        VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+    `status`        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `last_login_at` DATETIME NULL,
+    `password_hash` VARCHAR(255) NULL,
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_user_account (`account`),
     UNIQUE KEY uk_user_email (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 3. 试卷
 CREATE TABLE `PAPER` (
@@ -45,33 +47,38 @@ CREATE TABLE `PAPER` (
     `year`          VARCHAR(8) NULL,
     `difficulty`    TINYINT NULL,
     `created_by`    BIGINT UNSIGNED NULL,
-    `is_public`     TINYINT(1) NOT NULL DEFAULT 0,
+    `is_public`     TINYINT(1) NOT NULL DEFAULT '0',
     `status`        VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
     `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
     KEY idx_paper_created_by (`created_by`),
     CONSTRAINT fk_paper_creator FOREIGN KEY (`created_by`) REFERENCES `USER`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 4. 题目（current_version_id 之后再加外键）
+-- 4. 题目
 CREATE TABLE `QUESTION` (
-    `id`                BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `current_version_id` BIGINT UNSIGNED NULL,
     `type`              VARCHAR(32) NOT NULL,
     `difficulty`        TINYINT NULL,
     `language_code`     VARCHAR(16) NULL,
     `source_type`       VARCHAR(32) NULL,
     `audit_status`      VARCHAR(32) NOT NULL DEFAULT 'PENDING',
-    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT '1',
     `created_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
     KEY idx_question_type (`type`),
-    KEY idx_question_active (`is_active`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    KEY idx_question_active (`is_active`),
+    KEY fk_question_current_version (`current_version_id`),
+    KEY idx_question_active_difficulty (`is_active`,`difficulty`),
+    KEY idx_question_active_type (`is_active`,`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 5. 题目版本
 CREATE TABLE `QUESTION_VERSION` (
-    `id`            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `question_id`   BIGINT UNSIGNED NOT NULL,
     `version_no`    INT NOT NULL,
     `stem`          TEXT NOT NULL,
@@ -80,16 +87,17 @@ CREATE TABLE `QUESTION_VERSION` (
     `explanation`   TEXT NULL,
     `change_note`   VARCHAR(255) NULL,
     `created_by`    BIGINT UNSIGNED NULL,
-    `is_active`     TINYINT(1) NOT NULL DEFAULT 1,
+    `is_active`     TINYINT(1) NOT NULL DEFAULT '1',
     `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_question_version (`question_id`,`version_no`),
     KEY idx_qv_question (`question_id`),
     KEY idx_qv_created_by (`created_by`),
-    CONSTRAINT fk_qv_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_qv_creator FOREIGN KEY (`created_by`) REFERENCES `USER`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    CONSTRAINT fk_qv_creator FOREIGN KEY (`created_by`) REFERENCES `USER`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_qv_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 4b. 为 QUESTION.current_version_id 添加外键
+-- 5b. 为 QUESTION.current_version_id 添加外键
 ALTER TABLE `QUESTION`
     ADD CONSTRAINT fk_question_current_version
     FOREIGN KEY (`current_version_id`) REFERENCES `QUESTION_VERSION`(`id`)
@@ -97,37 +105,41 @@ ALTER TABLE `QUESTION`
 
 -- 6. 用户角色关联
 CREATE TABLE `USER_ROLE` (
-    `id`        BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `user_id`   BIGINT UNSIGNED NOT NULL,
     `role_id`   BIGINT UNSIGNED NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_user_role (`user_id`,`role_id`),
     KEY idx_user_role_role (`role_id`),
+    CONSTRAINT fk_user_role_role FOREIGN KEY (`role_id`) REFERENCES `ROLE`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_user_role_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_user_role_role FOREIGN KEY (`role_id`) REFERENCES `ROLE`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    CONSTRAINT USER_ROLE_ibfk_1 FOREIGN KEY (`role_id`) REFERENCES `ROLE`(`id`) ON DELETE CASCADE,
+    CONSTRAINT USER_ROLE_ibfk_2 FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 7. 试卷题目
 CREATE TABLE `PAPER_QUESTION` (
-    `id`            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `paper_id`      BIGINT UNSIGNED NOT NULL,
     `question_id`   BIGINT UNSIGNED NOT NULL,
     `seq`           INT NOT NULL,
     `section`       VARCHAR(64) NULL,
-    `score`         DECIMAL(10,2) NOT NULL DEFAULT 0,
+    `score`         DECIMAL(10,2) NOT NULL DEFAULT '0.00',
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_paper_question (`paper_id`,`question_id`),
     UNIQUE KEY uk_paper_seq (`paper_id`,`seq`),
     KEY idx_pq_question (`question_id`),
     CONSTRAINT fk_pq_paper FOREIGN KEY (`paper_id`) REFERENCES `PAPER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_pq_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 8. 考试尝试
 CREATE TABLE `EXAM_ATTEMPT` (
-    `id`                 BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `user_id`            BIGINT UNSIGNED NOT NULL,
     `paper_id`           BIGINT UNSIGNED NOT NULL,
-    `attempt_index`      INT NOT NULL DEFAULT 1,
+    `attempt_index`      INT NOT NULL DEFAULT '1',
     `start_time`         DATETIME NOT NULL,
     `submit_time`        DATETIME NULL,
     `total_score`        DECIMAL(10,2) NULL,
@@ -135,15 +147,16 @@ CREATE TABLE `EXAM_ATTEMPT` (
     `status`             VARCHAR(32) NOT NULL DEFAULT 'IN_PROGRESS',
     `duration_seconds`   INT NULL,
     `created_at`         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_attempt_user_paper_idx (`user_id`,`paper_id`,`attempt_index`),
     KEY idx_attempt_paper (`paper_id`),
-    CONSTRAINT fk_attempt_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_attempt_paper FOREIGN KEY (`paper_id`) REFERENCES `PAPER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    CONSTRAINT fk_attempt_paper FOREIGN KEY (`paper_id`) REFERENCES `PAPER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_attempt_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 9. 用户作答
 CREATE TABLE `USER_ANSWER` (
-    `id`             BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `attempt_id`     BIGINT UNSIGNED NOT NULL,
     `user_id`        BIGINT UNSIGNED NOT NULL,
     `question_id`    BIGINT UNSIGNED NOT NULL,
@@ -153,81 +166,102 @@ CREATE TABLE `USER_ANSWER` (
     `score_obtained` DECIMAL(10,2) NULL,
     `time_spent_ms`  INT NULL,
     `answer_time`    DATETIME NULL,
-    `first_flag`     TINYINT(1) NOT NULL DEFAULT 0,
+    `first_flag`     TINYINT(1) NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_answer_attempt_question (`attempt_id`,`question_id`),
     KEY idx_answer_user (`user_id`),
     KEY idx_answer_question (`question_id`),
     KEY idx_answer_paper (`paper_id`),
     CONSTRAINT fk_answer_attempt FOREIGN KEY (`attempt_id`) REFERENCES `EXAM_ATTEMPT`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_answer_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_answer_paper FOREIGN KEY (`paper_id`) REFERENCES `PAPER`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT fk_answer_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_answer_paper FOREIGN KEY (`paper_id`) REFERENCES `PAPER`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    CONSTRAINT fk_answer_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 10. 知识点
 CREATE TABLE `KNOWLEDGE_POINT` (
-    `id`            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name`          VARCHAR(255) NOT NULL,
     `parent_id`     BIGINT UNSIGNED NULL,
     `description`   TEXT NULL,
+    `created_by`    BIGINT UNSIGNED NULL COMMENT '创建者用户ID',
     `level`         INT NULL,
     `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    KEY idx_kp_parent (`parent_id`),
-    CONSTRAINT fk_kp_parent FOREIGN KEY (`parent_id`) REFERENCES `KNOWLEDGE_POINT`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    UNIQUE KEY uk_kp_name_parent (`name`,`parent_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    PRIMARY KEY (`id`),
+    UNIQUE KEY uk_kp_name_parent (`name`,`parent_id`),
+    KEY idx_knowledge_point_parent (`parent_id`),
+    KEY idx_knowledge_point_level (`level`),
+    KEY idx_kp_created_by (`created_by`),
+    CONSTRAINT fk_kp_parent FOREIGN KEY (`parent_id`) REFERENCES `KNOWLEDGE_POINT`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 11. 题目-知识点
 CREATE TABLE `QUESTION_KNOWLEDGE` (
-    `id`            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `question_id`   BIGINT UNSIGNED NOT NULL,
     `knowledge_id`  BIGINT UNSIGNED NOT NULL,
     `weight`        TINYINT NULL,
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_question_knowledge (`question_id`,`knowledge_id`),
-    KEY idx_qk_knowledge (`knowledge_id`),
-    CONSTRAINT fk_qk_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_qk_kp FOREIGN KEY (`knowledge_id`) REFERENCES `KNOWLEDGE_POINT`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    KEY idx_question_knowledge_knowledge (`knowledge_id`),
+    KEY idx_question_knowledge_question (`question_id`),
+    CONSTRAINT fk_qk_kp FOREIGN KEY (`knowledge_id`) REFERENCES `KNOWLEDGE_POINT`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_qk_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 12. 标签
 CREATE TABLE `TAG` (
-    `id`         BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name`       VARCHAR(128) NOT NULL,
     `type`       VARCHAR(64) NULL,
     `parent_id`  BIGINT UNSIGNED NULL,
-    `is_active`  TINYINT(1) NOT NULL DEFAULT 1,
+    `is_active`  TINYINT(1) NOT NULL DEFAULT '1',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY uk_tag_name_parent (`name`,`parent_id`),
     KEY idx_tag_parent (`parent_id`),
-    CONSTRAINT fk_tag_parent FOREIGN KEY (`parent_id`) REFERENCES `TAG`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    UNIQUE KEY uk_tag_name_parent (`name`,`parent_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    CONSTRAINT fk_tag_parent FOREIGN KEY (`parent_id`) REFERENCES `TAG`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 13. 题目-标签
 CREATE TABLE `QUESTION_TAG` (
-    `id`          BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `question_id` BIGINT UNSIGNED NOT NULL,
     `tag_id`      BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_question_tag (`question_id`,`tag_id`),
     KEY idx_qt_tag (`tag_id`),
+    KEY idx_question_tag_tag (`tag_id`),
     CONSTRAINT fk_qt_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_qt_tag FOREIGN KEY (`tag_id`) REFERENCES `TAG`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 14. 错题本
 CREATE TABLE `ERROR_BOOK` (
-    `id`               BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `user_id`          BIGINT UNSIGNED NOT NULL,
     `question_id`      BIGINT UNSIGNED NOT NULL,
     `first_wrong_time` DATETIME NULL,
     `last_wrong_time`  DATETIME NULL,
-    `wrong_count`      INT NOT NULL DEFAULT 0,
+    `wrong_count`      INT NOT NULL DEFAULT '0',
     `next_review_time` DATETIME NULL,
-    `mastered`         TINYINT(1) NOT NULL DEFAULT 0,
+    `mastered`         TINYINT(1) NOT NULL DEFAULT '0',
     `updated_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `created_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
     UNIQUE KEY uk_error_user_question (`user_id`,`question_id`),
+    UNIQUE KEY uk_error_book_user_question (`user_id`,`question_id`),
     KEY idx_error_question (`question_id`),
-    CONSTRAINT fk_error_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_error_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    KEY idx_error_book_user_mastered (`user_id`,`mastered`),
+    KEY idx_error_book_last_wrong (`user_id`,`last_wrong_time`),
+    CONSTRAINT fk_error_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_error_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 15. Alembic 版本管理
+CREATE TABLE `alembic_version` (
+    `version_num` VARCHAR(32) NOT NULL,
+    PRIMARY KEY (`version_num`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
