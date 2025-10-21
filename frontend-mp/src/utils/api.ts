@@ -297,6 +297,11 @@ class API {
     return request<Subject[]>('/practice/subjects', { method: 'GET' })
   }
 
+  // 🆕 获取错题统计
+  getErrorStats() {
+    return request<{ total_errors: number; unmastered: number }>('/practice/error-stats', { method: 'GET' })
+  }
+
   // 获取知识点树
   listKnowledgeTree() {
     return listKnowledgeTree()

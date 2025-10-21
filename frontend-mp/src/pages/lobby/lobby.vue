@@ -246,12 +246,8 @@ function selectMode(mode: 'RANDOM' | 'SMART' | 'WEAK_POINT') {
 // 获取用户错题数量
 async function loadErrorCount() {
   try {
-    // TODO: 调用API获取错题统计
-    // const count = await api.getErrorBookCount()
-    // errorCount.value = count
-    
-    // 暂时模拟数据(等后端实现后替换)
-    errorCount.value = 0  // 默认0,可以手动改成15测试UI效果
+    const stats = await api.getErrorStats()
+    errorCount.value = stats.unmastered  // 使用未掌握的错题数
   } catch (e) {
     console.error('获取错题统计失败', e)
     errorCount.value = 0

@@ -64,6 +64,7 @@ class QuestionUpdate(BaseModel):
     analysis: Optional[str] = None
     correct_answer: Optional[str] = None
     is_active: Optional[bool] = None
+    type: Optional[str] = None  # 🔥 新增：题目类型 (SC/MC/FILL)
 
 class ImportErrorItem(BaseModel):
     row: int

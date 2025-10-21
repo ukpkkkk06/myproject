@@ -18,7 +18,8 @@ router = APIRouter()
 @router.post("/practice/sessions", response_model=CreateSessionResponse)
 def create_session(body: CreateSessionRequest, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
     attempt_id, paper_id, total, first_seq = practice_service.create_session(
-        db, me, body.size, body.subject_id, body.knowledge_id, body.include_children, body.question_types
+        db, me, body.size, body.subject_id, body.knowledge_id, body.include_children, 
+        body.question_types, body.practice_mode  # 🆕 传递练习模式参数
     )
     return {"attempt_id": attempt_id, "paper_id": paper_id, "total": total, "first_seq": first_seq}
 
@@ -39,6 +40,31 @@ def finish(attempt_id: int, db: Session = Depends(get_db), me: User = Depends(ge
 def list_subjects(db: Session = Depends(get_db)):
     rows = db.execute(select(Tag).where(Tag.type == "SUBJECT").order_by(Tag.id)).scalars().all()
     return [SubjectOut(id=t.id, name=t.name) for t in rows]
+
+# 🆕 获取用户错题统计（供前端判断是否可用智能模式）
+@router.get("/practice/error-stats")
+def get_error_stats(db: Session = Depends(get_db), me: User = Depends(get_current_user)):
+    """
+    获取用户错题统计
+    
+    Returns:
+        {
+            "total_errors": 15,  # 错题总数
+            "unmastered": 12     # 未掌握的错题数
+        }
+    """
+    from app.models.error_book import ErrorBook
+    
+    total = db.query(ErrorBook).filter(ErrorBook.user_id == me.id).count()
+    unmastered = db.query(ErrorBook).filter(
+        ErrorBook.user_id == me.id,
+        ErrorBook.mastered == False
+    ).count()
+    
+    return {
+        "total_errors": total,
+        "unmastered": unmastered
+    }
 
 # 获取下一题（新增可选学科筛选）
 @router.get("/practice/next")

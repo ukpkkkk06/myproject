@@ -99,10 +99,6 @@
           @input="onFillInput"
         />
         <text class="fill-hint">💡 支持多个答案用分号分隔,如: 答案1;答案2</text>
-        <view v-if="feedback && !feedback.correct" class="fill-answer-hint">
-          <text class="hint-label">正确答案：</text>
-          <text class="hint-value">{{ feedback.correct_answer }}</text>
-        </view>
       </view>
 
       <!-- 提交按钮 - 优化样式,支持单选/多选/填空 -->
@@ -123,8 +119,8 @@
             {{ feedback.correct ? '回答正确！' : '回答错误' }}
           </text>
         </view>
-        <view class="feedback-content">
-          <text v-if="!feedback.correct" class="correct-answer">
+        <view v-if="!feedback.correct" class="feedback-content">
+          <text class="correct-answer">
             正确答案：<text class="answer-letter">{{ feedback.correct_answer }}</text>
           </text>
         </view>
@@ -674,7 +670,8 @@ onMounted(async ()=>{
 
 /* 🆕 填空题样式 */
 .fill-input-wrap{
-  margin-bottom:32rpx;
+  margin-top:24rpx;
+  margin-bottom:24rpx;
   display:flex;
   flex-direction:column;
   gap:16rpx;
@@ -682,14 +679,17 @@ onMounted(async ()=>{
 
 .fill-input{
   width:100%;
-  padding:24rpx 32rpx;
+  padding:28rpx 32rpx;
   border:2rpx solid var(--c-border);
   border-radius:var(--radius);
   font-size:28rpx;
+  line-height:1.6;
   background:#fff;
   color:var(--c-text);
   transition:all .25s ease;
   box-shadow:var(--shadow-sm);
+  min-height:80rpx;
+  box-sizing:border-box;
 }
 
 .fill-input:focus{
@@ -721,12 +721,13 @@ onMounted(async ()=>{
 
 .fill-answer-hint{
   display:flex;
-  align-items:center;
+  flex-direction:column;
   gap:12rpx;
-  padding:20rpx 24rpx;
-  background:var(--c-green-bg);
-  border:2rpx solid var(--c-green-border);
+  padding:24rpx;
+  background:linear-gradient(135deg, #fff9e6, #fffbf0);
+  border:2rpx solid #ffd666;
   border-radius:var(--radius-s);
+  margin-top:16rpx;
 }
 
 .hint-label{
@@ -737,8 +738,16 @@ onMounted(async ()=>{
 
 .hint-value{
   font-size:28rpx;
-  color:var(--c-green);
-  font-weight:700;
+  color:#333;
+  font-weight:600;
+  line-height:1.8;
+  word-wrap:break-word;
+  word-break:break-all;
+  white-space:pre-wrap;
+  background:#fff;
+  padding:16rpx 20rpx;
+  border-radius:8rpx;
+  border:1rpx solid #ffd666;
 }
 
 .bullet.right{
@@ -838,7 +847,10 @@ onMounted(async ()=>{
   transform:none;
 }
 
-.submit{margin-top:12rpx;}
+.submit{
+  margin-top:32rpx;
+  margin-bottom:16rpx;
+}
 
 button::after{border:none;}
 
@@ -896,28 +908,36 @@ button::after{border:none;}
 
 .feedback-content{
   font-size:28rpx;
-  line-height:1.6;
+  line-height:1.8;
   padding-left:64rpx;
+  word-wrap:break-word;
+  word-break:break-all;
+  overflow-wrap:break-word;
 }
 
 .correct-answer{
   color:var(--c-text-sec);
   font-weight:500;
+  line-height:1.8;
+  word-wrap:break-word;
+  word-break:break-all;
 }
 
 .answer-letter{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:48rpx;
-  height:48rpx;
-  background:var(--c-red);
+  display:inline-block;
+  padding:6rpx 16rpx;
+  background:linear-gradient(135deg, #ff6b6b, #ff4d4f);
   color:#fff;
-  border-radius:50%;
+  border-radius:8rpx;
   font-weight:700;
   margin:0 8rpx;
-  font-size:26rpx;
+  font-size:28rpx;
   box-shadow:0 4rpx 12rpx rgba(255,77,79,.3);
+  line-height:1.5;
+  max-width:100%;
+  word-wrap:break-word;
+  word-break:break-all;
+  white-space:pre-wrap;
 }
 
 /* 🎨 解析卡片 */

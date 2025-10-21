@@ -89,6 +89,318 @@ def _kp_descendants(db, root_id: int) -> List[int]:
         res.extend(cs); st.extend(cs)
     return res
 
+# ========== 🆕 智能推荐算法（方案2：完整版） ==========
+
+import math
+import random
+
+def calculate_time_decay_smooth(last_wrong_time: datetime) -> float:
+    """
+    平滑的时间衰减系数（基于艾宾浩斯遗忘曲线）
+    
+    公式: y = 0.6 + 2.0 × e^(-0.12 × days)
+    
+    Returns:
+        float: 衰减系数，范围 0.6 ~ 2.6
+    """
+    if not last_wrong_time:
+        return 1.0
+    
+    now = datetime.now()
+    hours = (now - last_wrong_time).total_seconds() / 3600
+    
+    # 特殊处理：1小时内权重最高
+    if hours < 1:
+        return 2.6
+    
+    days = (now - last_wrong_time).days
+    
+    # 指数衰减曲线
+    return 0.6 + 2.0 * math.exp(-0.12 * days)
+
+def calculate_depth_coefficient(level: int) -> float:
+    """
+    计算知识点深度系数
+    层级越深，权重越高（更具体的知识点）
+    
+    Args:
+        level: 知识点层级 (0=根节点)
+    
+    Returns:
+        float: 深度系数，每深一层增加0.3
+    """
+    return 1.0 + (level * 0.3)
+
+def get_direct_error_weight(db: Session, user_id: int, knowledge_id: int) -> float:
+    """
+    获取知识点的直接错误权重（不含继承）
+    
+    公式: Σ(错误次数 × 时间衰减系数)
+    """
+    errors = db.query(
+        ErrorBook.wrong_count,
+        ErrorBook.last_wrong_time
+    ).join(
+        QuestionKnowledge, QuestionKnowledge.question_id == ErrorBook.question_id
+    ).filter(
+        ErrorBook.user_id == user_id,
+        QuestionKnowledge.knowledge_id == knowledge_id,
+        ErrorBook.mastered == False
+    ).all()
+    
+    if not errors:
+        return 0.0
+    
+    total_weight = 0.0
+    for wrong_count, last_wrong in errors:
+        time_coeff = calculate_time_decay_smooth(last_wrong)
+        total_weight += wrong_count * time_coeff
+    
+    return total_weight
+
+def get_ancestor_ids(db: Session, kp_id: int) -> List[int]:
+    """获取知识点的所有祖先ID（向上遍历）"""
+    ancestors = []
+    current_id = kp_id
+    max_depth = 10  # 防止死循环
+    
+    for _ in range(max_depth):
+        kp = db.query(KnowledgePoint).filter(KnowledgePoint.id == current_id).first()
+        if not kp or not kp.parent_id:
+            break
+        ancestors.append(kp.parent_id)
+        current_id = kp.parent_id
+    
+    return ancestors
+
+def calculate_inherited_weight(
+    db: Session, 
+    user_id: int, 
+    knowledge_id: int,
+    cache: dict
+) -> float:
+    """
+    计算知识点的继承权重（包含祖先节点影响）
+    
+    公式: 直接权重 + Σ(祖先权重 × 0.6^距离)
+    
+    Args:
+        cache: 缓存字典，避免重复计算
+    """
+    # 缓存检查
+    cache_key = f"inherited_{user_id}_{knowledge_id}"
+    if cache_key in cache:
+        return cache[cache_key]
+    
+    kp = db.query(KnowledgePoint).filter(KnowledgePoint.id == knowledge_id).first()
+    if not kp:
+        return 0.0
+    
+    # 1. 直接权重
+    direct_weight = get_direct_error_weight(db, user_id, knowledge_id)
+    
+    # 2. 继承权重（遍历祖先）
+    inherited_weight = 0.0
+    current_parent_id = kp.parent_id
+    distance = 1
+    decay_base = 0.6  # 继承衰减基数
+    
+    while current_parent_id:
+        parent = db.query(KnowledgePoint).filter(
+            KnowledgePoint.id == current_parent_id
+        ).first()
+        
+        if not parent:
+            break
+        
+        # 父节点的直接权重
+        parent_weight = get_direct_error_weight(db, user_id, current_parent_id)
+        
+        # 应用距离衰减
+        decay_factor = decay_base ** distance
+        inherited_weight += parent_weight * decay_factor
+        
+        # 继续向上
+        current_parent_id = parent.parent_id
+        distance += 1
+        
+        if distance > 10:  # 防止无限循环
+            break
+    
+    total_weight = direct_weight + inherited_weight
+    
+    # 缓存结果
+    cache[cache_key] = total_weight
+    return total_weight
+
+def get_weak_point_questions_smart(
+    db: Session, 
+    user_id: int, 
+    size: int,
+    subject_id: Optional[int] = None
+) -> List[int]:
+    """
+    智能推荐抽题（方案2：完整版）
+    
+    包含：时间衰减 + 深度权重 + 父子继承
+    
+    Returns:
+        List[int]: 题目ID列表
+    """
+    cache = {}  # 本次请求的临时缓存
+    
+    # 1. 获取用户错题关联的知识点
+    error_kps_query = db.query(QuestionKnowledge.knowledge_id).join(
+        ErrorBook, ErrorBook.question_id == QuestionKnowledge.question_id
+    ).filter(
+        ErrorBook.user_id == user_id,
+        ErrorBook.mastered == False
+    )
+    
+    # 如果指定学科，过滤学科
+    if subject_id:
+        error_kps_query = error_kps_query.join(
+            Question, Question.id == QuestionKnowledge.question_id
+        ).join(
+            QuestionTag, QuestionTag.question_id == Question.id
+        ).filter(QuestionTag.tag_id == subject_id)
+    
+    error_kps = error_kps_query.distinct().all()
+    
+    if not error_kps:
+        return []  # 无错题，返回空
+    
+    kp_ids = [kp.knowledge_id for kp in error_kps]
+    
+    # 2. 扩展到祖先节点（考虑层级影响）
+    all_kps = set(kp_ids)
+    for kp_id in kp_ids:
+        ancestors = get_ancestor_ids(db, kp_id)
+        all_kps.update(ancestors)
+    
+    # 3. 计算每个知识点的综合权重
+    kp_weights = []
+    for kp_id in all_kps:
+        kp = db.query(KnowledgePoint).filter(KnowledgePoint.id == kp_id).first()
+        if not kp:
+            continue
+        
+        # 继承权重（含祖先影响）
+        inherited = calculate_inherited_weight(db, user_id, kp_id, cache)
+        
+        # 深度系数（越深越重要）
+        depth_coeff = calculate_depth_coefficient(kp.depth or 0)
+        
+        # 最终权重
+        final_weight = inherited * depth_coeff
+        
+        if final_weight > 0:
+            kp_weights.append({
+                'kp_id': kp_id,
+                'weight': final_weight,
+                'level': kp.depth or 0
+            })
+    
+    if not kp_weights:
+        return []
+    
+    # 4. 按权重排序，取top知识点
+    kp_weights.sort(key=lambda x: x['weight'], reverse=True)
+    top_kps = kp_weights[:10]  # 取前10个薄弱知识点
+    
+    # 5. 从薄弱知识点中加权抽题
+    question_ids = []
+    total_weight = sum(kp['weight'] for kp in top_kps)
+    
+    for kp_info in top_kps:
+        # 按权重分配题目数量
+        ratio = kp_info['weight'] / total_weight
+        limit = max(1, int(size * ratio * 1.5))  # 多抽一些备用
+        
+        # 🔒 从该知识点抽题（只抽用户自己创建的题目）
+        q = db.query(Question.id).join(
+            QuestionVersion, QuestionVersion.question_id == Question.id
+        ).join(
+            QuestionKnowledge, QuestionKnowledge.question_id == Question.id
+        ).filter(
+            QuestionKnowledge.knowledge_id == kp_info['kp_id'],
+            Question.is_active == True,
+            QuestionVersion.created_by == user_id  # 🔒 只抽用户自己的题目
+        )
+        
+        # 排除已掌握的题目
+        mastered_ids = db.query(ErrorBook.question_id).filter(
+            ErrorBook.user_id == user_id,
+            ErrorBook.mastered == True
+        ).subquery()
+        
+        q = q.filter(~Question.id.in_(mastered_ids))
+        
+        # 如果指定学科，过滤学科
+        if subject_id:
+            q = q.join(QuestionTag).filter(QuestionTag.tag_id == subject_id)
+        
+        questions = q.order_by(func.rand()).limit(limit).all()
+        question_ids.extend([q.id for q in questions])
+    
+    # 6. 去重、打乱、截取
+    question_ids = list(set(question_ids))
+    random.shuffle(question_ids)
+    return question_ids[:size]
+
+def get_hard_questions(
+    db: Session, 
+    user_id: int,  # 🔒 添加用户ID参数
+    size: int, 
+    subject_id: Optional[int] = None
+) -> List[int]:
+    """
+    获取用户的难题（基于difficulty字段）
+    """
+    # 🔒 只查询用户自己创建的难题
+    q = db.query(Question.id).join(
+        QuestionVersion, QuestionVersion.question_id == Question.id
+    ).filter(
+        Question.is_active == True,
+        Question.difficulty >= 4,  # 难度>=4的题目
+        QuestionVersion.created_by == user_id  # 🔒 只查用户自己的题目
+    )
+    
+    if subject_id:
+        q = q.join(QuestionTag).filter(QuestionTag.tag_id == subject_id)
+    
+    questions = q.order_by(func.rand()).limit(size).all()
+    return [q.id for q in questions]
+
+def get_random_questions(
+    db: Session, 
+    user_id: int,  # 🔒 添加用户ID参数
+    size: int, 
+    subject_id: Optional[int] = None,
+    question_types: Optional[List[str]] = None
+) -> List[int]:
+    """
+    随机抽题（只抽用户自己的题目）
+    """
+    # 🔒 只查询用户自己创建的题目
+    q = db.query(Question.id).join(
+        QuestionVersion, QuestionVersion.question_id == Question.id
+    ).filter(
+        Question.is_active == True,
+        QuestionVersion.created_by == user_id  # 🔒 只查用户自己的题目
+    )
+    
+    if subject_id:
+        q = q.join(QuestionTag).filter(QuestionTag.tag_id == subject_id)
+    
+    if question_types:
+        q = q.filter(Question.type.in_(question_types))
+    
+    questions = q.order_by(func.rand()).limit(size).all()
+    return [q.id for q in questions]
+
+# ========== 智能推荐算法结束 ==========
+
 def create_session(
     db: Session, 
     user: User, 
@@ -96,9 +408,10 @@ def create_session(
     subject_id: Optional[int] = None, 
     knowledge_id: Optional[int] = None, 
     include_children: bool = False,
-    question_types: Optional[List[str]] = None
+    question_types: Optional[List[str]] = None,
+    practice_mode: str = 'RANDOM'  # 🆕 练习模式
 ) -> tuple[int, int, int, int]:
-    """创建练习会话；可按学科和题型筛选。异常通过 AppException 抛出，交给统一异常处理器。
+    """创建练习会话；支持三种练习模式。异常通过 AppException 抛出，交给统一异常处理器。
     Args:
         db (Session): 数据库会话
         user (User): 用户对象
@@ -106,7 +419,8 @@ def create_session(
         subject_id (Optional[int], optional): 学科 ID. Defaults to None.
         knowledge_id (Optional[int], optional): 知识点 ID. Defaults to None.
         include_children (bool, optional): 是否包含子知识点. Defaults to False.
-        question_types (Optional[List[str]], optional): 题型列表 ['SC', 'MC']. Defaults to None (全部题型).
+        question_types (Optional[List[str]], optional): 题型列表 ['SC', 'MC', 'FILL']. Defaults to None (全部题型).
+        practice_mode (str, optional): 练习模式 'RANDOM'|'SMART'|'WEAK_POINT'. Defaults to 'RANDOM'.
     Raises:
         AppException: 自定义异常
     Returns:
@@ -116,10 +430,10 @@ def create_session(
     
     # 默认支持所有题型
     if question_types is None or not question_types:
-        question_types = ["SC", "MC", "FILL"]  # 🆕 添加填空题
+        question_types = ["SC", "MC", "FILL"]
 
-    # 仅当未指定学科和题型时复用未完成会话；否则强制新建，确保筛选生效
-    if subject_id is None and (question_types == ["SC", "MC", "FILL"] or question_types is None):
+    # 仅当未指定学科和题型且为随机模式时复用未完成会话
+    if practice_mode == 'RANDOM' and subject_id is None and (question_types == ["SC", "MC", "FILL"] or question_types is None):
         existing = (
             db.query(ExamAttempt)
             .filter(ExamAttempt.user_id == user.id, ExamAttempt.status == "IN_PROGRESS")
@@ -129,26 +443,70 @@ def create_session(
         if existing:
             total = db.query(PaperQuestion).filter(PaperQuestion.paper_id == existing.paper_id).count()
             return existing.id, existing.paper_id, int(total), 1
+    
     # 若指定学科，校验其存在
     if subject_id is not None:
         tag = db.query(Tag).filter(Tag.id == int(subject_id), Tag.type == "SUBJECT").first()
         if not tag:
             raise AppException("学科不存在", code=400, status_code=400)
 
-    # 按学科和题型抽题
-    q = db.query(Question.id).filter(Question.is_active == True)
+    # 🆕 根据练习模式选择抽题策略
+    question_ids = []
     
-    # 题型筛选
-    if question_types:
-        q = q.filter(Question.type.in_(question_types))
+    if practice_mode == 'SMART':
+        # 🤖 智能推荐：60% 错题知识点 + 30% 全局难题 + 10% 随机题
+        log.info(f"[SMART模式] 用户{user.id}开始智能推荐抽题")
+        
+        weak_size = int(size * 0.6)
+        hard_size = int(size * 0.3)
+        rand_size = size - weak_size - hard_size  # 剩余部分
+        
+        # 🔒 从错题知识点抽题（只抽用户自己的题目）
+        weak_ids = get_weak_point_questions_smart(db, user.id, weak_size, subject_id)
+        log.info(f"[SMART模式] 从薄弱知识点抽取 {len(weak_ids)} 题")
+        
+        # 🔒 从全局难题抽题（只抽用户自己的题目）
+        hard_ids = get_hard_questions(db, user.id, hard_size, subject_id)
+        log.info(f"[SMART模式] 从全局难题抽取 {len(hard_ids)} 题")
+        
+        # 🔒 随机题补充（只抽用户自己的题目）
+        rand_ids = get_random_questions(db, user.id, rand_size, subject_id, question_types)
+        log.info(f"[SMART模式] 随机抽取 {len(rand_ids)} 题")
+        
+        question_ids = weak_ids + hard_ids + rand_ids
+        
+        # 如果题目不足，用随机题补充
+        if len(question_ids) < size:
+            log.warning(f"[SMART模式] 题目不足，补充随机题")
+            extra = get_random_questions(db, user.id, size - len(question_ids), subject_id, question_types)
+            question_ids.extend(extra)
+        
+        # 打乱顺序
+        random.shuffle(question_ids)
+        question_ids = question_ids[:size]
     
-    if subject_id:
-        q = (q.join(QuestionTag, QuestionTag.question_id == Question.id)
-              .join(Tag, Tag.id == QuestionTag.tag_id)
-              .filter(Tag.type == "SUBJECT", Tag.id == int(subject_id)))
-    question_ids = [r.id for r in q.order_by(func.rand()).limit(size).all()]
+    elif practice_mode == 'WEAK_POINT':
+        # 🎯 薄弱专项：100% 错题知识点
+        log.info(f"[WEAK_POINT模式] 用户{user.id}开始薄弱专项抽题")
+        
+        # 🔒 只抽用户自己的题目
+        question_ids = get_weak_point_questions_smart(db, user.id, size, subject_id)
+        log.info(f"[WEAK_POINT模式] 从薄弱知识点抽取 {len(question_ids)} 题")
+        
+        # 如果错题不足，降级为随机模式
+        if len(question_ids) < size:
+            log.warning(f"[WEAK_POINT模式] 错题不足，补充随机题")
+            extra = get_random_questions(db, user.id, size - len(question_ids), subject_id, question_types)
+            question_ids.extend(extra)
+    
+    else:  # RANDOM
+        # 🎲 随机练习（原有逻辑）
+        log.info(f"[RANDOM模式] 用户{user.id}开始随机抽题")
+        # 🔒 只抽用户自己的题目
+        question_ids = get_random_questions(db, user.id, size, subject_id, question_types)
+    
     if not question_ids:
-        raise AppException("该学科暂无可用题目" if subject_id else "暂无可用题目", code=404, status_code=404)
+        raise AppException("暂无可用题目", code=404, status_code=404)
 
     # 组卷 + 创建会话（失败要回滚并抛出 AppException）
     try:

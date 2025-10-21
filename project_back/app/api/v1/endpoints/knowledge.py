@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Body, Path
+from fastapi import APIRouter, Depends, Body, Path, HTTPException
 from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.schemas.knowledge import KnowledgeCreate, KnowledgeUpdate, KnowledgeNode, QuestionKnowledgeItem
@@ -7,6 +7,8 @@ from app.services import knowledge_service
 from app.models.user import User
 from app.models.knowledge_point import KnowledgePoint
 from app.models.question_knowledge import QuestionKnowledge
+from app.models.question import Question
+from app.models.question_version import QuestionVersion
 
 router = APIRouter()
 
@@ -27,8 +29,29 @@ def remove(kid: int, db: Session = Depends(get_db), me: User = Depends(get_curre
     knowledge_service.delete(db, kid)
     return {"ok": True}
 
+# 🔒 获取题目作者ID辅助函数
+def _get_question_owner_id(q: Question, db: Session) -> Optional[int]:
+    if hasattr(q, "created_by"):
+        return getattr(q, "created_by")
+    if hasattr(q, "current_version_id") and q.current_version_id:
+        return db.query(QuestionVersion.created_by)\
+                 .filter(QuestionVersion.id == q.current_version_id)\
+                 .scalar()
+    return None
+
 @router.put("/questions/{qid}/knowledge")
 def bind_question_knowledge(qid: int = Path(...), items: List[QuestionKnowledgeItem] = Body(...), db: Session = Depends(get_db), me: User = Depends(get_current_user)):
+    # 🔒 权限控制：验证用户是否有权修改该题目
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise HTTPException(404, "题目不存在")
+    
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    owner_id = _get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != uid):
+        raise HTTPException(403, "无权限修改此题目")
+    
     knowledge_service.bind_question_knowledge(db, qid, [i.dict() for i in items])
     return {"ok": True}
 
@@ -51,6 +74,17 @@ def get_question_knowledge(
     db: Session = Depends(get_db),
     me: User = Depends(get_current_user),
 ):
+    # 🔒 权限控制:验证用户是否有权访问该题目
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise HTTPException(404, "题目不存在")
+    
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    owner_id = _get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != uid):
+        raise HTTPException(403, "无权限访问此题目")
+    
     links = db.query(QuestionKnowledge).filter(QuestionKnowledge.question_id == qid).all()
     return [
         {"knowledge_id": int(lk.knowledge_id), "weight": lk.weight, "path": _kp_path(db, int(lk.knowledge_id))}

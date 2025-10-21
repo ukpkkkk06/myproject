@@ -49,7 +49,7 @@ def download_import_template():
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-@router.get("/question-bank/my-questions")
+@router.get("/question-bank/my-questions", response_model=MyQuestionListResp)
 def my_questions(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
@@ -60,11 +60,26 @@ def my_questions(
     subject_id: int | None = Query(None),
     level_id: int | None = Query(None),
     db: Session = Depends(deps.get_db),
+    me: User = Depends(deps.get_current_user),  # 🔒 添加用户认证
 ):
-    return question_bank_service.get_my_questions(
-        db, page, size, keyword, qtype, difficulty, active_only,
+    # 🔒 只返回当前用户创建的题目
+    total, rows = question_bank_service.list_my_questions(
+        db, me, page, size, keyword, qtype, difficulty, active_only,
         subject_id=subject_id, level_id=level_id
     )
+    items = [
+        MyQuestionItem(
+            question_id=r.question_id,
+            type=r.type,
+            difficulty=r.difficulty,
+            stem=(r.stem or "")[:120],  # 兜底，避免 None 切片报错
+            audit_status=r.audit_status,
+            is_active=bool(r.is_active),
+            created_at=r.created_at,
+            updated_at=r.updated_at,
+        ) for r in rows
+    ]
+    return {"total": total, "page": page, "size": size, "items": items}
 
 @router.get("/my-questions", response_model=MyQuestionListResp)
 def list_my_questions(
@@ -179,6 +194,10 @@ def questions_brief(ids: str = Query(..., description="逗号分隔的题目ID�
     if not id_list:
         return {"items": []}
 
+    # 🔒 权限控制：只能访问自己创建的题目
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+
     # 兼容字段名
     QV = QuestionVersion
     analysis_col = getattr(QV, "analysis", None) or getattr(QV, "explanation", None)
@@ -188,12 +207,17 @@ def questions_brief(ids: str = Query(..., description="逗号分隔的题目ID�
     if options_col is not None: cols.append(options_col.label("options"))
     if analysis_col is not None: cols.append(analysis_col.label("analysis"))
 
-    rows = (
+    q = (
         db.query(*cols)
           .outerjoin(QV, Question.current_version_id == QV.id)
           .filter(Question.id.in_(id_list))
-          .all()
     )
+    
+    # 🔒 非管理员只能查看自己创建的题目
+    if not is_admin:
+        q = q.filter(QV.created_by == uid)
+    
+    rows = q.all()
     by_id = {r.id: r for r in rows}
     items = []
     for qid in id_list:
@@ -222,6 +246,10 @@ def question_detail(
     db: Session = Depends(deps.get_db),
     me: User = Depends(deps.get_current_user),
 ):
+    # 🔒 权限控制：只能访问自己创建的题目
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    
     QV = QuestionVersion
     analysis_col = getattr(QV, "analysis", None) or getattr(QV, "explanation", None)
     options_col = getattr(QV, "options", None) or getattr(QV, "choices", None)
@@ -236,12 +264,17 @@ def question_detail(
     if analysis_col is not None: cols.append(analysis_col.label("analysis"))
     if correct_answer_col is not None: cols.append(correct_answer_col.label("correct_answer"))  # 🔥 添加正确答案
 
-    r = (db.query(*cols)
+    q = (db.query(*cols)
             .outerjoin(QV, Question.current_version_id == QV.id)
-            .filter(Question.id == qid)
-            .first())
+            .filter(Question.id == qid))
+    
+    # 🔒 非管理员只能查看自己创建的题目
+    if not is_admin:
+        q = q.filter(QV.created_by == uid)
+    
+    r = q.first()
     if not r:
-        raise HTTPException(status_code=404, detail="题目不存在")
+        raise HTTPException(status_code=404, detail="题目不存在或无权限访问")
     
     # 🔥 构建返回对象，包含所有字段
     result = {
@@ -337,6 +370,14 @@ def update_question(
         elif hasattr(q, "is_active"):
             q.is_active = bool(body.is_active)
 
+    # 🔥 新增：更新题目类型
+    if body.type is not None:
+        allowed_types = ["SC", "MC", "FILL"]  # 单选、多选、填空
+        if body.type in allowed_types:
+            q.type = body.type
+        else:
+            raise HTTPException(status_code=400, detail=f"题目类型必须是以下之一: {allowed_types}")
+
     # 🔥 新增：保存时默认通过审核
     if hasattr(qv, "audit_status"):
         qv.audit_status = "APPROVED"  # 设置为已通过
@@ -384,6 +425,17 @@ def get_question_tags(
     db: Session = Depends(deps.get_db),
     me: User = Depends(deps.get_current_user),
 ):
+    # 🔒 权限控制：验证用户是否有权访问该题目
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise HTTPException(404, "题目不存在")
+    
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    owner_id = _get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != uid):
+        raise HTTPException(403, "无权限访问此题目")
+    
     rows = (
         db.query(QuestionTag.tag_id, Tag.type)
         .join(Tag, Tag.id == QuestionTag.tag_id)

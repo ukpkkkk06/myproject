@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Literal
 
 class CreateSessionRequest(BaseModel):
     size: int = 5
@@ -7,6 +7,7 @@ class CreateSessionRequest(BaseModel):
     knowledge_id: Optional[int] = None  # 知识点ID,支持按知识点筛选题目
     include_children: Optional[bool] = True  # 是否包含子知识点
     question_types: Optional[List[str]] = None  # 题型列表,如["SC","MC","FILL"],None表示全部类型
+    practice_mode: Optional[Literal['RANDOM', 'SMART', 'WEAK_POINT']] = 'RANDOM'  # 🆕 练习模式
 
 class CreateSessionResponse(BaseModel):
     attempt_id: int
