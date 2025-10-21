@@ -271,7 +271,14 @@ class API {
   }
 
   // 创建练习
-  createPractice(size = 5, subjectId?: number, knowledgeId?: number, includeChildren: boolean = true, questionTypes?: string[]) {
+  createPractice(
+    size = 5, 
+    subjectId?: number, 
+    knowledgeId?: number, 
+    includeChildren: boolean = true, 
+    questionTypes?: string[],
+    practiceMode: 'RANDOM' | 'SMART' | 'WEAK_POINT' = 'RANDOM'  // 🆕 练习模式
+  ) {
     return request<CreateSessionResp>('/practice/sessions', {
       method: 'POST',
       data: { 
@@ -279,7 +286,8 @@ class API {
         subject_id: subjectId, 
         knowledge_id: knowledgeId, 
         include_children: includeChildren,
-        question_types: questionTypes  // 🆕 题型参数
+        question_types: questionTypes,  // 🆕 题型参数
+        practice_mode: practiceMode  // 🆕 练习模式参数
       }
     })
   }

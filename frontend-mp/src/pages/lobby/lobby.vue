@@ -91,6 +91,65 @@
           </view>
         </view>
 
+        <!-- 🆕 练习模式选择卡片 -->
+        <view class="select-card mode-card">
+          <view class="select-header">
+            <text class="select-icon">🎯</text>
+            <text class="select-label">练习模式</text>
+            <view class="beta-tag" v-if="practiceMode !== 'RANDOM'">AI</view>
+          </view>
+          <view class="mode-options">
+            <!-- 随机练习 -->
+            <view 
+              class="mode-option" 
+              :class="{ active: practiceMode === 'RANDOM' }"
+              @tap="selectMode('RANDOM')"
+            >
+              <view class="mode-header">
+                <text class="mode-icon">🎲</text>
+                <text class="mode-title">随机练习</text>
+                <text class="recommend-tag" v-if="errorCount === 0">推荐</text>
+              </view>
+              <text class="mode-desc">全面复习，随机抽题</text>
+            </view>
+
+            <!-- 智能推荐 -->
+            <view 
+              class="mode-option" 
+              :class="{ active: practiceMode === 'SMART', disabled: errorCount === 0 }"
+              @tap="selectMode('SMART')"
+            >
+              <view class="mode-header">
+                <text class="mode-icon">🤖</text>
+                <text class="mode-title">智能推荐</text>
+                <text class="recommend-tag hot" v-if="errorCount > 0">推荐</text>
+                <text class="lock-icon" v-if="errorCount === 0">🔒</text>
+              </view>
+              <text class="mode-desc">{{ errorCount > 0 ? 'AI加强，混合推荐错题' : '需要先积累错题数据' }}</text>
+            </view>
+
+            <!-- 薄弱专项 -->
+            <view 
+              class="mode-option" 
+              :class="{ active: practiceMode === 'WEAK_POINT', disabled: errorCount === 0 }"
+              @tap="selectMode('WEAK_POINT')"
+            >
+              <view class="mode-header">
+                <text class="mode-icon">🎯</text>
+                <text class="mode-title">薄弱专项</text>
+                <text class="lock-icon" v-if="errorCount === 0">🔒</text>
+              </view>
+              <text class="mode-desc">{{ errorCount > 0 ? '针对性突破薄弱知识点' : '需要先积累错题数据' }}</text>
+            </view>
+          </view>
+
+          <!-- 错题统计提示 -->
+          <view class="error-stats" v-if="errorCount > 0">
+            <text class="stats-icon">📊</text>
+            <text class="stats-text">您有 <text class="stats-number">{{ errorCount }}</text> 道错题，建议使用智能模式</text>
+          </view>
+        </view>
+
         <!-- 功能按钮网格 -->
         <view class="action-grid">
           <button class="action-btn primary" @tap="startPractice">
@@ -168,6 +227,37 @@ function toggleType(type: string) {
   }
 }
 
+/* 🆕 练习模式选择 */
+const practiceMode = ref<'RANDOM' | 'SMART' | 'WEAK_POINT'>('RANDOM')
+const errorCount = ref(0)  // 用户错题总数
+
+function selectMode(mode: 'RANDOM' | 'SMART' | 'WEAK_POINT') {
+  // 如果没有错题,智能模式和薄弱专项不可用
+  if ((mode === 'SMART' || mode === 'WEAK_POINT') && errorCount.value === 0) {
+    uni.showToast({
+      icon: 'none',
+      title: '需要先积累错题数据才能使用智能模式'
+    })
+    return
+  }
+  practiceMode.value = mode
+}
+
+// 获取用户错题数量
+async function loadErrorCount() {
+  try {
+    // TODO: 调用API获取错题统计
+    // const count = await api.getErrorBookCount()
+    // errorCount.value = count
+    
+    // 暂时模拟数据(等后端实现后替换)
+    errorCount.value = 0  // 默认0,可以手动改成15测试UI效果
+  } catch (e) {
+    console.error('获取错题统计失败', e)
+    errorCount.value = 0
+  }
+}
+
 /* 扁平化知识点树为"路径"便于选择 */
 function flattenKp(nodes: KnowledgeNode[], prefix = ''): KpOpt[] {
   const out: KpOpt[] = []
@@ -187,6 +277,9 @@ onMounted(async ()=>{
     kpTree.value = await api.listKnowledgeTree()
     kpOptions.value = flattenKp(kpTree.value)
   } catch { kpTree.value = []; kpOptions.value = [] }
+  
+  // 🆕 加载错题统计
+  await loadErrorCount()
 })
 
 async function startPractice(){
@@ -197,7 +290,15 @@ async function startPractice(){
   const knowledgeId = selKp?.id
 
   try{
-    const r = await api.createPractice(5, subjectId, knowledgeId, includeChildren.value, questionTypes.value)
+    // 🆕 传递练习模式参数
+    const r = await api.createPractice(
+      5, 
+      subjectId, 
+      knowledgeId, 
+      includeChildren.value, 
+      questionTypes.value,
+      practiceMode.value  // 🆕 新增练习模式参数
+    )
     uni.navigateTo({ url: `/pages/practice/practice?attemptId=${r.attempt_id}&total=${r.total}&seq=${r.start_seq ?? r.first_seq ?? 1}` })
   }catch(e:any){
     const msg = e?.data?.message || e?.data?.detail || '创建练习失败'
@@ -494,6 +595,157 @@ function logout(){
 .type-icon{
   font-size:28rpx;
   line-height:1;
+}
+
+/* 🆕 练习模式选择样式 */
+.mode-card{
+  position:relative;
+}
+
+.beta-tag{
+  position:absolute;
+  top:20rpx;
+  right:24rpx;
+  padding:4rpx 12rpx;
+  background:linear-gradient(135deg, #ff6b6b, #ff8787);
+  color:#fff;
+  font-size:20rpx;
+  font-weight:700;
+  border-radius:8rpx;
+  box-shadow:0 2rpx 8rpx rgba(255,107,107,.3);
+  animation:pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform:scale(1); }
+  50% { transform:scale(1.05); }
+}
+
+.mode-options{
+  display:flex;
+  flex-direction:column;
+  gap:16rpx;
+  margin-top:8rpx;
+}
+
+.mode-option{
+  padding:24rpx 20rpx;
+  background:#fff;
+  border:3rpx solid var(--c-border);
+  border-radius:var(--radius-s);
+  transition:all .25s ease;
+  cursor:pointer;
+  position:relative;
+}
+
+.mode-option.active{
+  background:linear-gradient(135deg, var(--c-primary-light), #e8f5ff);
+  border-color:var(--c-primary);
+  border-width:3rpx;
+  box-shadow:0 6rpx 16rpx rgba(102,180,255,.25);
+  transform:translateY(-2rpx);
+}
+
+.mode-option.disabled{
+  opacity:.5;
+  cursor:not-allowed;
+  background:#f8f9fa;
+}
+
+.mode-option:not(.disabled):active{
+  transform:scale(.98);
+}
+
+.mode-header{
+  display:flex;
+  align-items:center;
+  gap:12rpx;
+  margin-bottom:8rpx;
+  position:relative;
+}
+
+.mode-icon{
+  font-size:36rpx;
+  line-height:1;
+}
+
+.mode-title{
+  font-size:30rpx;
+  color:var(--c-text);
+  font-weight:700;
+  flex:1;
+}
+
+.mode-option.active .mode-title{
+  color:var(--c-primary-dark);
+}
+
+.recommend-tag{
+  padding:4rpx 12rpx;
+  background:linear-gradient(135deg, #52c41a, #73d13d);
+  color:#fff;
+  font-size:20rpx;
+  font-weight:700;
+  border-radius:8rpx;
+  box-shadow:0 2rpx 8rpx rgba(82,196,26,.25);
+}
+
+.recommend-tag.hot{
+  background:linear-gradient(135deg, #ff4d4f, #ff7875);
+  animation:shake .8s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform:translateX(0); }
+  25% { transform:translateX(-2rpx); }
+  75% { transform:translateX(2rpx); }
+}
+
+.lock-icon{
+  font-size:24rpx;
+  opacity:.6;
+}
+
+.mode-desc{
+  font-size:24rpx;
+  color:var(--c-text-sec);
+  line-height:1.6;
+  padding-left:48rpx;
+}
+
+.mode-option.active .mode-desc{
+  color:var(--c-primary);
+  font-weight:600;
+}
+
+.error-stats{
+  display:flex;
+  align-items:center;
+  gap:12rpx;
+  margin-top:16rpx;
+  padding:16rpx 20rpx;
+  background:linear-gradient(135deg, #fff4e6, #fffaf0);
+  border:2rpx solid #ffd591;
+  border-radius:var(--radius-s);
+}
+
+.stats-icon{
+  font-size:28rpx;
+  line-height:1;
+}
+
+.stats-text{
+  font-size:24rpx;
+  color:#ad6800;
+  line-height:1.5;
+  flex:1;
+}
+
+.stats-number{
+  font-size:28rpx;
+  font-weight:700;
+  color:#ff8800;
+  padding:0 4rpx;
 }
 
 /* �🎨 功能按钮网格 - 优化版 */
