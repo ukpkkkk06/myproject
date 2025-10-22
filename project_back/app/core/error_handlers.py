@@ -48,9 +48,16 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(IntegrityError)
     async def _integrity_error_handler(_: Request, exc: IntegrityError):
         # 数据库唯一约束冲突
+        # 🔍 记录详细错误信息用于调试
+        logger.error(f"IntegrityError: {exc}")
+        logger.error(f"详细信息: {exc.orig if hasattr(exc, 'orig') else 'N/A'}")
+        
+        # 提取更友好的错误信息
+        error_msg = str(exc.orig) if hasattr(exc, 'orig') else str(exc)
+        
         return JSONResponse(
             status_code=400,
-            content={"code": 400, "message": "唯一约束冲突"},
+            content={"code": 400, "message": f"唯一约束冲突: {error_msg}"},
         )
 
     @app.exception_handler(Exception)

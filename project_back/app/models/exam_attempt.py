@@ -4,7 +4,7 @@ from app.db.base import Base
 
 class ExamAttempt(Base):
     __tablename__ = "EXAM_ATTEMPT"
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, index=True, nullable=False)
     paper_id = Column(BigInteger, index=True, nullable=False)
     attempt_index = Column(Integer, default=1)

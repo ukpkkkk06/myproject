@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 from sqlalchemy import func
 from app.core.exceptions import AppException
+from app.core.timezone import now as get_now
 from app.models.knowledge_point import KnowledgePoint
 from app.models.question_knowledge import QuestionKnowledge
 from app.models.user import User
@@ -38,7 +39,7 @@ def _norm_fill(ans: str) -> str:
     return (ans or "").strip().lower()
 
 def _new_title() -> str:
-    return f"练习-{datetime.now():%Y%m%d%H%M%S}"
+    return f"练习-{get_now():%Y%m%d%H%M%S}"
 
 def _err_msg(e: Exception) -> str:
     try:
@@ -107,7 +108,7 @@ def calculate_time_decay_smooth(last_wrong_time: datetime) -> float:
     if not last_wrong_time:
         return 1.0
     
-    now = datetime.now()
+    now = get_now()  # 已经是 naive datetime
     hours = (now - last_wrong_time).total_seconds() / 3600
     
     # 特殊处理：1小时内权重最高
@@ -238,12 +239,16 @@ def get_weak_point_questions_smart(
     db: Session, 
     user_id: int, 
     size: int,
-    subject_id: Optional[int] = None
+    subject_id: Optional[int] = None,
+    question_types: Optional[List[str]] = None  # 🆕 添加题型参数
 ) -> List[int]:
     """
     智能推荐抽题（方案2：完整版）
     
     包含：时间衰减 + 深度权重 + 父子继承
+    
+    Args:
+        question_types: 题型列表，如 ['SC', 'MC', 'FILL']，None 表示全部类型
     
     Returns:
         List[int]: 题目ID列表
@@ -348,6 +353,10 @@ def get_weak_point_questions_smart(
         if subject_id:
             q = q.join(QuestionTag).filter(QuestionTag.tag_id == subject_id)
         
+        # 🆕 如果指定题型，过滤题型
+        if question_types:
+            q = q.filter(Question.type.in_(question_types))
+        
         questions = q.order_by(func.rand()).limit(limit).all()
         question_ids.extend([q.id for q in questions])
     
@@ -360,10 +369,14 @@ def get_hard_questions(
     db: Session, 
     user_id: int,  # 🔒 添加用户ID参数
     size: int, 
-    subject_id: Optional[int] = None
+    subject_id: Optional[int] = None,
+    question_types: Optional[List[str]] = None  # 🆕 添加题型参数
 ) -> List[int]:
     """
     获取用户的难题（基于difficulty字段）
+    
+    Args:
+        question_types: 题型列表，如 ['SC', 'MC', 'FILL']，None 表示全部类型
     """
     # 🔒 只查询用户自己创建的难题
     q = db.query(Question.id).join(
@@ -376,6 +389,10 @@ def get_hard_questions(
     
     if subject_id:
         q = q.join(QuestionTag).filter(QuestionTag.tag_id == subject_id)
+    
+    # 🆕 如果指定题型，过滤题型
+    if question_types:
+        q = q.filter(Question.type.in_(question_types))
     
     questions = q.order_by(func.rand()).limit(size).all()
     return [q.id for q in questions]
@@ -390,6 +407,8 @@ def get_random_questions(
     """
     随机抽题（只抽用户自己的题目）
     """
+    log.info(f"[get_random_questions] 用户{user_id}, 请求size={size}, 学科={subject_id}, 题型={question_types}")
+    
     # 🔒 只查询用户自己创建的题目
     q = db.query(Question.id).join(
         QuestionVersion, QuestionVersion.question_id == Question.id
@@ -405,6 +424,7 @@ def get_random_questions(
         q = q.filter(Question.type.in_(question_types))
     
     questions = q.order_by(func.rand()).limit(size).all()
+    log.info(f"[get_random_questions] 实际查询到{len(questions)}题")
     return [q.id for q in questions]
 
 # ========== 智能推荐算法结束 ==========
@@ -434,23 +454,22 @@ def create_session(
     Returns:
         tuple[int, int, int, int]: 会话 ID, 试卷 ID, 题目总数, 当前题序
     """
-    size = max(1, min(int(size or 5), 50))
+    # 🆕 题目数量限制：1-100题（与前端保持一致）
+    original_size = size
+    size = max(1, min(int(size or 10), 100))
+    log.info(f"[题目数量] 原始size={original_size}, 处理后size={size}, 练习模式={practice_mode}")
     
     # 默认支持所有题型
     if question_types is None or not question_types:
         question_types = ["SC", "MC", "FILL"]
 
-    # 仅当未指定学科和题型且为随机模式时复用未完成会话
-    if practice_mode == 'RANDOM' and subject_id is None and (question_types == ["SC", "MC", "FILL"] or question_types is None):
-        existing = (
-            db.query(ExamAttempt)
-            .filter(ExamAttempt.user_id == user.id, ExamAttempt.status == "IN_PROGRESS")
-            .order_by(ExamAttempt.start_time.desc())
-            .first()
-        )
-        if existing:
-            total = db.query(PaperQuestion).filter(PaperQuestion.paper_id == existing.paper_id).count()
-            return existing.id, existing.paper_id, int(total), 1
+    # 🔥 移除会话复用逻辑：每次都创建新的练习会话
+    # 原因：用户可能修改题目数量、题型等参数，复用旧会话会导致参数不生效
+    # 旧逻辑已注释：
+    # if practice_mode == 'RANDOM' and subject_id is None and (question_types == ["SC", "MC", "FILL"] or question_types is None):
+    #     existing = db.query(ExamAttempt).filter(...).first()
+    #     if existing:
+    #         return existing.id, existing.paper_id, int(total), 1
     
     # 若指定学科，校验其存在
     if subject_id is not None:
@@ -470,11 +489,11 @@ def create_session(
         rand_size = size - weak_size - hard_size  # 剩余部分
         
         # 🔒 从错题知识点抽题（只抽用户自己的题目）
-        weak_ids = get_weak_point_questions_smart(db, user.id, weak_size, subject_id)
+        weak_ids = get_weak_point_questions_smart(db, user.id, weak_size, subject_id, question_types)
         log.info(f"[SMART模式] 从薄弱知识点抽取 {len(weak_ids)} 题")
         
         # 🔒 从全局难题抽题（只抽用户自己的题目）
-        hard_ids = get_hard_questions(db, user.id, hard_size, subject_id)
+        hard_ids = get_hard_questions(db, user.id, hard_size, subject_id, question_types)
         log.info(f"[SMART模式] 从全局难题抽取 {len(hard_ids)} 题")
         
         # 🔒 随机题补充（只抽用户自己的题目）
@@ -483,11 +502,40 @@ def create_session(
         
         question_ids = weak_ids + hard_ids + rand_ids
         
+        # 🔥 去重：防止三个来源有重复题目
+        question_ids = list(dict.fromkeys(question_ids))
+        log.info(f"[SMART模式] 去重后共 {len(question_ids)} 题")
+        
         # 如果题目不足，用随机题补充
         if len(question_ids) < size:
             log.warning(f"[SMART模式] 题目不足，补充随机题")
-            extra = get_random_questions(db, user.id, size - len(question_ids), subject_id, question_types)
-            question_ids.extend(extra)
+            need_count = size - len(question_ids)
+            existing_ids = set(question_ids)
+            
+            # 🔥 改进：多次尝试补充，确保数量充足
+            max_attempts = 3
+            for attempt in range(max_attempts):
+                if len(question_ids) >= size:
+                    break
+                    
+                # 每次多取一些，逐步增加倍数
+                fetch_count = need_count * (2 + attempt)
+                extra = get_random_questions(db, user.id, fetch_count, subject_id, question_types)
+                
+                # 过滤已有题目
+                new_questions = [qid for qid in extra if qid not in existing_ids]
+                
+                # 添加新题目
+                add_count = min(len(new_questions), size - len(question_ids))
+                question_ids.extend(new_questions[:add_count])
+                existing_ids.update(new_questions[:add_count])
+                
+                log.info(f"[SMART模式] 第{attempt+1}次补充 {add_count} 题，总计 {len(question_ids)} 题")
+                
+                if add_count == 0:
+                    # 没有更多可用题目了
+                    log.warning(f"[SMART模式] 题库不足，无法补充更多题目")
+                    break
         
         # 打乱顺序
         random.shuffle(question_ids)
@@ -498,20 +546,52 @@ def create_session(
         log.info(f"[WEAK_POINT模式] 用户{user.id}开始薄弱专项抽题")
         
         # 🔒 只抽用户自己的题目
-        question_ids = get_weak_point_questions_smart(db, user.id, size, subject_id)
+        question_ids = get_weak_point_questions_smart(db, user.id, size, subject_id, question_types)
         log.info(f"[WEAK_POINT模式] 从薄弱知识点抽取 {len(question_ids)} 题")
         
         # 如果错题不足，降级为随机模式
         if len(question_ids) < size:
             log.warning(f"[WEAK_POINT模式] 错题不足，补充随机题")
-            extra = get_random_questions(db, user.id, size - len(question_ids), subject_id, question_types)
-            question_ids.extend(extra)
+            need_count = size - len(question_ids)
+            existing_ids = set(question_ids)
+            
+            # 🔥 改进：多次尝试补充，确保数量充足
+            max_attempts = 3
+            for attempt in range(max_attempts):
+                if len(question_ids) >= size:
+                    break
+                    
+                # 每次多取一些，逐步增加倍数
+                fetch_count = need_count * (2 + attempt)
+                extra = get_random_questions(db, user.id, fetch_count, subject_id, question_types)
+                
+                # 过滤已有题目
+                new_questions = [qid for qid in extra if qid not in existing_ids]
+                
+                # 添加新题目
+                add_count = min(len(new_questions), size - len(question_ids))
+                question_ids.extend(new_questions[:add_count])
+                existing_ids.update(new_questions[:add_count])
+                
+                log.info(f"[WEAK_POINT模式] 第{attempt+1}次补充 {add_count} 题，总计 {len(question_ids)} 题")
+                
+                if add_count == 0:
+                    # 没有更多可用题目了
+                    log.warning(f"[WEAK_POINT模式] 题库不足，无法补充更多题目")
+                    break
     
     else:  # RANDOM
         # 🎲 随机练习（原有逻辑）
-        log.info(f"[RANDOM模式] 用户{user.id}开始随机抽题")
+        log.info(f"[RANDOM模式] 用户{user.id}开始随机抽题, 请求题目数={size}")
         # 🔒 只抽用户自己的题目
         question_ids = get_random_questions(db, user.id, size, subject_id, question_types)
+        log.info(f"[RANDOM模式] 实际抽取题目数={len(question_ids)}")
+    
+    # 🔥 最终去重保护：确保没有重复题目
+    original_count = len(question_ids)
+    question_ids = list(dict.fromkeys(question_ids))
+    if len(question_ids) < original_count:
+        log.warning(f"[去重保护] 发现重复题目，去重前={original_count}，去重后={len(question_ids)}")
     
     if not question_ids:
         raise AppException("暂无可用题目", code=404, status_code=404)
@@ -528,7 +608,7 @@ def create_session(
         for i, qid in enumerate(question_ids, start=1):
             db.add(PaperQuestion(paper_id=paper.id, question_id=qid, seq=i))
         db.flush()
-        attempt = ExamAttempt(user_id=user.id, paper_id=paper.id, status="IN_PROGRESS", start_time=datetime.now())
+        attempt = ExamAttempt(user_id=user.id, paper_id=paper.id, status="IN_PROGRESS", start_time=get_now())
         db.add(attempt); db.commit()
         return attempt.id, paper.id, len(question_ids), 1
     except Exception as e:
@@ -589,7 +669,7 @@ def submit_answer(db: Session, user: User, attempt_id: int, seq: int, user_answe
     ua = db.query(UserAnswer).filter(
         UserAnswer.attempt_id == attempt.id, UserAnswer.question_id == q.id
     ).first()
-    now = datetime.utcnow()
+    now = get_now()
     if ua:
         ua.user_answer = user_answer
         ua.is_correct = correct
@@ -646,7 +726,7 @@ def finish(db: Session, user: User, attempt_id: int):
 
     if attempt.status != "FINISHED":
         attempt.status = "FINISHED"
-        attempt.submit_time = datetime.utcnow()
+        attempt.submit_time = get_now()
         attempt.duration_seconds = int((attempt.submit_time - attempt.start_time).total_seconds()) if attempt.start_time else 0
         attempt.calculated_accuracy = (correct_count / total) if total else 0
         db.add(attempt); db.commit()
@@ -658,3 +738,4 @@ def finish(db: Session, user: User, attempt_id: int):
         "accuracy": float(attempt.calculated_accuracy or 0),
         "duration_seconds": int(attempt.duration_seconds or 0),
     }
+

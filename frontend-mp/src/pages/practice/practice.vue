@@ -2,11 +2,7 @@
   <view class="practice-page" v-if="loaded">
     <!-- 顶部导航栏 -->
     <view class="top-nav">
-      <button class="back-btn" @tap="goBack">
-        <text class="back-icon">←</text>
-      </button>
       <text class="nav-title">智能练习</text>
-      <view class="nav-placeholder"></view>
     </view>
 
     <view class="card">
@@ -168,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
 import { api, type QuestionView, type SubmitAnswerResp, type CreateSessionResp } from '@/utils/api'
 
 const attemptId = ref(0)
@@ -295,30 +291,52 @@ async function finish(){
   }
 }
 
-function goBack(){
-  uni.showModal({
-    title:'确认退出',
-    content:'退出后进度将保存，可稍后继续',
-    success(res){
-      if(res.confirm) uni.navigateBack()
-    }
-  })
-}
-
 onMounted(async ()=>{
   try{
     const token = uni.getStorageSync('token')
     if(!token) return uni.reLaunch({ url:'/pages/login/login' })
-    const resp:CreateSessionResp = await api.createPractice(5)
-    attemptId.value = resp.attempt_id
-    total.value = resp.total
-    // 🔥 修复：使用 ?? 运算符提供默认值
-    const startSeq = resp.first_seq ?? resp.start_seq ?? 1
-    await loadQuestion(startSeq)
+    
+    // 🔥 修复：检查 URL 参数，优先使用 lobby 传递的 attemptId
+    const pages = getCurrentPages()
+    const currentPage = pages[pages.length - 1] as any
+    const options = currentPage?.options || {}
+    
+    console.log('[Practice.onMounted] URL参数:', options)
+    
+    if (options.attemptId) {
+      // 使用 lobby 创建的会话
+      console.log('[Practice.onMounted] 使用现有会话:', options.attemptId)
+      attemptId.value = Number(options.attemptId)
+      total.value = Number(options.total)
+      const startSeq = Number(options.seq || options.start_seq || 1)
+      await loadQuestion(startSeq)
+    } else {
+      // 回退：直接访问时创建新会话（默认5题）
+      console.log('[Practice.onMounted] 创建新会话（直接访问）')
+      const resp:CreateSessionResp = await api.createPractice(5)
+      attemptId.value = resp.attempt_id
+      total.value = resp.total
+      const startSeq = resp.first_seq ?? resp.start_seq ?? 1
+      await loadQuestion(startSeq)
+    }
+    
     loaded.value = true
   } catch(e:any){
     if(e?.statusCode === 401) uni.reLaunch({ url:'/pages/login/login' })
     else toast(e?.data?.message || '加载失败')
+  }
+})
+
+// 🆕 页面卸载时自动完成练习(方案2)
+onUnmounted(async () => {
+  // 只有在练习未完成时才自动提交
+  if (attemptId.value && loaded.value) {
+    try {
+      console.log('[Practice.onUnmounted] 自动完成练习, attemptId:', attemptId.value)
+      await api.finishPractice(attemptId.value)
+    } catch (e) {
+      console.error('[Practice.onUnmounted] 自动完成练习失败:', e)
+    }
   }
 })
 </script>
@@ -367,7 +385,7 @@ onMounted(async ()=>{
   box-sizing:border-box;
   display:flex;
   align-items:center;
-  justify-content:space-between;
+  justify-content:center;
   backdrop-filter:blur(20px) saturate(180%);
   background:rgba(255,255,255,.65);
   border-bottom:1rpx solid rgba(214,230,245,.6);
@@ -375,37 +393,11 @@ onMounted(async ()=>{
   z-index:100;
 }
 
-.back-btn{
-  width:72rpx; height:72rpx;
-  background:linear-gradient(135deg, var(--c-primary-light), #fff);
-  border:2rpx solid var(--c-primary);
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:var(--shadow-sm);
-  padding:0;
-  transition:all .2s ease;
-}
-.back-btn:active{
-  transform:scale(.92);
-  box-shadow:var(--shadow-md);
-}
-.back-icon{
-  font-size:36rpx;
-  color:var(--c-primary-dark);
-  font-weight:700;
-}
-
 .nav-title{
   font-size:36rpx;
   font-weight:700;
   color:var(--c-text);
   letter-spacing:.5rpx;
-}
-
-.nav-placeholder{
-  width:72rpx;
 }
 
 /* 🎨 主卡片 */

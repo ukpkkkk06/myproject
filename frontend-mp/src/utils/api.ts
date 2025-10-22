@@ -123,6 +123,34 @@ export interface MyQuestionListResp {
 export interface QuestionOption { key?: string; text?: string; content?: string; is_correct?: boolean }
 export interface QuestionBrief { id: number; stem: string; options?: QuestionOption[]; analysis?: string }
 
+// 刷题分页查询 - 题目项
+export interface QuestionPageItem {
+  id: number
+  stem: string
+  type: string
+  difficulty?: number
+  options?: QuestionOption[]
+  correct_answer?: string
+  analysis?: string
+  tags?: string[]
+  subject_id?: number
+  subject_name?: string
+  level_id?: number
+  level_name?: string
+  is_active?: boolean
+  created_by?: number
+  created_at?: string
+  updated_at?: string
+}
+
+// 刷题分页查询 - 响应结构
+export interface QuestionsPageResp {
+  total: number
+  page: number
+  size: number
+  items: QuestionPageItem[]
+}
+
 // 批量获取题干（若后端支持）
 async function getQuestionsBrief(ids: number[]) {
   if (!ids?.length) return { items: [] }
@@ -189,7 +217,7 @@ export interface ImportResult {
 
 function importQuestionsExcel(filePath: string) {
   const token = uni.getStorageSync('token')
-  const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/,'')
+  const base = (import.meta.env.VITE_API_BASE_URL || API_BASE).replace(/\/+$/,'')
   return new Promise<ImportResult>((resolve, reject)=>{
     uni.uploadFile({
       url: base + '/api/v1/question-bank/import-excel',
@@ -207,7 +235,7 @@ function importQuestionsExcel(filePath: string) {
 }
 
 export function downloadImportTemplate(): Promise<string> {
-  const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/,'')
+  const base = (import.meta.env.VITE_API_BASE_URL || API_BASE).replace(/\/+$/,'')
   const token = uni.getStorageSync('token')
   return new Promise((resolve, reject)=>{
     uni.downloadFile({
@@ -272,13 +300,14 @@ class API {
 
   // 创建练习
   createPractice(
-    size = 5, 
+    size: number,  // 🔥 移除默认值,强制传参
     subjectId?: number, 
     knowledgeId?: number, 
     includeChildren: boolean = true, 
     questionTypes?: string[],
     practiceMode: 'RANDOM' | 'SMART' | 'WEAK_POINT' = 'RANDOM'  // 🆕 练习模式
   ) {
+    console.log('[API.createPractice] 接收到的参数:', { size, subjectId, knowledgeId, includeChildren, questionTypes, practiceMode })
     return request<CreateSessionResp>('/practice/sessions', {
       method: 'POST',
       data: { 
@@ -317,6 +346,22 @@ class API {
     return request<SubmitAnswerResp>(`/practice/sessions/${attemptId}/answers`, { 
       method: 'POST', 
       data: { seq, user_answer, time_spent_ms } 
+    })
+  }
+
+  // 🆕 通用分页查询题目 - 用于刷题功能,支持用户自选题目数量
+  getQuestions(params: {
+    page?: number          // 页码,默认 1
+    size?: number          // 每页数量,范围 1-100,默认 10
+    keyword?: string       // 搜索关键词(题干)
+    qtype?: string         // 题型: single_choice, multiple_choice, true_false, fill_blank, short_answer
+    difficulty?: number    // 难度: 1-5
+    subject_id?: number    // 学科 ID
+    level_id?: number      // 知识层级 ID
+  } = {}) {
+    return request<QuestionsPageResp>('/questions', {
+      method: 'GET',
+      data: params
     })
   }
 
@@ -486,10 +531,13 @@ export function bindQuestionKnowledge(qid: number, items: QuestionKnowledgeItem[
 // 兼容旧导出：委托到 api（避免外部仍 import 旧方法时报错）
 export function listSubjects(): Promise<Subject[]> { return api.listSubjects() }
 export function createPractice(
-  size:number,
+  size: number,
   subjectId?: number,
   knowledgeId?: number,
-  includeChildren: boolean = true
+  includeChildren: boolean = true,
+  questionTypes?: string[],
+  practiceMode: 'RANDOM' | 'SMART' | 'WEAK_POINT' = 'RANDOM'
 ): Promise<CreateSessionResp> {
-  return api.createPractice(size, subjectId, knowledgeId, includeChildren)
+  console.log('⚠️⚠️⚠️ [兼容导出函数.createPractice] 被调用了!', { size, subjectId, knowledgeId, includeChildren, questionTypes, practiceMode })
+  return api.createPractice(size, subjectId, knowledgeId, includeChildren, questionTypes, practiceMode)
 }

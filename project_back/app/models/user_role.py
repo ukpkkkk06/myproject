@@ -3,7 +3,7 @@ from app.db.base import Base
 
 class UserRole(Base):
     __tablename__ = "USER_ROLE"  # 注意大小写与实际表一致
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, nullable=False, index=True)
     role_id = Column(BigInteger, nullable=False, index=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())

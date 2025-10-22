@@ -45,3 +45,20 @@ class FinishResponse(BaseModel):
 class SubjectOut(BaseModel):
     id: int
     name: str
+
+class SubmitAnswerResponse(BaseModel):
+    seq: int
+    correct: bool
+    correct_answer: str
+    total: int
+
+class FinishResponse(BaseModel):
+    total: int
+    answered: int
+    correct_count: int
+    accuracy: float
+    duration_seconds: int
+
+class SubjectOut(BaseModel):
+    id: int
+    name: str

@@ -587,3 +587,108 @@ def set_question_tags(db: Session, qid: int, body, user_id: int, is_admin: bool)
     
     db.commit()
     return {"ok": True}
+
+
+def list_questions_page(
+    db: Session,
+    page: int = 1,
+    size: int = 10,
+    keyword: str | None = None,
+    qtype: str | None = None,
+    difficulty: int | None = None,
+    subject_id: int | None = None,
+    level_id: int | None = None,
+    user_id: int | None = None,
+    is_admin: bool = False
+):
+    """
+    通用题目分页查询
+    - 管理员可以查看所有题目
+    - 普通用户只能查看自己创建的题目
+    - 支持多种筛选条件
+    """
+    from app.core.exceptions import AppException
+    
+    page = max(1, int(page or 1))
+    size = max(1, min(int(size or 10), 100))
+    
+    QV = QuestionVersion
+    
+    # 构建基础查询
+    q = (
+        db.query(
+            Question.id.label("id"),
+            Question.type.label("type"),
+            Question.difficulty.label("difficulty"),
+            Question.created_at.label("created_at"),
+            QV.stem.label("stem"),
+            QV.correct_answer.label("correct_answer") if hasattr(QV, "correct_answer") else QV.answer.label("correct_answer"),
+            QV.analysis.label("analysis") if hasattr(QV, "analysis") else QV.explanation.label("analysis"),
+            QV.options.label("options") if hasattr(QV, "options") else QV.choices.label("options"),
+        )
+        .join(QV, Question.current_version_id == QV.id)
+        .filter(Question.is_active == True)
+    )
+    
+    # 🔒 权限控制：非管理员只能查看自己创建的题目
+    if not is_admin and user_id:
+        q = q.filter(QV.created_by == user_id)
+    
+    # 关键字搜索
+    if keyword:
+        kw = f"%{keyword.strip()}%"
+        q = q.filter(QV.stem.like(kw))
+    
+    # 题型筛选
+    if qtype:
+        q = q.filter(Question.type == qtype)
+    
+    # 难度筛选
+    if difficulty is not None:
+        q = q.filter(Question.difficulty == difficulty)
+    
+    # 学科筛选
+    if subject_id:
+        q = q.filter(
+            exists().where(
+                (QuestionTag.question_id == Question.id) &
+                (QuestionTag.tag_id == subject_id)
+            )
+        )
+    
+    # 学段筛选
+    if level_id:
+        q = q.filter(
+            exists().where(
+                (QuestionTag.question_id == Question.id) &
+                (QuestionTag.tag_id == level_id)
+            )
+        )
+    
+    total = q.count()
+    rows = (
+        q.order_by(Question.id.desc())
+         .offset((page - 1) * size)
+         .limit(size)
+         .all()
+    )
+    
+    # 获取每道题的标签
+    question_ids = [r.id for r in rows]
+    tags_data = {}
+    if question_ids:
+        tag_rows = (
+            db.query(QuestionTag.question_id, QuestionTag.tag_id, Tag.type)
+            .join(Tag, Tag.id == QuestionTag.tag_id)
+            .filter(QuestionTag.question_id.in_(question_ids))
+            .all()
+        )
+        for qid, tid, ttype in tag_rows:
+            if qid not in tags_data:
+                tags_data[qid] = {"subject_id": None, "level_id": None}
+            if ttype == "SUBJECT":
+                tags_data[qid]["subject_id"] = tid
+            elif ttype == "LEVEL":
+                tags_data[qid]["level_id"] = tid
+    
+    return total, rows, tags_data

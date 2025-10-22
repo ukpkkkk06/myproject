@@ -21,6 +21,8 @@ from app.schemas.question_bank import (
     QuestionTagsOut,
     SetQuestionTagsIn,
     ImportQuestionsResult,
+    QuestionsPageResp,
+    QuestionPageItem,
 )
 # ==== 新增导入：数据库模型 ====
 from app.models.user import User
@@ -285,6 +287,57 @@ def set_question_tags(
     uid = getattr(me, "id", None)
     is_admin = bool(getattr(me, "is_admin", False))
     return question_bank_service.set_question_tags(db, qid, body, uid, is_admin)
+
+# 🆕 通用题目分页接口
+@router.get("/questions", response_model=QuestionsPageResp)
+def list_questions(
+    page: int = Query(1, ge=1, description="页码"),
+    size: int = Query(10, ge=1, le=100, description="每页数量"),
+    keyword: str | None = Query(None, description="关键字搜索"),
+    qtype: str | None = Query(None, description="题型: SC/MC/FILL"),
+    difficulty: int | None = Query(None, ge=1, le=5, description="难度: 1-5"),
+    subject_id: int | None = Query(None, description="学科ID"),
+    level_id: int | None = Query(None, description="学段ID"),
+    db: Session = Depends(deps.get_db),
+    me: User = Depends(deps.get_current_user),
+):
+    """
+    通用题目分页查询接口
+    
+    - **page**: 页码，从 1 开始
+    - **size**: 每页数量，范围 1-100
+    - **keyword**: 题干关键字搜索
+    - **qtype**: 题型筛选 (SC=单选, MC=多选, FILL=填空)
+    - **difficulty**: 难度筛选 (1-5)
+    - **subject_id**: 学科ID筛选
+    - **level_id**: 学段ID筛选
+    
+    返回完整题目信息，包括题干、选项、答案、解析、标签等
+    """
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    
+    total, rows, tags_data = question_bank_service.list_questions_page(
+        db, page, size, keyword, qtype, difficulty, subject_id, level_id, uid, is_admin
+    )
+    
+    items = []
+    for r in rows:
+        tags = tags_data.get(r.id, {"subject_id": None, "level_id": None})
+        items.append(QuestionPageItem(
+            id=r.id,
+            stem=r.stem,
+            type=r.type,
+            difficulty=r.difficulty,
+            options=_parse_options(getattr(r, "options", None)),
+            correct_answer=getattr(r, "correct_answer", None),
+            analysis=getattr(r, "analysis", None),
+            subject_id=tags["subject_id"],
+            level_id=tags["level_id"],
+            created_at=r.created_at,
+        ))
+    
+    return {"total": total, "page": page, "size": size, "items": items}
 
 @router.post("/question-bank/import-excel", response_model=ImportQuestionsResult)
 def import_excel(

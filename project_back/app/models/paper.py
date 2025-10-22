@@ -4,7 +4,7 @@ from app.db.base import Base
 
 class Paper(Base):
     __tablename__ = "PAPER"
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     title = Column(String(255), nullable=False)
     is_public = Column(Boolean, default=False)
     status = Column(String(32), default="PRACTICE")

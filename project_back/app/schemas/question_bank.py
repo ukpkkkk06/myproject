@@ -76,3 +76,23 @@ class ImportQuestionsResult(BaseModel):
     success: int
     failed: int
     errors: List[ImportErrorItem] = []
+
+# 🆕 通用题目分页项
+class QuestionPageItem(BaseModel):
+    id: int
+    stem: str
+    type: str  # SC/MC/FILL
+    difficulty: Optional[int] = None
+    options: Optional[List[QuestionOption]] = None
+    correct_answer: Optional[str] = None
+    analysis: Optional[str] = None
+    subject_id: Optional[int] = None
+    level_id: Optional[int] = None
+    created_at: Optional[datetime] = None
+
+# 🆕 通用题目分页响应
+class QuestionsPageResp(BaseModel):
+    total: int
+    page: int
+    size: int
+    items: List[QuestionPageItem]

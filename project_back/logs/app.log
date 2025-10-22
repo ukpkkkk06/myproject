@@ -6748,3 +6748,828 @@ ValueError: [TypeError('cannot convert dictionary update sequence element #0 to 
 2025-10-21 14:35:08,405 INFO [httpx] HTTP Request: GET http://testserver/api/v1/me "HTTP/1.1 401 Unauthorized"
 2025-10-21 14:35:08,406 DEBUG [asyncio] Using proactor: IocpProactor
 2025-10-21 14:35:08,412 INFO [httpx] HTTP Request: GET http://testserver/api/v1/tags "HTTP/1.1 401 Unauthorized"
+2025-10-22 09:47:44,113 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 09:47:44,206 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 3 题
+2025-10-22 09:47:44,211 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 09:47:44,216 INFO [practice_service] [SMART模式] 随机抽取 1 题
+2025-10-22 09:47:44,216 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 09:47:46,418 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 09:47:46,472 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 3 题
+2025-10-22 09:47:46,475 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 09:47:46,478 INFO [practice_service] [SMART模式] 随机抽取 1 题
+2025-10-22 09:47:46,478 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 09:50:08,718 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 09:50:08,774 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 5 题
+2025-10-22 21:06:13,773 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:06:13,854 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 6 题
+2025-10-22 21:06:13,860 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:06:13,865 INFO [practice_service] [SMART模式] 随机抽取 1 题
+2025-10-22 21:06:13,865 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:06:16,921 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 21:06:16,977 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 10 题
+2025-10-22 21:09:34,838 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:09:34,914 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 22 题
+2025-10-22 21:09:34,919 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:09:34,924 INFO [practice_service] [SMART模式] 随机抽取 5 题
+2025-10-22 21:09:34,924 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:09:37,319 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:09:37,384 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 24 题
+2025-10-22 21:09:37,388 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:09:37,391 INFO [practice_service] [SMART模式] 随机抽取 5 题
+2025-10-22 21:09:37,391 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:09:38,494 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:09:38,555 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 23 题
+2025-10-22 21:09:38,558 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:09:38,563 INFO [practice_service] [SMART模式] 随机抽取 5 题
+2025-10-22 21:09:38,563 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:09:40,596 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 21:09:40,653 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 31 题
+2025-10-22 21:09:40,653 WARNING [practice_service] [WEAK_POINT模式] 错题不足，补充随机题
+2025-10-22 21:09:42,717 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题
+2025-10-22 21:09:42,979 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题
+2025-10-22 21:10:08,823 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题
+2025-10-22 21:10:08,943 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题
+2025-10-22 21:14:44,107 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 21:14:44,108 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 21:14:44,108 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 21:14:44,108 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:14:44,116 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 21:14:44,117 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 21:14:44,162 INFO [practice_api] [创建练习成功] attempt_id=53, total=10
+2025-10-22 21:14:44,251 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:14:44,251 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:14:44,252 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:14:44,252 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:14:44,255 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:14:44,256 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:14:44,278 INFO [practice_api] [创建练习成功] attempt_id=54, total=5
+2025-10-22 21:17:46,919 ERROR [app.core.error_handlers] Unhandled error: (sqlite3.OperationalError) no such table: USER
+[SQL: SELECT "USER".id AS "USER_id", "USER".nickname AS "USER_nickname", "USER".account AS "USER_account", "USER".email AS "USER_email", "USER".status AS "USER_status", "USER".created_at AS "USER_created_at", "USER".updated_at AS "USER_updated_at", "USER".last_login_at AS "USER_last_login_at", "USER".password_hash AS "USER_password_hash" 
+FROM "USER" 
+WHERE "USER".account = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('zmz', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: USER
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\auth.py", line 13, in login
+    return auth_service.login(db, body.account, body.password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\auth_service.py", line 13, in login
+    user = db.query(User).filter(User.account == account).first()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\query.py", line 2759, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2365, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2251, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: USER
+[SQL: SELECT "USER".id AS "USER_id", "USER".nickname AS "USER_nickname", "USER".account AS "USER_account", "USER".email AS "USER_email", "USER".status AS "USER_status", "USER".created_at AS "USER_created_at", "USER".updated_at AS "USER_updated_at", "USER".last_login_at AS "USER_last_login_at", "USER".password_hash AS "USER_password_hash" 
+FROM "USER" 
+WHERE "USER".account = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('zmz', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-22 21:19:22,201 ERROR [app.core.error_handlers] Unhandled error: (sqlite3.OperationalError) no such table: USER
+[SQL: SELECT "USER".id AS "USER_id", "USER".nickname AS "USER_nickname", "USER".account AS "USER_account", "USER".email AS "USER_email", "USER".status AS "USER_status", "USER".created_at AS "USER_created_at", "USER".updated_at AS "USER_updated_at", "USER".last_login_at AS "USER_last_login_at", "USER".password_hash AS "USER_password_hash" 
+FROM "USER" 
+WHERE "USER".account = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('zmz', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: USER
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\auth.py", line 13, in login
+    return auth_service.login(db, body.account, body.password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\auth_service.py", line 13, in login
+    user = db.query(User).filter(User.account == account).first()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\query.py", line 2759, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2365, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py", line 2251, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: USER
+[SQL: SELECT "USER".id AS "USER_id", "USER".nickname AS "USER_nickname", "USER".account AS "USER_account", "USER".email AS "USER_email", "USER".status AS "USER_status", "USER".created_at AS "USER_created_at", "USER".updated_at AS "USER_updated_at", "USER".last_login_at AS "USER_last_login_at", "USER".password_hash AS "USER_password_hash" 
+FROM "USER" 
+WHERE "USER".account = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('zmz', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-10-22 21:21:54,965 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:21:54,965 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:21:54,966 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:21:54,966 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:21:54,975 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:21:54,975 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:21:55,035 INFO [practice_api] [创建练习成功] attempt_id=55, total=20
+2025-10-22 21:21:55,126 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:21:55,127 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:21:55,127 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:21:55,127 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:21:55,131 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:21:55,131 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:21:55,154 INFO [practice_api] [创建练习成功] attempt_id=56, total=5
+2025-10-22 21:26:47,263 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 21:26:47,264 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 21:26:47,264 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 21:26:47,265 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:26:47,269 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 21:26:47,270 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 21:26:47,298 INFO [practice_api] [创建练习成功] attempt_id=57, total=10
+2025-10-22 21:26:47,398 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:26:47,398 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:26:47,399 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:26:47,399 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:26:47,402 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:26:47,403 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:26:47,425 INFO [practice_api] [创建练习成功] attempt_id=58, total=5
+2025-10-22 21:26:53,070 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=SMART
+2025-10-22 21:26:53,071 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=SMART
+2025-10-22 21:26:53,071 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:26:53,144 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 6 题
+2025-10-22 21:26:53,147 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:26:53,147 INFO [practice_service] [get_random_questions] 用户2, 请求size=1, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:26:53,151 INFO [practice_service] [get_random_questions] 实际查询到1题
+2025-10-22 21:26:53,151 INFO [practice_service] [SMART模式] 随机抽取 1 题
+2025-10-22 21:26:53,152 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:26:53,152 INFO [practice_service] [get_random_questions] 用户2, 请求size=3, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:26:53,156 INFO [practice_service] [get_random_questions] 实际查询到3题
+2025-10-22 21:26:53,187 INFO [practice_api] [创建练习成功] attempt_id=59, total=10
+2025-10-22 21:26:53,281 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:26:53,282 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:26:53,282 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:26:53,283 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:26:53,288 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:26:53,289 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:26:53,314 INFO [practice_api] [创建练习成功] attempt_id=60, total=5
+2025-10-22 21:27:01,083 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=SMART
+2025-10-22 21:27:01,084 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=SMART
+2025-10-22 21:27:01,084 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:27:01,140 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 6 题
+2025-10-22 21:27:01,143 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:27:01,144 INFO [practice_service] [get_random_questions] 用户2, 请求size=1, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:27:01,146 INFO [practice_service] [get_random_questions] 实际查询到1题
+2025-10-22 21:27:01,147 INFO [practice_service] [SMART模式] 随机抽取 1 题
+2025-10-22 21:27:01,147 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:27:01,148 INFO [practice_service] [get_random_questions] 用户2, 请求size=3, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:27:01,151 INFO [practice_service] [get_random_questions] 实际查询到3题
+2025-10-22 21:27:01,179 INFO [practice_api] [创建练习成功] attempt_id=61, total=10
+2025-10-22 21:27:01,263 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:27:01,264 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:27:01,264 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:27:01,264 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:27:01,267 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:27:01,268 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:27:01,291 INFO [practice_api] [创建练习成功] attempt_id=62, total=5
+2025-10-22 21:27:06,279 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=WEAK_POINT
+2025-10-22 21:27:06,279 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=WEAK_POINT
+2025-10-22 21:27:06,280 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 21:27:06,338 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 10 题
+2025-10-22 21:27:06,366 INFO [practice_api] [创建练习成功] attempt_id=63, total=10
+2025-10-22 21:27:06,449 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:27:06,450 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:27:06,450 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:27:06,450 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:27:06,454 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:27:06,454 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:27:06,477 INFO [practice_api] [创建练习成功] attempt_id=64, total=5
+2025-10-22 21:27:30,697 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=WEAK_POINT
+2025-10-22 21:27:30,698 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=WEAK_POINT
+2025-10-22 21:27:30,698 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 21:27:30,747 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 10 题
+2025-10-22 21:27:30,773 INFO [practice_api] [创建练习成功] attempt_id=65, total=10
+2025-10-22 21:27:30,887 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:27:30,887 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:27:30,888 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:27:30,888 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:27:30,890 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:27:30,891 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:27:30,914 INFO [practice_api] [创建练习成功] attempt_id=66, total=5
+2025-10-22 21:30:17,396 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 21:30:17,397 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 21:30:17,397 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 21:30:17,398 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:30:17,401 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 21:30:17,402 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 21:30:17,436 INFO [practice_api] [创建练习成功] attempt_id=67, total=10
+2025-10-22 21:30:17,606 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:30:17,606 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:30:17,607 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:30:17,607 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:30:17,611 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:30:17,611 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:30:17,633 INFO [practice_api] [创建练习成功] attempt_id=68, total=5
+2025-10-22 21:30:53,892 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 21:30:53,894 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 21:30:53,894 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 21:30:53,894 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:30:53,901 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 21:30:53,902 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 21:30:53,947 INFO [practice_api] [创建练习成功] attempt_id=69, total=10
+2025-10-22 21:30:54,647 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:30:54,648 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:30:54,649 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:30:54,649 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:30:54,653 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:30:54,653 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:30:54,677 INFO [practice_api] [创建练习成功] attempt_id=70, total=5
+2025-10-22 21:34:26,442 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:34:26,443 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:34:26,444 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:34:26,444 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:34:26,451 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:34:26,451 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:34:26,517 INFO [practice_api] [创建练习成功] attempt_id=71, total=20
+2025-10-22 21:34:26,632 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 21:34:26,632 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 21:34:26,633 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 21:34:26,633 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:34:26,637 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 21:34:26,637 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 21:34:26,666 INFO [practice_api] [创建练习成功] attempt_id=72, total=5
+2025-10-22 21:40:22,412 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:40:22,413 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:40:22,413 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:40:22,413 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:40:22,417 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:40:22,417 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:40:22,457 INFO [practice_api] [创建练习成功] attempt_id=73, total=20
+2025-10-22 21:40:30,251 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=SMART
+2025-10-22 21:40:30,252 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=SMART
+2025-10-22 21:40:30,252 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:40:30,321 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 12 题
+2025-10-22 21:40:30,326 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:40:30,326 INFO [practice_service] [get_random_questions] 用户2, 请求size=2, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:40:30,330 INFO [practice_service] [get_random_questions] 实际查询到2题
+2025-10-22 21:40:30,330 INFO [practice_service] [SMART模式] 随机抽取 2 题
+2025-10-22 21:40:30,330 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:40:30,331 INFO [practice_service] [get_random_questions] 用户2, 请求size=6, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:40:30,335 INFO [practice_service] [get_random_questions] 实际查询到6题
+2025-10-22 21:40:36,047 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:40:36,047 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:40:36,047 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:40:36,048 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:40:36,053 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:40:36,054 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:40:36,093 INFO [practice_api] [创建练习成功] attempt_id=74, total=20
+2025-10-22 21:48:51,639 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=SMART
+2025-10-22 21:48:51,641 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=SMART
+2025-10-22 21:48:51,641 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:48:51,712 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 12 题
+2025-10-22 21:48:51,716 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:48:51,717 INFO [practice_service] [get_random_questions] 用户2, 请求size=2, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:48:51,722 INFO [practice_service] [get_random_questions] 实际查询到2题
+2025-10-22 21:48:51,722 INFO [practice_service] [SMART模式] 随机抽取 2 题
+2025-10-22 21:48:51,722 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:48:51,723 INFO [practice_service] [get_random_questions] 用户2, 请求size=6, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:48:51,727 INFO [practice_service] [get_random_questions] 实际查询到6题
+2025-10-22 21:48:51,781 INFO [practice_api] [创建练习成功] attempt_id=75, total=20
+2025-10-22 21:48:57,822 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:48:57,823 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:48:57,823 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:48:57,824 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:48:57,827 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:48:57,827 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:48:57,873 INFO [practice_api] [创建练习成功] attempt_id=76, total=20
+2025-10-22 21:49:02,239 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=WEAK_POINT
+2025-10-22 21:49:02,239 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=WEAK_POINT
+2025-10-22 21:49:02,239 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 21:49:02,296 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 18 题
+2025-10-22 21:49:02,296 WARNING [practice_service] [WEAK_POINT模式] 错题不足，补充随机题
+2025-10-22 21:49:02,296 INFO [practice_service] [get_random_questions] 用户2, 请求size=2, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:49:02,299 INFO [practice_service] [get_random_questions] 实际查询到2题
+2025-10-22 21:49:02,338 INFO [practice_api] [创建练习成功] attempt_id=77, total=20
+2025-10-22 21:49:06,086 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:49:06,087 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:49:06,087 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:49:06,088 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:49:06,092 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:49:06,093 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:49:06,130 INFO [practice_api] [创建练习成功] attempt_id=78, total=20
+2025-10-22 21:49:12,470 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=SMART
+2025-10-22 21:49:12,470 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=SMART
+2025-10-22 21:49:12,471 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:49:12,528 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 12 题
+2025-10-22 21:49:12,530 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:49:12,530 INFO [practice_service] [get_random_questions] 用户2, 请求size=2, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:49:12,533 INFO [practice_service] [get_random_questions] 实际查询到2题
+2025-10-22 21:49:12,534 INFO [practice_service] [SMART模式] 随机抽取 2 题
+2025-10-22 21:49:12,534 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:49:12,534 INFO [practice_service] [get_random_questions] 用户2, 请求size=6, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:49:12,538 INFO [practice_service] [get_random_questions] 实际查询到6题
+2025-10-22 21:53:16,975 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=SMART
+2025-10-22 21:53:16,976 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=SMART
+2025-10-22 21:53:16,977 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 21:53:17,039 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 12 题
+2025-10-22 21:53:17,042 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 21:53:17,043 INFO [practice_service] [get_random_questions] 用户2, 请求size=2, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:53:17,047 INFO [practice_service] [get_random_questions] 实际查询到2题
+2025-10-22 21:53:17,048 INFO [practice_service] [SMART模式] 随机抽取 2 题
+2025-10-22 21:53:17,048 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 21:53:17,048 INFO [practice_service] [get_random_questions] 用户2, 请求size=6, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:53:17,051 INFO [practice_service] [get_random_questions] 实际查询到6题
+2025-10-22 21:53:17,098 INFO [practice_api] [创建练习成功] attempt_id=79, total=20
+2025-10-22 21:53:25,243 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:53:25,243 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:53:25,243 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:53:25,244 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:53:25,248 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:53:25,248 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:53:25,293 INFO [practice_api] [创建练习成功] attempt_id=80, total=20
+2025-10-22 21:53:29,075 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:53:29,075 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:53:29,076 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:53:29,076 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:53:29,079 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:53:29,080 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:53:29,121 INFO [practice_api] [创建练习成功] attempt_id=81, total=20
+2025-10-22 21:53:31,689 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=RANDOM
+2025-10-22 21:53:31,690 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=RANDOM
+2025-10-22 21:53:31,690 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=20
+2025-10-22 21:53:31,691 INFO [practice_service] [get_random_questions] 用户2, 请求size=20, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:53:31,694 INFO [practice_service] [get_random_questions] 实际查询到20题
+2025-10-22 21:53:31,694 INFO [practice_service] [RANDOM模式] 实际抽取题目数=20
+2025-10-22 21:53:31,735 INFO [practice_api] [创建练习成功] attempt_id=82, total=20
+2025-10-22 21:53:35,296 INFO [practice_api] [创建练习] 用户2, size=20, subject=None, mode=WEAK_POINT
+2025-10-22 21:53:35,297 INFO [practice_service] [题目数量] 原始size=20, 处理后size=20, 练习模式=WEAK_POINT
+2025-10-22 21:53:35,297 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 21:53:35,354 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 18 题
+2025-10-22 21:53:35,354 WARNING [practice_service] [WEAK_POINT模式] 错题不足，补充随机题
+2025-10-22 21:53:35,354 INFO [practice_service] [get_random_questions] 用户2, 请求size=2, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:53:35,358 INFO [practice_service] [get_random_questions] 实际查询到2题
+2025-10-22 21:53:35,401 INFO [practice_api] [创建练习成功] attempt_id=83, total=20
+2025-10-22 21:53:39,473 INFO [practice_api] [创建练习] 用户2, size=50, subject=None, mode=WEAK_POINT
+2025-10-22 21:53:39,473 INFO [practice_service] [题目数量] 原始size=50, 处理后size=50, 练习模式=WEAK_POINT
+2025-10-22 21:53:39,474 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 21:53:39,532 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 34 题
+2025-10-22 21:53:39,533 WARNING [practice_service] [WEAK_POINT模式] 错题不足，补充随机题
+2025-10-22 21:53:39,533 INFO [practice_service] [get_random_questions] 用户2, 请求size=16, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 21:53:39,537 INFO [practice_service] [get_random_questions] 实际查询到16题
+2025-10-22 21:53:39,595 ERROR [app.core.error_handlers] IntegrityError: (pymysql.err.IntegrityError) (1062, "Duplicate entry '93-14' for key 'PAPER_QUESTION.uk_paper_question'")
+[SQL: INSERT INTO `PAPER_QUESTION` (paper_id, question_id, seq, score) VALUES (%(paper_id)s, %(question_id)s, %(seq)s, %(score)s)]
+[parameters: {'paper_id': 93, 'question_id': 14, 'seq': 37, 'score': 1}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-10-22 21:53:39,596 ERROR [app.core.error_handlers] 详细信息: (1062, "Duplicate entry '93-14' for key 'PAPER_QUESTION.uk_paper_question'")
+2025-10-22 22:14:19,308 INFO [practice_api] [创建练习] 用户2, size=50, subject=None, mode=WEAK_POINT
+2025-10-22 22:14:19,309 INFO [practice_service] [题目数量] 原始size=50, 处理后size=50, 练习模式=WEAK_POINT
+2025-10-22 22:14:19,309 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 22:14:19,380 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 32 题
+2025-10-22 22:14:19,380 WARNING [practice_service] [WEAK_POINT模式] 错题不足，补充随机题
+2025-10-22 22:14:19,380 INFO [practice_service] [get_random_questions] 用户2, 请求size=36, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:14:19,385 INFO [practice_service] [get_random_questions] 实际查询到36题
+2025-10-22 22:14:19,385 INFO [practice_service] [WEAK_POINT模式] 第1次补充 11 题，总计 43 题
+2025-10-22 22:14:19,386 INFO [practice_service] [get_random_questions] 用户2, 请求size=54, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:14:19,390 INFO [practice_service] [get_random_questions] 实际查询到54题
+2025-10-22 22:14:19,390 INFO [practice_service] [WEAK_POINT模式] 第2次补充 7 题，总计 50 题
+2025-10-22 22:14:19,474 INFO [practice_api] [创建练习成功] attempt_id=84, total=50
+2025-10-22 22:14:26,094 INFO [practice_api] [创建练习] 用户2, size=50, subject=None, mode=WEAK_POINT
+2025-10-22 22:14:26,094 INFO [practice_service] [题目数量] 原始size=50, 处理后size=50, 练习模式=WEAK_POINT
+2025-10-22 22:14:26,094 INFO [practice_service] [WEAK_POINT模式] 用户2开始薄弱专项抽题
+2025-10-22 22:14:26,158 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 33 题
+2025-10-22 22:14:26,159 WARNING [practice_service] [WEAK_POINT模式] 错题不足，补充随机题
+2025-10-22 22:14:26,159 INFO [practice_service] [get_random_questions] 用户2, 请求size=34, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:14:26,163 INFO [practice_service] [get_random_questions] 实际查询到34题
+2025-10-22 22:14:26,164 INFO [practice_service] [WEAK_POINT模式] 第1次补充 15 题，总计 48 题
+2025-10-22 22:14:26,164 INFO [practice_service] [get_random_questions] 用户2, 请求size=51, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:14:26,170 INFO [practice_service] [get_random_questions] 实际查询到51题
+2025-10-22 22:14:26,170 INFO [practice_service] [WEAK_POINT模式] 第2次补充 2 题，总计 50 题
+2025-10-22 22:14:26,244 INFO [practice_api] [创建练习成功] attempt_id=85, total=50
+2025-10-22 22:14:39,334 INFO [practice_api] [创建练习] 用户2, size=50, subject=None, mode=SMART
+2025-10-22 22:14:39,334 INFO [practice_service] [题目数量] 原始size=50, 处理后size=50, 练习模式=SMART
+2025-10-22 22:14:39,335 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 22:14:39,392 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 19 题
+2025-10-22 22:14:39,398 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 22:14:39,399 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:14:39,403 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:14:39,403 INFO [practice_service] [SMART模式] 随机抽取 5 题
+2025-10-22 22:14:39,404 INFO [practice_service] [SMART模式] 去重后共 23 题
+2025-10-22 22:14:39,404 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 22:14:39,404 INFO [practice_service] [get_random_questions] 用户2, 请求size=54, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:14:39,409 INFO [practice_service] [get_random_questions] 实际查询到54题
+2025-10-22 22:14:39,410 INFO [practice_service] [SMART模式] 第1次补充 27 题，总计 50 题
+2025-10-22 22:14:39,486 INFO [practice_api] [创建练习成功] attempt_id=86, total=50
+2025-10-22 22:16:24,976 INFO [practice_api] [创建练习] 用户2, size=50, subject=None, mode=SMART
+2025-10-22 22:16:24,977 INFO [practice_service] [题目数量] 原始size=50, 处理后size=50, 练习模式=SMART
+2025-10-22 22:16:24,977 INFO [practice_service] [SMART模式] 用户2开始智能推荐抽题
+2025-10-22 22:16:25,033 INFO [practice_service] [SMART模式] 从薄弱知识点抽取 23 题
+2025-10-22 22:16:25,037 INFO [practice_service] [SMART模式] 从全局难题抽取 0 题
+2025-10-22 22:16:25,039 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:16:25,043 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:16:25,043 INFO [practice_service] [SMART模式] 随机抽取 5 题
+2025-10-22 22:16:25,044 INFO [practice_service] [SMART模式] 去重后共 26 题
+2025-10-22 22:16:25,044 WARNING [practice_service] [SMART模式] 题目不足，补充随机题
+2025-10-22 22:16:25,044 INFO [practice_service] [get_random_questions] 用户2, 请求size=48, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:16:25,048 INFO [practice_service] [get_random_questions] 实际查询到48题
+2025-10-22 22:16:25,049 INFO [practice_service] [SMART模式] 第1次补充 24 题，总计 50 题
+2025-10-22 22:16:25,129 INFO [practice_api] [创建练习成功] attempt_id=87, total=50
+2025-10-22 22:16:30,762 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 22:16:30,764 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 22:16:30,764 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 22:16:30,765 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:16:30,769 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:16:30,769 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 22:16:30,799 INFO [practice_api] [创建练习成功] attempt_id=88, total=5
+2025-10-22 22:16:39,376 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 22:16:39,376 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 22:16:39,377 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 22:16:39,377 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:16:39,381 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:16:39,381 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 22:16:39,409 INFO [practice_api] [创建练习成功] attempt_id=89, total=5
+2025-10-22 22:31:28,250 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 22:31:28,251 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 22:31:28,252 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 22:31:28,252 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:31:28,258 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 22:31:28,259 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 22:31:28,307 INFO [practice_api] [创建练习成功] attempt_id=90, total=10
+2025-10-22 22:31:54,966 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 22:31:54,966 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 22:31:54,967 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 22:31:54,967 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:31:54,970 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 22:31:54,971 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 22:31:55,000 INFO [practice_api] [创建练习成功] attempt_id=91, total=10
+2025-10-22 22:32:28,178 ERROR [app.core.error_handlers] Unhandled error: 'ExamAttempt' object has no attribute 'practice_mode'
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\practice.py", line 53, in get_resume_session
+    return practice_service.get_resume_session(db, me)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\practice_service.py", line 794, in get_resume_session
+    "practice_mode": attempt.practice_mode
+                     ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ExamAttempt' object has no attribute 'practice_mode'
+2025-10-22 22:33:44,287 ERROR [app.core.error_handlers] Unhandled error: 'Paper' object has no attribute 'practice_mode'
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\practice.py", line 53, in get_resume_session
+    return practice_service.get_resume_session(db, me)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\practice_service.py", line 797, in get_resume_session
+    "practice_mode": paper.practice_mode if paper else None
+                     ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Paper' object has no attribute 'practice_mode'
+2025-10-22 22:34:18,235 ERROR [app.core.error_handlers] Unhandled error: 'Paper' object has no attribute 'practice_mode'
+Traceback (most recent call last):
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\routing.py", line 215, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\starlette\concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 2476, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\yjq\AppData\Local\Programs\Python\Python312\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\api\v1\endpoints\practice.py", line 53, in get_resume_session
+    return practice_service.get_resume_session(db, me)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yjq\Desktop\myproject\project_back\app\services\practice_service.py", line 797, in get_resume_session
+    "practice_mode": paper.practice_mode if paper else None
+                     ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Paper' object has no attribute 'practice_mode'
+2025-10-22 22:41:14,541 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 22:41:14,542 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 22:41:14,543 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 22:41:14,543 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:41:14,549 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 22:41:14,550 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 22:41:14,591 INFO [practice_api] [创建练习成功] attempt_id=92, total=10
+2025-10-22 22:41:18,380 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 22:41:18,381 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 22:41:18,381 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 22:41:18,382 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:41:18,385 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 22:41:18,386 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 22:41:18,419 INFO [practice_api] [创建练习成功] attempt_id=93, total=10
+2025-10-22 22:44:13,719 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 22:44:13,719 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 22:44:13,720 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 22:44:13,720 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:44:13,723 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:44:13,724 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 22:44:13,755 INFO [practice_api] [创建练习成功] attempt_id=94, total=5
+2025-10-22 22:44:35,636 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 22:44:35,636 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 22:44:35,637 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 22:44:35,637 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:44:35,642 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:44:35,642 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 22:44:35,668 INFO [practice_api] [创建练习成功] attempt_id=95, total=5
+2025-10-22 22:48:59,537 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 22:48:59,537 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 22:48:59,537 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 22:48:59,538 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:48:59,541 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:48:59,541 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 22:48:59,566 INFO [practice_api] [创建练习成功] attempt_id=96, total=5
+2025-10-22 22:49:09,213 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 22:49:09,213 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 22:49:09,214 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 22:49:09,214 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:49:09,217 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:49:09,217 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 22:49:09,239 INFO [practice_api] [创建练习成功] attempt_id=97, total=5
+2025-10-22 22:51:39,092 INFO [practice_api] [创建练习] 用户2, size=5, subject=None, mode=RANDOM
+2025-10-22 22:51:39,092 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-22 22:51:39,093 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=5
+2025-10-22 22:51:39,093 INFO [practice_service] [get_random_questions] 用户2, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:51:39,096 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-22 22:51:39,096 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-22 22:51:39,119 INFO [practice_api] [创建练习成功] attempt_id=98, total=5
+2025-10-22 22:53:43,235 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 22:53:43,236 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 22:53:43,236 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 22:53:43,237 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:53:43,239 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 22:53:43,240 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 22:53:43,269 INFO [practice_api] [创建练习成功] attempt_id=99, total=10
+2025-10-22 22:53:54,525 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 22:53:54,526 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 22:53:54,527 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 22:53:54,527 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 22:53:54,529 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 22:53:54,530 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 22:53:54,574 INFO [practice_api] [创建练习成功] attempt_id=100, total=10

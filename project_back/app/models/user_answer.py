@@ -3,7 +3,7 @@ from app.db.base import Base
 
 class UserAnswer(Base):
     __tablename__ = "USER_ANSWER"
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     attempt_id = Column(BigInteger, index=True, nullable=False)
     user_id = Column(BigInteger, index=True, nullable=False)
     question_id = Column(BigInteger, index=True, nullable=False)

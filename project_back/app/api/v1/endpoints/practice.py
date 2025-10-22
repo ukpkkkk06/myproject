@@ -17,10 +17,15 @@ router = APIRouter()
 @router.post("/practice/session", response_model=CreateSessionResponse)
 @router.post("/practice/sessions", response_model=CreateSessionResponse)
 def create_session(body: CreateSessionRequest, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
+    import logging
+    log = logging.getLogger("practice_api")
+    log.info(f"[创建练习] 用户{me.id}, size={body.size}, subject={body.subject_id}, mode={body.practice_mode}")
+    
     attempt_id, paper_id, total, first_seq = practice_service.create_session(
         db, me, body.size, body.subject_id, body.knowledge_id, body.include_children, 
         body.question_types, body.practice_mode  # 🆕 传递练习模式参数
     )
+    log.info(f"[创建练习成功] attempt_id={attempt_id}, total={total}")
     return {"attempt_id": attempt_id, "paper_id": paper_id, "total": total, "first_seq": first_seq}
 
 @router.get("/practice/sessions/{attempt_id:int}/questions/{seq:int}", response_model=QuestionView)

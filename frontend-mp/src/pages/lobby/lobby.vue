@@ -150,6 +150,31 @@
           </view>
         </view>
 
+        <!-- 🆕 题目数量选择卡片 -->
+        <view class="select-card quantity-card">
+          <view class="select-header">
+            <text class="select-icon">🔢</text>
+            <text class="select-label">刷题数量</text>
+            <text class="quantity-badge">{{ questionCount }}题</text>
+          </view>
+          <view class="quantity-options">
+            <view 
+              v-for="count in [5, 10, 20, 50, 100]"
+              :key="count"
+              class="quantity-option" 
+              :class="{ active: questionCount === count }"
+              @tap="selectQuantity(count)"
+            >
+              <text class="quantity-number">{{ count }}</text>
+              <text class="quantity-label">题</text>
+            </view>
+          </view>
+          <view class="quantity-hint">
+            <text class="hint-icon">💡</text>
+            <text class="hint-text">建议每次练习10-20题效果最佳</text>
+          </view>
+        </view>
+
         <!-- 功能按钮网格 -->
         <view class="action-grid">
           <button class="action-btn primary" @tap="startPractice">
@@ -243,6 +268,20 @@ function selectMode(mode: 'RANDOM' | 'SMART' | 'WEAK_POINT') {
   practiceMode.value = mode
 }
 
+/* 🆕 题目数量选择 */
+const questionCount = ref(10)  // 默认10题
+
+function selectQuantity(count: number) {
+  console.log(`[选择题目数量] 从 ${questionCount.value} 变更为 ${count}`)
+  questionCount.value = count
+  uni.showToast({
+    icon: 'success',
+    title: `已选择${count}题`,
+    duration: 1000
+  })
+  console.log(`[选择题目数量] 当前值: ${questionCount.value}`)
+}
+
 // 获取用户错题数量
 async function loadErrorCount() {
   try {
@@ -279,22 +318,37 @@ onMounted(async ()=>{
 })
 
 async function startPractice(){
+  console.log('🔥🔥🔥 [startPractice] 函数开始执行')
+  console.log('🔥🔥🔥 [questionCount.value] 当前值:', questionCount.value)
+  console.log('🔥🔥🔥 [questionCount.value 类型]:', typeof questionCount.value)
+  
   const selSubject = subjectIdx.value>=0 ? subjects.value[subjectIdx.value] : null
   const subjectId = selSubject?.id
 
   const selKp = kpIdx.value>=0 ? kpOptions.value[kpIdx.value] : null
   const knowledgeId = selKp?.id
 
+  // 🔍 调试日志
+  console.log('[开始刷题] 参数:', {
+    题目数量: questionCount.value,
+    学科ID: subjectId,
+    知识点ID: knowledgeId,
+    包含子节点: includeChildren.value,
+    题型: questionTypes.value,
+    练习模式: practiceMode.value
+  })
+
   try{
-    // 🆕 传递练习模式参数
+    // 🆕 使用用户选择的题目数量
     const r = await api.createPractice(
-      5, 
+      questionCount.value,  // 🆕 使用选择的题目数量(5/10/20/50/100)
       subjectId, 
       knowledgeId, 
       includeChildren.value, 
       questionTypes.value,
-      practiceMode.value  // 🆕 新增练习模式参数
+      practiceMode.value  // 🆕 练习模式参数
     )
+    console.log('[创建练习成功] 返回:', r)
     uni.navigateTo({ url: `/pages/practice/practice?attemptId=${r.attempt_id}&total=${r.total}&seq=${r.start_seq ?? r.first_seq ?? 1}` })
   }catch(e:any){
     const msg = e?.data?.message || e?.data?.detail || '创建练习失败'
@@ -742,6 +796,102 @@ function logout(){
   font-weight:700;
   color:#ff8800;
   padding:0 4rpx;
+}
+
+/* 🎨 题目数量选择卡片 */
+.quantity-card .select-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.quantity-badge{
+  padding:8rpx 16rpx;
+  background:linear-gradient(135deg, var(--c-primary), #4b9ef0);
+  color:#fff;
+  font-size:24rpx;
+  font-weight:700;
+  border-radius:12rpx;
+  box-shadow:0 4rpx 12rpx rgba(102,180,255,.3);
+}
+
+.quantity-options{
+  display:flex;
+  gap:16rpx;
+  margin-top:20rpx;
+  justify-content:space-between;
+}
+
+.quantity-option{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8rpx;
+  padding:24rpx 16rpx;
+  background:linear-gradient(180deg, #ffffff, #f8fbff);
+  border:3rpx solid var(--c-border);
+  border-radius:var(--radius-s);
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;
+  box-shadow:var(--shadow-sm);
+}
+
+.quantity-option:active{
+  transform:scale(.95);
+}
+
+.quantity-option.active{
+  background:linear-gradient(135deg, var(--c-primary), #5da8ff);
+  border-color:var(--c-primary-dark);
+  box-shadow:0 8rpx 24rpx rgba(102,180,255,.35),
+             0 0 0 6rpx rgba(102,180,255,.15);
+  transform:translateY(-4rpx);
+}
+
+.quantity-number{
+  font-size:40rpx;
+  font-weight:800;
+  color:var(--c-text);
+  line-height:1;
+}
+
+.quantity-option.active .quantity-number{
+  color:#fff;
+  text-shadow:0 2rpx 8rpx rgba(0,0,0,.15);
+}
+
+.quantity-label{
+  font-size:22rpx;
+  color:var(--c-text-sec);
+  font-weight:600;
+}
+
+.quantity-option.active .quantity-label{
+  color:rgba(255,255,255,.9);
+}
+
+.quantity-hint{
+  display:flex;
+  align-items:center;
+  gap:12rpx;
+  margin-top:16rpx;
+  padding:16rpx 20rpx;
+  background:linear-gradient(135deg, #e6f4ff, #f0f9ff);
+  border:2rpx solid #91d5ff;
+  border-radius:var(--radius-s);
+}
+
+.hint-icon{
+  font-size:28rpx;
+  line-height:1;
+}
+
+.hint-text{
+  font-size:24rpx;
+  color:#0050b3;
+  line-height:1.5;
+  flex:1;
 }
 
 /* �🎨 功能按钮网格 - 优化版 */
