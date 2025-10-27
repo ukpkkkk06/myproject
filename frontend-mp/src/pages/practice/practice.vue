@@ -285,7 +285,7 @@ async function finish(){
   try{
     const r = await api.finishPractice(attemptId.value)
     toast(`正确 ${r.correct_count}/${r.total}（${Math.round(r.accuracy*100)}%）`)
-    setTimeout(()=> uni.navigateBack(), 800)
+    setTimeout(()=> uni.navigateBack(), 1500)  // 增加延迟到1.5秒,确保toast显示完成
   } catch(e:any){
     toast(e?.data?.message || '结束失败')
   }

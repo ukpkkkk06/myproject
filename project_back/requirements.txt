@@ -1,0 +1,22 @@
+# Web框架
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# 数据库
+sqlalchemy>=2.0.0
+pymysql>=1.1.0
+alembic>=1.12.0
+
+# 认证和安全
+python-jose[cryptography]>=3.3.0
+passlib>=1.7.4
+
+# Excel处理
+openpyxl>=3.1.2
+
+# 配置管理
+python-dotenv>=1.0.0
+
+# 系统监控（用于健康检查）
+psutil>=5.9.0

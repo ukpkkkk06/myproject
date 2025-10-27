@@ -44,12 +44,29 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
             continue
         result.total_rows += 1
         try:
+            # ========================================
+            # 第一阶段：读取所有数据
+            # ========================================
             stem = cell_str(r, 1)
+            A = cell_str(r, 2)
+            B = cell_str(r, 3)
+            C = cell_str(r, 4)
+            D = cell_str(r, 5)
+            qtype_str = cell_str(r, 6)  # 题型列（单选/多选/填空）
+            correct = cell_str(r, 7).upper()  # 正确答案
+            analysis = cell_str(r, 8)  # 解析
+            subject_name = cell_str(r, 9)  # 学科
+            level_name = cell_str(r, 10)  # 学段
+            
+            # ========================================
+            # 第二阶段：完成所有验证（在分配ID之前）
+            # ========================================
+            
+            # 验证1：题干不能为空
             if not stem:
                 raise ValueError("题干为空")
             
-            # 🔥 检查题干是否重复（仅当前用户、仅激活题目）
-            # 明确指定 JOIN 条件，避免歧义
+            # 验证2：检查题干是否重复（仅当前用户、仅激活题目）
             existing = db.query(QuestionVersion).join(
                 Question, 
                 QuestionVersion.question_id == Question.id
@@ -63,23 +80,13 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
             if existing:
                 raise ValueError(f"题目重复：您已创建过相同题干的题目（题目ID: {existing.question_id}）")
             
-            A = cell_str(r, 2)
-            B = cell_str(r, 3)
-            C = cell_str(r, 4)
-            D = cell_str(r, 5)
-            qtype_str = cell_str(r, 6)  # 🆕 题型列（单选/多选）
-            correct = cell_str(r, 7).upper()  # 🆕 正确答案移到第7列
-            analysis = cell_str(r, 8)  # 🆕 解析移到第8列
-            subject_name = cell_str(r, 9)  # 🆕 学科移到第9列
-            level_name = cell_str(r, 10)  # 🆕 学段移到第10列
-            
-            # 🆕 验证题型
+            # 验证3：题型必须有效
             if qtype_str not in QUESTION_TYPES:
                 raise ValueError(f"题型必须是'单选'、'多选'或'填空'，当前值：{qtype_str}")
             
             qtype = QUESTION_TYPES[qtype_str]  # SC 或 MC 或 FILL
             
-            # 🆕 根据题型验证答案
+            # 验证4：根据题型验证选项和答案
             if qtype == "SC":
                 if not all([A, B, C, D]):
                     raise ValueError("单选题必须填写所有选项A/B/C/D")
@@ -95,14 +102,25 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
                 # 标准化多选答案：去重并排序（例如 "BCA" -> "ABC"）
                 correct = "".join(sorted(set(correct)))
             elif qtype == "FILL":
-                # 🆕 填空题验证
                 if not correct:
                     raise ValueError("填空题答案不能为空，请在'正确答案'列填写文本答案（支持用分号分隔多个答案，如：北京;beijing）")
-                # 🆕 提示用户：填空题不需要填写选项
                 if any([A, B, C, D]):
                     raise ValueError("填空题不需要填写选项A/B/C/D，请将这些列留空")
+            
+            # 验证5：验证标签是否有效（可选，但提前验证避免后续失败）
+            subj_tag = _get_or_none(tag_map, subject_name)
+            level_tag = _get_or_none(tag_map, level_name)
+            # 如果需要严格验证标签存在，可以在这里添加检查
+            # if subject_name and not subj_tag:
+            #     raise ValueError(f"学科'{subject_name}'不存在")
+            # if level_name and not level_tag:
+            #     raise ValueError(f"学段'{level_name}'不存在")
 
-            # 🆕 根据题型设置选项
+            # ========================================
+            # 第三阶段：准备数据（所有验证通过后）
+            # ========================================
+            
+            # 根据题型设置选项
             if qtype == "FILL":
                 # 填空题不需要选项
                 options = None
@@ -115,18 +133,22 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
                     {"key":"D","text":D},
                 ]
 
-            # 🆕 根据题型创建 Question
+            # ========================================
+            # 第四阶段：创建数据库记录（只有在所有验证通过后才执行）
+            # ========================================
+            
+            # 创建 Question（此时才分配ID）
             q = Question(type=qtype, is_active=True)
             if hasattr(q, "created_by"):
                 setattr(q, "created_by", user_id)
             db.add(q)
             db.flush()  # 拿到 q.id
 
-            # 关键：设置 version_no=1，并置 is_active
+            # 创建 QuestionVersion
             qv = QuestionVersion(question_id=q.id, version_no=1, is_active=1)
             setattr(qv, "stem", stem)
             
-            # 🆕 根据题型设置 options
+            # 根据题型设置 options
             if qtype == "FILL":
                 # 填空题不设置 options
                 if hasattr(qv, "options"):
@@ -138,29 +160,31 @@ def import_questions_from_excel(db: Session, file_path: str, user_id: int) -> Im
                 elif hasattr(qv, "choices"):
                     qv.choices = json.dumps([o["text"] for o in options], ensure_ascii=False)
 
+            # 设置解析
             if hasattr(qv, "analysis"):
                 qv.analysis = analysis
             elif hasattr(qv, "explanation"):
                 qv.explanation = analysis
 
+            # 设置答案
             if hasattr(qv, "correct_answer"):
                 qv.correct_answer = correct
             elif hasattr(qv, "answer"):
                 qv.answer = correct
 
+            # 设置创建者
             if hasattr(qv, "created_by"):
                 qv.created_by = user_id
 
             db.add(qv)
             db.flush()  # 拿到 qv.id
 
+            # 更新 Question 的 current_version_id
             if hasattr(q, "current_version_id"):
                 q.current_version_id = qv.id
                 db.add(q)
 
-            # 关联标签
-            subj_tag = _get_or_none(tag_map, subject_name)
-            level_tag = _get_or_none(tag_map, level_name)
+            # 关联标签（标签已在验证阶段获取）
             if subj_tag:
                 db.add(QuestionTag(question_id=q.id, tag_id=subj_tag.id))
             if level_tag:

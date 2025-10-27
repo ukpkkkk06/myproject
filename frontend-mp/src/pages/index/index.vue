@@ -15,15 +15,63 @@
             <text class="card-icon">🏥</text>
             <text class="card-title">系统健康状态</text>
           </view>
-          <view class="status-badge" :class="{ online: health.status === 'ok' }">
-            {{ health.status === 'ok' ? '正常运行' : '异常' }}
+          <view class="status-badge" :class="{ 
+            online: health.status === 'healthy', 
+            warning: health.status === 'warning',
+            error: health.status === 'unhealthy' 
+          }">
+            {{ getStatusText(health.status) }}
           </view>
         </view>
-        <view class="health">
-          <view class="kv" v-for="(v,k) in health" :key="k">
-            <text class="k">{{ k }}</text>
-            <text class="v" :class="{ ok: v==='ok' }">{{ v }}</text>
+        
+        <!-- 健康检查详情 -->
+        <view class="health-checks" v-if="health.checks">
+          <!-- 数据库状态 -->
+          <view class="check-item" v-if="health.checks.database">
+            <view class="check-header">
+              <text class="check-icon">{{ getCheckIcon(health.checks.database.status) }}</text>
+              <text class="check-name">数据库</text>
+              <view class="check-status" :class="getCheckStatusClass(health.checks.database.status)">
+                {{ getCheckStatusText(health.checks.database.status) }}
+              </view>
+            </view>
+            <text class="check-message">{{ health.checks.database.message }}</text>
           </view>
+          
+          <!-- 系统状态 -->
+          <view class="check-item" v-if="health.checks.system">
+            <view class="check-header">
+              <text class="check-icon">{{ getCheckIcon(health.checks.system.status) }}</text>
+              <text class="check-name">系统资源</text>
+              <view class="check-status" :class="getCheckStatusClass(health.checks.system.status)">
+                {{ getCheckStatusText(health.checks.system.status) }}
+              </view>
+            </view>
+            <text class="check-message">{{ health.checks.system.message }}</text>
+            
+            <!-- 系统详情（CPU、内存） -->
+            <view class="system-details" v-if="health.checks.system.details">
+              <view class="detail-item">
+                <text class="detail-label">CPU使用率</text>
+                <view class="progress-bar">
+                  <view class="progress-fill cpu" :style="{ width: health.checks.system.details.cpu_percent + '%' }"></view>
+                </view>
+                <text class="detail-value">{{ health.checks.system.details.cpu_percent }}%</text>
+              </view>
+              <view class="detail-item">
+                <text class="detail-label">内存使用率</text>
+                <view class="progress-bar">
+                  <view class="progress-fill memory" :style="{ width: health.checks.system.details.memory_percent + '%' }"></view>
+                </view>
+                <text class="detail-value">{{ health.checks.system.details.memory_percent }}%</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 更新时间 -->
+        <view class="health-footer" v-if="health.timestamp">
+          <text class="update-time">🕐 更新时间: {{ formatTimestamp(health.timestamp) }}</text>
         </view>
       </view>
 
@@ -105,15 +153,15 @@
       <!-- 操作区 - 添加更多功能入口 -->
       <view class="card actions-card">
         <view class="action-grid">
-          <button class="action-item">
+          <button class="action-item" @tap="showStats">
             <text class="action-icon">📊</text>
             <text class="action-text">数据统计</text>
           </button>
-          <button class="action-item">
+          <button class="action-item" @tap="showSettings">
             <text class="action-icon">⚙️</text>
             <text class="action-text">系统设置</text>
           </button>
-          <button class="action-item">
+          <button class="action-item" @tap="showLogs">
             <text class="action-icon">📝</text>
             <text class="action-text">操作日志</text>
           </button>
@@ -133,12 +181,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { api, type UserSimple } from '@/utils/api'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { api, type UserSimple, adminGetStats } from '@/utils/api'
 
 const health = ref<any>({})
 const items = ref<UserSimple[]>([])
 const total = ref(0)
+let healthCheckTimer: number | null = null
 
 const account = ref('')
 const email = ref('')
@@ -173,6 +222,105 @@ function logout(){
   uni.reLaunch({ url:'/pages/login/login' })
 }
 
+// 📊 数据统计
+async function showStats() {
+  uni.showLoading({ title: '加载中...' })
+  
+  try {
+    const stats = await adminGetStats()
+    
+    const statsInfo = `
+📊 系统数据统计
+
+👥 用户总数: ${stats.users.total} 人
+📝 题目总数: ${stats.questions.total} 题
+🌳 知识点数: ${stats.knowledge.total} 个
+
+📄 当前页码: ${page.value}/${totalPages.value}
+✅ 系统状态: ${getStatusText(health.value.status)}
+${health.value.checks?.system?.details ? 
+`
+💻 CPU使用: ${health.value.checks.system.details.cpu_percent}%
+🧠 内存使用: ${health.value.checks.system.details.memory_percent}%` : ''}
+    `.trim()
+    
+    uni.hideLoading()
+    uni.showModal({
+      title: '数据统计',
+      content: statsInfo,
+      showCancel: false,
+      confirmText: '知道了'
+    })
+  } catch (e: any) {
+    uni.hideLoading()
+    uni.showToast({ 
+      icon: 'none', 
+      title: e?.data?.message || '获取统计数据失败' 
+    })
+  }
+}
+
+// ⚙️ 系统设置
+function showSettings() {
+  uni.showActionSheet({
+    itemList: ['刷新健康状态', '清空筛选条件', '重新加载用户列表'],
+    success: (res) => {
+      if (res.tapIndex === 0) {
+        // 刷新健康状态
+        fetchHealth()
+        uni.showToast({ icon: 'success', title: '已刷新' })
+      } else if (res.tapIndex === 1) {
+        // 清空筛选
+        account.value = ''
+        email.value = ''
+        load(1)
+        uni.showToast({ icon: 'success', title: '已清空' })
+      } else if (res.tapIndex === 2) {
+        // 重新加载
+        load(page.value)
+        uni.showToast({ icon: 'success', title: '已重载' })
+      }
+    }
+  })
+}
+
+// 📝 操作日志
+function showLogs() {
+  const now = new Date()
+  const timestamp = now.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+  
+  const logInfo = `
+📝 最近操作记录
+
+🕐 ${timestamp}
+👤 当前用户: 管理员
+📄 当前页面: 管理员后台
+🔍 筛选条件:
+   账号: ${account.value || '无'}
+   邮箱: ${email.value || '无'}
+📊 数据状态:
+   用户总数: ${total.value}
+   当前页: ${page.value}/${totalPages.value}
+   加载状态: ${loading.value ? '加载中' : '已完成'}
+
+💡 提示: 完整的操作日志功能开发中...
+  `.trim()
+  
+  uni.showModal({
+    title: '操作日志',
+    content: logInfo,
+    showCancel: false,
+    confirmText: '知道了'
+  })
+}
+
 async function guardAdmin(){
   const token = uni.getStorageSync('token')
   if(!token){ uni.reLaunch({ url:'/pages/login/login' }); return false }
@@ -191,15 +339,103 @@ async function guardAdmin(){
   }
 }
 
+// 🎨 健康状态显示辅助函数
+function getStatusText(status: string) {
+  const map: Record<string, string> = {
+    'healthy': '✅ 正常运行',
+    'warning': '⚠️ 有警告',
+    'unhealthy': '❌ 异常',
+    'ok': '✅ 正常'
+  }
+  return map[status] || '未知'
+}
+
+function getCheckIcon(status: string) {
+  const map: Record<string, string> = {
+    'healthy': '✅',
+    'warning': '⚠️',
+    'unhealthy': '❌'
+  }
+  return map[status] || '❓'
+}
+
+function getCheckStatusText(status: string) {
+  const map: Record<string, string> = {
+    'healthy': '健康',
+    'warning': '警告',
+    'unhealthy': '异常'
+  }
+  return map[status] || '未知'
+}
+
+function getCheckStatusClass(status: string) {
+  return status === 'healthy' ? 'status-healthy' : 
+         status === 'warning' ? 'status-warning' : 
+         'status-error'
+}
+
+function formatTimestamp(timestamp: string) {
+  try {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diff < 60) return `${diff}秒前`
+    if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`
+    if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`
+    
+    return date.toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return timestamp
+  }
+}
+
 function openDetail(u: UserSimple){
   uni.navigateTo({ url: `/pages/user-detail/user-detail?uid=${u.id}` })
 }
 
+// 获取健康状态
+async function fetchHealth() {
+  try { 
+    health.value = await api.health() 
+  } catch (e) {
+    console.error('获取健康状态失败:', e)
+  }
+}
+
+// 启动定时健康检查（每30秒）
+function startHealthCheck() {
+  // 立即执行一次
+  fetchHealth()
+  
+  // 每30秒自动刷新
+  healthCheckTimer = setInterval(() => {
+    fetchHealth()
+  }, 30000) as unknown as number
+}
+
+// 停止定时检查
+function stopHealthCheck() {
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer)
+    healthCheckTimer = null
+  }
+}
+
 onMounted(async ()=>{
   if(!(await guardAdmin())) return
-  try { health.value = await api.health() } catch {}
+  startHealthCheck() // 启动健康检查定时器
   ready.value = true
   load(1)
+})
+
+onUnmounted(() => {
+  stopHealthCheck() // 清理定时器
 })
 </script>
 
@@ -330,6 +566,16 @@ onMounted(async ()=>{
   color:var(--c-success);
   box-shadow:0 4rpx 12rpx rgba(56,178,111,.15);
 }
+.status-badge.warning{
+  background:linear-gradient(135deg, #fef3c7, #fde68a);
+  color:#b45309;
+  box-shadow:0 4rpx 12rpx rgba(180,83,9,.15);
+}
+.status-badge.error{
+  background:linear-gradient(135deg, #fee2e2, #fecaca);
+  color:#dc2626;
+  box-shadow:0 4rpx 12rpx rgba(220,38,38,.15);
+}
 
 .total-badge{
   padding:10rpx 24rpx;
@@ -341,22 +587,138 @@ onMounted(async ()=>{
 }
 
 /* 🎨 健康状态 */
-.health{
-  display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(200rpx, 1fr));
-  gap:20rpx;
+.health-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  margin-top: 20rpx;
 }
-.kv{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12rpx;
-  background:linear-gradient(135deg, #f8fafc, #f1f5f9);
-  padding:20rpx 24rpx;
-  border-radius:var(--radius-s);
-  font-size:26rpx;
-  border:1rpx solid rgba(216,230,245,.5);
-  transition:transform .2s ease, box-shadow .2s ease;
+
+.check-item {
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  padding: 28rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(216,230,245,.8);
+  transition: all .3s ease;
+}
+
+.check-item:active {
+  transform: scale(0.98);
+}
+
+.check-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.check-icon {
+  font-size: 36rpx;
+}
+
+.check-name {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.check-status {
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.status-healthy {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.check-message {
+  font-size: 26rpx;
+  color: #64748b;
+  line-height: 1.5;
+  display: block;
+}
+
+/* 系统详情 */
+.system-details {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.detail-label {
+  font-size: 26rpx;
+  color: #475569;
+  min-width: 140rpx;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 16rpx;
+  background: #e2e8f0;
+  border-radius: 8rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 8rpx;
+  transition: width .5s ease;
+  position: relative;
+}
+
+.progress-fill.cpu {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.progress-fill.memory {
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+.detail-value {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1e293b;
+  min-width: 80rpx;
+  text-align: right;
+}
+
+/* 健康状态页脚 */
+.health-footer {
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #e2e8f0;
+}
+
+.update-time {
+  font-size: 24rpx;
+  color: #94a3b8;
+  display: block;
+  text-align: center;
 }
 .kv:active{
   transform:scale(.98);

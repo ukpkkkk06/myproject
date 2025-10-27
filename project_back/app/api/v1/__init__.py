@@ -19,6 +19,7 @@ api_router.include_router(users.router, prefix="/users", tags=["用户"])
 api_router.include_router(practice.router, prefix="/practice", tags=["练习"])
 api_router.include_router(error_book.router, prefix="/error-book", tags=["错题本"])
 api_router.include_router(question_bank.router, prefix="/question-bank", tags=["题库"])
+api_router.include_router(question_bank.questions_router, prefix="/question-bank/questions", tags=["题目"])  # 🆕 挂载题目基础路由
 api_router.include_router(admin.router, prefix="/admin", tags=["管理后台"])
 api_router.include_router(tags.router, prefix="/tags", tags=["标签"])
 api_router.include_router(knowledge.router, prefix="/knowledge", tags=["知识点"])

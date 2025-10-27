@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# 开发工具
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志和临时文件
+logs/
+*.log
+*.tmp
+
+# 测试
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 数据库文件（不需要打包到镜像）
+*.db
+*.sqlite
+*.sqlite3
+
+# 文档
+docs/
+*.md
+README*
+
+# Git
+.git/
+.gitignore
+
+# 环境配置
+.env.local
+.env.*.local
+
+# Alembic
+alembic/versions/__pycache__/
+
+# 脚本和种子数据（可选择性包含）
+scripts/
+sql/seeds/

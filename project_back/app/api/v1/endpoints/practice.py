@@ -14,8 +14,8 @@ from app.models.tag import Tag
 
 router = APIRouter()
 
-@router.post("/practice/session", response_model=CreateSessionResponse)
-@router.post("/practice/sessions", response_model=CreateSessionResponse)
+@router.post("/session", response_model=CreateSessionResponse)
+@router.post("/sessions", response_model=CreateSessionResponse)
 def create_session(body: CreateSessionRequest, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
     import logging
     log = logging.getLogger("practice_api")
@@ -28,26 +28,26 @@ def create_session(body: CreateSessionRequest, db: Session = Depends(get_db), me
     log.info(f"[创建练习成功] attempt_id={attempt_id}, total={total}")
     return {"attempt_id": attempt_id, "paper_id": paper_id, "total": total, "first_seq": first_seq}
 
-@router.get("/practice/sessions/{attempt_id:int}/questions/{seq:int}", response_model=QuestionView)
+@router.get("/sessions/{attempt_id:int}/questions/{seq:int}", response_model=QuestionView)
 def get_question(attempt_id: int, seq: int, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
     return practice_service.get_question(db, me, attempt_id, seq)
 
-@router.post("/practice/sessions/{attempt_id:int}/answers", response_model=SubmitAnswerResponse)
+@router.post("/sessions/{attempt_id:int}/answers", response_model=SubmitAnswerResponse)
 def submit_answer(attempt_id: int, body: SubmitAnswerRequest, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
     return practice_service.submit_answer(db, me, attempt_id, body.seq, body.user_answer, body.time_spent_ms)
 
-@router.post("/practice/sessions/{attempt_id:int}/finish", response_model=FinishResponse)
+@router.post("/sessions/{attempt_id:int}/finish", response_model=FinishResponse)
 def finish(attempt_id: int, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
     return practice_service.finish(db, me, attempt_id)
 
 # 学科列表：供前端选择
-@router.get("/practice/subjects", response_model=List[SubjectOut])
+@router.get("/subjects", response_model=List[SubjectOut])
 def list_subjects(db: Session = Depends(get_db)):
     rows = db.execute(select(Tag).where(Tag.type == "SUBJECT").order_by(Tag.id)).scalars().all()
     return [SubjectOut(id=t.id, name=t.name) for t in rows]
 
 # 🆕 获取用户错题统计（供前端判断是否可用智能模式）
-@router.get("/practice/error-stats")
+@router.get("/error-stats")
 def get_error_stats(db: Session = Depends(get_db), me: User = Depends(get_current_user)):
     """
     获取用户错题统计
@@ -72,7 +72,7 @@ def get_error_stats(db: Session = Depends(get_db), me: User = Depends(get_curren
     }
 
 # 获取下一题（新增可选学科筛选）
-@router.get("/practice/next")
+@router.get("/next")
 def next_question(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),

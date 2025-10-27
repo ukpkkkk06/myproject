@@ -1,7 +1,7 @@
 const API_BASE =
   (import.meta as any).env?.VITE_API_BASE_URL
   || (import.meta as any).env?.VITE_API_BASE
-  || 'http://127.0.0.1:8000'
+  || 'http://192.168.167.140:8000'
 const API_PREFIX = (import.meta as any).env?.VITE_API_PREFIX || '/api/v1'
 
 function joinUrl(base: string, prefix: string, path: string) {
@@ -53,10 +53,18 @@ export function request<T = any>(path: string, options: RequestOpts = {}) {
       header: { 'Content-Type': 'application/json', ...(options.header || {}), ...auth },
       data: options.data || {},
       success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data as T)
-        else reject(res)
+        console.log(`[API Response] ${method} ${url}`, { statusCode: res.statusCode, data: res.data })
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(res.data as T)
+        } else {
+          console.error(`[API Error] ${method} ${url}`, res)
+          reject(res)
+        }
       },
-      fail: (err) => reject(err),
+      fail: (err) => {
+        console.error(`[API Fail] ${method} ${url}`, err)
+        reject(err)
+      },
     })
   })
 }
@@ -483,6 +491,17 @@ export async function adminUpdateUser(uid: number, data: { nickname?: string; em
 
 export async function adminResetUserPassword(uid: number, password: string) {
   return await request<void>(`/admin/users/${uid}/password`, { method: 'PUT', data: { password } })
+}
+
+// 管理员统计数据
+export interface AdminStats {
+  users: { total: number }
+  questions: { total: number }
+  knowledge: { total: number }
+}
+
+export async function adminGetStats() {
+  return await request<AdminStats>('/admin/stats')
 }
 
 export interface Subject { id:number; name:string }

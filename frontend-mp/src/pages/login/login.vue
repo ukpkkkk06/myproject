@@ -107,7 +107,19 @@ async function onLogin(){
     const me = await api.me()
     uni.reLaunch({ url: me.is_admin ? '/pages/index/index' : '/pages/lobby/lobby' })
   }catch(e:any){
-    toast(e?.data?.message || '登录失败')
+    console.error('[登录失败]', e)
+    // 详细的错误信息
+    let errorMsg = '登录失败'
+    if (e?.errMsg) {
+      errorMsg = `网络错误: ${e.errMsg}`
+    } else if (e?.data?.detail) {
+      errorMsg = e.data.detail
+    } else if (e?.data?.message) {
+      errorMsg = e.data.message
+    } else if (e?.statusCode) {
+      errorMsg = `服务器错误(${e.statusCode})`
+    }
+    toast(errorMsg)
   }finally{
     loading.value = false
   }

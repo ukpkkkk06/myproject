@@ -63,7 +63,7 @@
             <text class="required">*</text>
           </view>
           <view class="opts">
-            <view class="opt-card" v-for="(op, i) in form.options" :key="i">
+            <view class="opt-card" v-for="(op, i) in form.options" :key="op._id || i">
               <view class="opt-header">
                 <view class="opt-key-badge">{{ keyOf(i) }}</view>
                 <input class="opt-input" v-model="op.text" :placeholder="'请输入选项 ' + keyOf(i)" />
@@ -276,9 +276,15 @@ import {
 
 const qid = ref<number>(0)
 const saving = ref(false)
+// 🔥 生成唯一ID的计数器
+let optionIdCounter = 0
+function genOptionId() {
+  return `opt_${Date.now()}_${optionIdCounter++}`
+}
+
 const form = ref<{
   stem: string
-  options: { key?: string; text: string }[]
+  options: { key?: string; text: string; _id?: string }[]
   correct_answer: string
   analysis: string
   is_active: boolean
@@ -332,14 +338,19 @@ const parentKpOptions = computed(() => {
 
 function noop(){}
 function keyOf(i:number){ return String.fromCharCode(65 + i) }
-function setCorrect(i:number){ form.value.correct_answer = keyOf(i) }
+function setCorrect(i:number){ 
+  if(!form.value) return
+  form.value.correct_answer = keyOf(i) 
+}
 function addOpt(){ 
+  if(!form.value) return
   if(form.value.options.length >= 26) {
     return uni.showToast({ icon:'none', title:'选项数量已达上限' })
   }
-  form.value.options.push({ text: '' }) 
+  form.value.options.push({ text: '', _id: genOptionId() }) 
 }
 function removeOpt(i:number){
+  if(!form.value) return
   if(form.value.options.length <= 2) {
     return uni.showToast({ icon:'none', title:'至少保留2个选项' })
   }
@@ -357,35 +368,54 @@ function removeOpt(i:number){
 
 // 🔥 题型切换
 function changeType(type: string) {
+  // 🔥 防御性检查：确保 form.value 已初始化
+  if (!form.value) {
+    console.error('changeType: form.value is undefined')
+    return
+  }
   if(form.value.type === type) return
-  form.value.type = type
+  
+  // 🔥 使用对象展开创建新对象，避免直接修改属性导致的响应式问题
+  const newForm = { ...form.value, type }
+  
   if(type === 'FILL') {
     // 切换到填空题：清空选项，重置答案
-    form.value.options = []
-    form.value.correct_answer = ''
+    newForm.options = []
+    newForm.correct_answer = ''
   } else if(type === 'SC') {
     // 切换到单选：初始化选项，单个答案
-    if(form.value.options.length === 0) {
-      form.value.options = [{ text: '' }, { text: '' }]
+    if(!newForm.options || newForm.options.length === 0) {
+      newForm.options = [
+        { text: '', _id: genOptionId() }, 
+        { text: '', _id: genOptionId() }
+      ]
     }
-    form.value.correct_answer = 'A'
+    newForm.correct_answer = 'A'
   } else if(type === 'MC') {
     // 切换到多选：初始化选项，多个答案
-    if(form.value.options.length === 0) {
-      form.value.options = [{ text: '' }, { text: '' }]
+    if(!newForm.options || newForm.options.length === 0) {
+      newForm.options = [
+        { text: '', _id: genOptionId() }, 
+        { text: '', _id: genOptionId() }
+      ]
     }
-    form.value.correct_answer = 'AB'
+    newForm.correct_answer = 'AB'
   }
+  
+  // 🔥 一次性更新整个 form 对象
+  form.value = newForm
 }
 
 // 🔥 多选题：判断某选项是否是正确答案
 function isMultiCorrect(i: number): boolean {
+  if(!form.value) return false
   const key = keyOf(i)
   return form.value.correct_answer.includes(key)
 }
 
 // 🔥 多选题：切换某选项的正确/错误状态
 function toggleMultiCorrect(i: number) {
+  if(!form.value) return
   const key = keyOf(i)
   const current = form.value.correct_answer
   if(current.includes(key)) {
@@ -472,16 +502,16 @@ function flattenTree(nodes: KnowledgeNode[], prefix = ''): KpOpt[] {
   return ret
 }
 
-function normalizeOptions(raw:any): {key?:string; text:string}[] {
+function normalizeOptions(raw:any): {key?:string; text:string; _id?:string}[] {
   if(!raw) return []
   if(Array.isArray(raw)){
     return raw.map((it:any, i:number)=> {
-      if(typeof it === 'string') return { key: keyOf(i), text: it }
-      return { key: it.key ?? keyOf(i), text: it.text ?? it.content ?? '' }
+      if(typeof it === 'string') return { key: keyOf(i), text: it, _id: genOptionId() }
+      return { key: it.key ?? keyOf(i), text: it.text ?? it.content ?? '', _id: it._id ?? genOptionId() }
     })
   }
   if(typeof raw === 'object'){
-    return Object.entries(raw).map(([k,v]:any)=> ({ key: k, text: String(v) }))
+    return Object.entries(raw).map(([k,v]:any)=> ({ key: k, text: String(v), _id: genOptionId() }))
   }
   return []
 }
@@ -489,18 +519,29 @@ function normalizeOptions(raw:any): {key?:string; text:string}[] {
 async function load(){
   try {
     const d:any = await api.getQuestionDetail(qid.value)
-    form.value.stem = d?.stem ?? d?.title ?? ''
-    form.value.type = d?.type ?? 'SC' // 🔥 加载题型
-    form.value.options = normalizeOptions(d?.options ?? d?.choices)
-    // 🔥 根据题型处理选项
-    if(form.value.type === 'FILL') {
-      form.value.options = [] // 填空题没有选项
-    } else if(form.value.options.length === 0) {
-      form.value.options = [{text:''},{text:''}]
+    
+    // 🔥 一次性构建完整的 form 对象，避免逐个赋值导致的响应式问题
+    const type = d?.type ?? 'SC'
+    let options = normalizeOptions(d?.options ?? d?.choices)
+    
+    // 🔥 根据题型处理选项，确保每个选项都有 _id
+    if(type === 'FILL') {
+      options = [] // 填空题没有选项
+    } else if(options.length === 0) {
+      options = [
+        {text:'', _id: genOptionId()},
+        {text:'', _id: genOptionId()}
+      ]
     }
-    form.value.analysis = d?.analysis ?? d?.explanation ?? ''
-    form.value.correct_answer = (d?.correct_answer ?? (form.value.type === 'FILL' ? '' : 'A'))
-    form.value.is_active = !!(d?.is_active ?? true)
+    
+    form.value = {
+      stem: d?.stem ?? d?.title ?? '',
+      type: type,
+      options: options,
+      analysis: d?.analysis ?? d?.explanation ?? '',
+      correct_answer: d?.correct_answer ?? (type === 'FILL' ? '' : 'A'),
+      is_active: !!(d?.is_active ?? true)
+    }
   } catch(e:any){
     uni.showToast({ icon:'none', title: e?.data?.message || '加载题目失败' })
   }
@@ -542,17 +583,23 @@ function onLevelPick(e:any){
 }
 
 async function save(){
+  // 🔥 防御性检查：确保 form.value 已初始化
+  if (!form.value) {
+    console.error('save: form.value is undefined')
+    return uni.showToast({ icon:'none', title:'数据异常，请重试' })
+  }
+  
   if(!form.value.stem.trim()){ return uni.showToast({ icon:'none', title:'请填写题干' }) }
   // 🔥 根据题型验证
   if(form.value.type === 'FILL') {
-    if(!form.value.correct_answer.trim()) {
+    if(!form.value.correct_answer || !form.value.correct_answer.trim()) {
       return uni.showToast({ icon:'none', title:'请填写正确答案' })
     }
   } else {
-    if(form.value.options.length < 2) {
+    if(!form.value.options || form.value.options.length < 2) {
       return uni.showToast({ icon:'none', title:'至少两个选项' })
     }
-    if(form.value.type === 'MC' && form.value.correct_answer.length < 2) {
+    if(form.value.type === 'MC' && (!form.value.correct_answer || form.value.correct_answer.length < 2)) {
       return uni.showToast({ icon:'none', title:'多选题至少选择2个正确答案' })
     }
   }
@@ -608,6 +655,7 @@ function goBack(){
 }
 
 function onActiveChange(e: any) {
+  if(!form.value) return
   form.value.is_active = !!e?.detail?.value
 }
 

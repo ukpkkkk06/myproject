@@ -12,12 +12,6 @@ import tracemalloc
 
 router = APIRouter()
 
-try:
-    router  # 复用已有 router
-except NameError:
-    from fastapi import APIRouter
-    router = APIRouter()
-
 def _is_admin(db: Session, me: User) -> bool:
     rows = (
         db.query(Role.code)
@@ -42,7 +36,7 @@ class AdminUserDetail(BaseModel):
     updated_at: Optional[str] = None
     last_login_at: Optional[str] = None
 
-@router.get("/admin/users/{uid:int}", response_model=AdminUserDetail)
+@router.get("/users/{uid:int}", response_model=AdminUserDetail)
 def admin_get_user(uid: int, db: Session = Depends(get_db), me: User = Depends(get_current_user)):
     if not _is_admin(db, me):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限")
@@ -67,7 +61,7 @@ def admin_get_user(uid: int, db: Session = Depends(get_db), me: User = Depends(g
         last_login_at=u.last_login_at.isoformat() if u.last_login_at else None,
     )
 
-@router.put("/admin/users/{uid:int}")
+@router.put("/users/{uid:int}")
 def admin_update_user(
     uid: int,
     body: AdminUpdateUserRequest,
@@ -82,7 +76,7 @@ def admin_update_user(
 class AdminResetPasswordRequest(BaseModel):
     password: str = Field(..., min_length=6, max_length=64)
 
-@router.put("/admin/users/{uid:int}/password")
+@router.put("/users/{uid:int}/password")
 def admin_reset_password(
     uid: int,
     body: AdminResetPasswordRequest,
@@ -97,7 +91,7 @@ def admin_reset_password(
     user_service.set_password(db, u, body.password)
     return {"code": 0, "message": "ok"}
 
-@router.get("/admin/mem/stats", tags=["admin"])
+@router.get("/mem/stats", tags=["admin"])
 def mem_stats():
     traced = tracemalloc.is_tracing()
     current_kb = peak_kb = None
@@ -107,7 +101,7 @@ def mem_stats():
         peak_kb = round(peak / 1024, 2)
     return {"traced": traced, "current_kb": current_kb, "peak_kb": peak_kb}
 
-@router.get("/admin/mem/top", tags=["admin"])
+@router.get("/mem/top", tags=["admin"])
 def mem_top(limit: int = Query(20, ge=1, le=200)):
     if not tracemalloc.is_tracing():
         return {"traced": False, "items": []}
@@ -123,8 +117,42 @@ def mem_top(limit: int = Query(20, ge=1, le=200)):
         })
     return {"traced": True, "items": items}
 
-@router.post("/admin/mem/reset-peak", tags=["admin"])
+@router.post("/mem/reset-peak", tags=["admin"])
 def mem_reset_peak():
     if tracemalloc.is_tracing():
         tracemalloc.reset_peak()
     return {"ok": True}
+
+@router.get("/stats", tags=["admin"])
+def admin_stats(db: Session = Depends(get_db), me: User = Depends(get_current_user)):
+    """
+    获取管理员统计数据
+    包含：用户总数、题目总数、知识点总数等
+    """
+    if not _is_admin(db, me):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限")
+    
+    from app.models.question import Question
+    from app.models.knowledge_point import KnowledgePoint
+    from sqlalchemy import func
+    
+    # 统计用户总数
+    total_users = db.query(func.count(User.id)).scalar() or 0
+    
+    # 统计题目总数
+    total_questions = db.query(func.count(Question.id)).scalar() or 0
+    
+    # 统计知识点总数
+    total_knowledge = db.query(func.count(KnowledgePoint.id)).scalar() or 0
+    
+    return {
+        "users": {
+            "total": total_users,
+        },
+        "questions": {
+            "total": total_questions,
+        },
+        "knowledge": {
+            "total": total_knowledge,
+        }
+    }

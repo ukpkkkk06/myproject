@@ -7573,3 +7573,55 @@ AttributeError: 'Paper' object has no attribute 'practice_mode'
 2025-10-22 22:53:54,529 INFO [practice_service] [get_random_questions] 实际查询到10题
 2025-10-22 22:53:54,530 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
 2025-10-22 22:53:54,574 INFO [practice_api] [创建练习成功] attempt_id=100, total=10
+2025-10-22 23:00:58,641 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-22 23:00:58,642 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-22 23:00:58,642 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-22 23:00:58,643 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-22 23:00:58,650 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-22 23:00:58,650 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-22 23:00:58,692 INFO [practice_api] [创建练习成功] attempt_id=101, total=10
+2025-10-23 09:31:02,335 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-23 09:31:02,339 DEBUG [python_multipart.multipart] Calling on_header_field with data[17:36]
+2025-10-23 09:31:02,339 DEBUG [python_multipart.multipart] Calling on_header_value with data[38:146]
+2025-10-23 09:31:02,339 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-23 09:31:02,340 DEBUG [python_multipart.multipart] Calling on_header_field with data[148:160]
+2025-10-23 09:31:02,340 DEBUG [python_multipart.multipart] Calling on_header_value with data[162:227]
+2025-10-23 09:31:02,340 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-23 09:31:02,341 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-23 09:31:02,341 DEBUG [python_multipart.multipart] Calling on_part_data with data[231:10573]
+2025-10-23 09:31:02,347 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-23 09:31:02,347 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-23 09:39:20,870 INFO [practice_api] [创建练习] 用户26, size=10, subject=None, mode=RANDOM
+2025-10-23 09:39:20,871 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-23 09:39:20,872 INFO [practice_service] [RANDOM模式] 用户26开始随机抽题, 请求题目数=10
+2025-10-23 09:39:20,872 INFO [practice_service] [get_random_questions] 用户26, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-23 09:39:20,881 INFO [practice_service] [get_random_questions] 实际查询到3题
+2025-10-23 09:39:20,882 INFO [practice_service] [RANDOM模式] 实际抽取题目数=3
+2025-10-23 09:39:20,934 INFO [practice_api] [创建练习成功] attempt_id=102, total=3
+2025-10-23 09:45:46,564 INFO [practice_api] [创建练习] 用户26, size=5, subject=None, mode=RANDOM
+2025-10-23 09:45:46,565 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-23 09:45:46,566 INFO [practice_service] [RANDOM模式] 用户26开始随机抽题, 请求题目数=5
+2025-10-23 09:45:46,566 INFO [practice_service] [get_random_questions] 用户26, 请求size=5, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-23 09:45:46,571 INFO [practice_service] [get_random_questions] 实际查询到3题
+2025-10-23 09:45:46,572 INFO [practice_service] [RANDOM模式] 实际抽取题目数=3
+2025-10-23 09:45:46,596 INFO [practice_api] [创建练习成功] attempt_id=103, total=3
+2025-10-23 09:46:32,059 INFO [practice_api] [创建练习] 用户26, size=5, subject=None, mode=WEAK_POINT
+2025-10-23 09:46:32,059 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=WEAK_POINT
+2025-10-23 09:46:32,060 INFO [practice_service] [WEAK_POINT模式] 用户26开始薄弱专项抽题
+2025-10-23 09:46:32,106 INFO [practice_service] [WEAK_POINT模式] 从薄弱知识点抽取 1 题
+2025-10-23 09:46:32,106 WARNING [practice_service] [WEAK_POINT模式] 错题不足，补充随机题
+2025-10-23 09:46:32,107 INFO [practice_service] [get_random_questions] 用户26, 请求size=8, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-23 09:46:32,111 INFO [practice_service] [get_random_questions] 实际查询到3题
+2025-10-23 09:46:32,111 INFO [practice_service] [WEAK_POINT模式] 第1次补充 2 题，总计 3 题
+2025-10-23 09:46:32,111 INFO [practice_service] [get_random_questions] 用户26, 请求size=12, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-23 09:46:32,114 INFO [practice_service] [get_random_questions] 实际查询到3题
+2025-10-23 09:46:32,114 INFO [practice_service] [WEAK_POINT模式] 第2次补充 0 题，总计 3 题
+2025-10-23 09:46:32,115 WARNING [practice_service] [WEAK_POINT模式] 题库不足，无法补充更多题目
+2025-10-23 09:46:32,133 INFO [practice_api] [创建练习成功] attempt_id=104, total=3
+2025-10-27 08:50:05,628 INFO [practice_api] [创建练习] 用户2, size=10, subject=None, mode=RANDOM
+2025-10-27 08:50:05,630 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-27 08:50:05,631 INFO [practice_service] [RANDOM模式] 用户2开始随机抽题, 请求题目数=10
+2025-10-27 08:50:05,631 INFO [practice_service] [get_random_questions] 用户2, 请求size=10, 学科=None, 题型=['SC', 'MC', 'FILL']
+2025-10-27 08:50:05,640 INFO [practice_service] [get_random_questions] 实际查询到10题
+2025-10-27 08:50:05,640 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
+2025-10-27 08:50:05,691 INFO [practice_api] [创建练习成功] attempt_id=105, total=10

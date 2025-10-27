@@ -17,7 +17,7 @@ def require_admin(me: User = Depends(get_current_user)):
     return me
 
 
-@router.post("/users", response_model=UserRead)
+@router.post("", response_model=UserRead)
 def create_user(
     payload: UserCreate, 
     db: Session = Depends(get_db),
@@ -27,7 +27,7 @@ def create_user(
     return user_service.create_user(db, payload)
 
 
-@router.get("/users/simple", response_model=UsersSimplePage)
+@router.get("/simple", response_model=UsersSimplePage)
 def list_users_simple(
     skip: int = 0,
     limit: int = 20,
@@ -40,7 +40,7 @@ def list_users_simple(
     return user_service.list_users_simple(db, skip=skip, limit=limit, account=account, email=email)
 
 
-@router.get("/users/{user_id:int}", response_model=UserOut)
+@router.get("/{user_id:int}", response_model=UserOut)
 def get_user(
     user_id: int, 
     db: Session = Depends(get_db),
@@ -55,7 +55,7 @@ def get_user(
     return user_service.get_user(db, user_id)
 
 
-@router.put("/users/{user_id:int}", response_model=UserOut)
+@router.put("/{user_id:int}", response_model=UserOut)
 def update_user(
     user_id: int, 
     body: dict, 
@@ -71,7 +71,7 @@ def update_user(
     return user_service.update_user(db, user_id, body)
 
 
-@router.delete("/users/{user_id:int}")
+@router.delete("/{user_id:int}")
 def delete_user(
     user_id: int, 
     db: Session = Depends(get_db),

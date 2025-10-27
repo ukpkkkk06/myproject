@@ -1,9 +1,10 @@
 import json
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File, Path as PathParam, Body
 from sqlalchemy.orm import Session
 from app.api import deps
 from app.services import question_bank_service
+from app.services import knowledge_service  # 🆕 知识点绑定功能
 import tempfile
 from pathlib import Path
 from fastapi.responses import FileResponse
@@ -24,17 +25,26 @@ from app.schemas.question_bank import (
     QuestionsPageResp,
     QuestionPageItem,
 )
+from app.schemas.knowledge import QuestionKnowledgeItem  # 🆕 知识点绑定schema
 # ==== 新增导入：数据库模型 ====
 from app.models.user import User
+from app.models.question import Question
+from app.models.question_version import QuestionVersion
+from app.models.knowledge_point import KnowledgePoint
+from app.models.question_knowledge import QuestionKnowledge
 
+# 主路由器 (带 /question-bank 前缀)
 router = APIRouter()
+
+# 🆕 题目基础路由器 (不带前缀,直接挂载到 /questions)
+questions_router = APIRouter()
 
 
 # parents[4] 才是 project_back 根目录
 TEMPLATE_FILE = Path(__file__).resolve().parents[4] / "Import template.xlsx"
 logging.getLogger(__name__).debug(f"Import template path: {TEMPLATE_FILE}")
 
-@router.get("/question-bank/import-template")
+@router.get("/import-template")
 def download_import_template():
     if not TEMPLATE_FILE.exists():
         raise HTTPException(status_code=404, detail=f"模板不存在: {TEMPLATE_FILE}")
@@ -44,7 +54,7 @@ def download_import_template():
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-@router.get("/question-bank/my-questions", response_model=MyQuestionListResp)
+@router.get("/my-questions", response_model=MyQuestionListResp)
 def my_questions(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
@@ -76,7 +86,7 @@ def my_questions(
     ]
     return {"total": total, "page": page, "size": size, "items": items}
 
-@router.get("/my-questions", response_model=MyQuestionListResp)
+@router.get("/my-questions-alt", response_model=MyQuestionListResp)  # 🔧 重命名避免冲突
 def list_my_questions(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
@@ -147,8 +157,10 @@ def _normalize_options_for_store(opts: Any) -> str:
             arr.append({"key": str(k), "text": str(v)})
     return json.dumps(arr, ensure_ascii=False)
 
+# ==== 🔧 题目基础 CRUD 路由 (使用 questions_router,无前缀) ====
+
 # 批量获取题目简要
-@router.get("/question-bank/questions/brief", response_model=QuestionsBriefResp)
+@questions_router.get("/brief", response_model=QuestionsBriefResp)
 def questions_brief(ids: str = Query(..., description="逗号分隔的题目ID列表"),
                     db: Session = Depends(deps.get_db),
                     me: User = Depends(deps.get_current_user)):
@@ -176,15 +188,15 @@ def questions_brief(ids: str = Query(..., description="逗号分隔的题目ID�
         ))
     return {"items": items}
 
-# 兼容路径
-@router.get("/questions/brief", response_model=QuestionsBriefResp)
-def questions_brief_alt(ids: str = Query(...),
-                        db: Session = Depends(deps.get_db),
-                        me: User = Depends(deps.get_current_user)):
-    return questions_brief(ids=ids, db=db, me=me)
+# 兼容路径 (删除重复路由)
+# @router.get("/questions/brief", response_model=QuestionsBriefResp)
+# def questions_brief_alt(ids: str = Query(...),
+#                         db: Session = Depends(deps.get_db),
+#                         me: User = Depends(deps.get_current_user)):
+#     return questions_brief(ids=ids, db=db, me=me)
 
 # 单题详情（题干/选项/解析）
-@router.get("/question-bank/questions/{qid:int}", response_model=QuestionBrief)
+@questions_router.get("/{qid:int}", response_model=QuestionBrief)
 def question_detail(
     qid: int,
     db: Session = Depends(deps.get_db),
@@ -213,15 +225,16 @@ def question_detail(
     
     return QuestionBrief(**result)
 
-@router.get("/questions/{qid:int}", response_model=QuestionBrief)
-def question_detail_alt(
-    qid: int,
-    db: Session = Depends(deps.get_db),
-    me: User = Depends(deps.get_current_user),
-):
-    return question_detail(qid=qid, db=db, me=me)
+# 兼容路径 (删除重复路由)
+# @router.get("/questions/{qid:int}", response_model=QuestionBrief)
+# def question_detail_alt(
+#     qid: int,
+#     db: Session = Depends(deps.get_db),
+#     me: User = Depends(deps.get_current_user),
+# ):
+#     return question_detail(qid=qid, db=db, me=me)
 
-@router.put("/question-bank/questions/{qid:int}")
+@questions_router.put("/{qid:int}")
 def update_question(
     qid: int,
     body: QuestionUpdate,
@@ -233,37 +246,38 @@ def update_question(
     is_admin = bool(getattr(me, "is_admin", False))
     return question_bank_service.update_question(db, qid, body, uid, is_admin)
 
-@router.put("/questions/{qid:int}")
-def update_question_alt(
-    qid: int,
-    body: QuestionUpdate,
-    db: Session = Depends(deps.get_db),
-    me: User = Depends(deps.get_current_user),
-):
-    # 兼容路由
-    return update_question(qid=qid, body=body, db=db, me=me)
+# 兼容路由 (删除重复路由)
+# @router.put("/questions/{qid:int}")
+# def update_question_alt(
+#     qid: int,
+#     body: QuestionUpdate,
+#     db: Session = Depends(deps.get_db),
+#     me: User = Depends(deps.get_current_user),
+# ):
+#     # 兼容路由
+#     return update_question(qid=qid, body=body, db=db, me=me)
 
-# 获取标签列表（按类型过滤：SUBJECT/LEVEL）
-@router.get("/tags", response_model=List[TagOut])
-def list_tags(
-    type: Optional[str] = Query(default=None, description="SUBJECT/LEVEL/..."),
-    db: Session = Depends(deps.get_db),
-    me: User = Depends(deps.get_current_user),
-):
-    # 调用 service 层
-    rows = question_bank_service.list_tags(db, type)
-    return [
-        TagOut(
-            id=t.id,
-            name=t.name,
-            type=getattr(t, "type", None),
-            parent_id=getattr(t, "parent_id", None),
-            is_active=bool(getattr(t, "is_active", 1)),
-        ) for t in rows
-    ]
+# 获取标签列表 (由 tags.py 统一处理, 删除重复路由)
+# @router.get("/tags", response_model=List[TagOut])
+# def list_tags(
+#     type: Optional[str] = Query(default=None, description="SUBJECT/LEVEL/..."),
+#     db: Session = Depends(deps.get_db),
+#     me: User = Depends(deps.get_current_user),
+# ):
+#     # 调用 service 层
+#     rows = question_bank_service.list_tags(db, type)
+#     return [
+#         TagOut(
+#             id=t.id,
+#             name=t.name,
+#             type=getattr(t, "type", None),
+#             parent_id=getattr(t, "parent_id", None),
+#             is_active=bool(getattr(t, "is_active", 1)),
+#         ) for t in rows
+#     ]
 
 # 查询题目的标签
-@router.get("/question-bank/questions/{qid:int}/tags", response_model=QuestionTagsOut)
+@questions_router.get("/{qid:int}/tags", response_model=QuestionTagsOut)
 def get_question_tags(
     qid: int,
     db: Session = Depends(deps.get_db),
@@ -276,7 +290,7 @@ def get_question_tags(
     return QuestionTagsOut(**result)
 
 # 设置题目的标签
-@router.put("/question-bank/questions/{qid:int}/tags")
+@questions_router.put("/{qid:int}/tags")
 def set_question_tags(
     qid: int,
     body: SetQuestionTagsIn,
@@ -289,7 +303,7 @@ def set_question_tags(
     return question_bank_service.set_question_tags(db, qid, body, uid, is_admin)
 
 # 🆕 通用题目分页接口
-@router.get("/questions", response_model=QuestionsPageResp)
+@questions_router.get("", response_model=QuestionsPageResp)
 def list_questions(
     page: int = Query(1, ge=1, description="页码"),
     size: int = Query(10, ge=1, le=100, description="每页数量"),
@@ -339,7 +353,7 @@ def list_questions(
     
     return {"total": total, "page": page, "size": size, "items": items}
 
-@router.post("/question-bank/import-excel", response_model=ImportQuestionsResult)
+@router.post("/import-excel", response_model=ImportQuestionsResult)
 def import_excel(
     file: UploadFile = File(...),
     db: Session = Depends(deps.get_db),
@@ -360,3 +374,83 @@ def import_excel(
                 os.remove(tmp_path)
         except Exception:
             pass
+
+# ==== 🆕 题目知识点绑定功能 (从 knowledge.py 迁移) ====
+
+# 🔒 获取题目作者ID辅助函数
+def _get_question_owner_id(q: Question, db: Session) -> Optional[int]:
+    if hasattr(q, "created_by"):
+        return getattr(q, "created_by")
+    if hasattr(q, "current_version_id") and q.current_version_id:
+        return db.query(QuestionVersion.created_by)\
+                 .filter(QuestionVersion.id == q.current_version_id)\
+                 .scalar()
+    return None
+
+# 构造知识点路径
+def _kp_path(db: Session, kid: int) -> str:
+    cur = db.query(KnowledgePoint).filter(KnowledgePoint.id == kid).first()
+    if not cur:
+        return f"#{kid}"
+    names = [cur.name]
+    while cur.parent_id:
+        cur = db.query(KnowledgePoint).filter(KnowledgePoint.id == cur.parent_id).first()
+        if not cur: break
+        names.append(cur.name)
+    names.reverse()
+    return "/".join(names)
+
+@questions_router.get("/{qid}/knowledge")
+def get_question_knowledge(
+    qid: int,
+    db: Session = Depends(deps.get_db),
+    me: User = Depends(deps.get_current_user),
+):
+    """
+    获取题目绑定的知识点列表
+    🔒 权限控制:验证用户是否有权访问该题目
+    """
+    # 🔒 权限控制:验证用户是否有权访问该题目
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise HTTPException(404, "题目不存在")
+    
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    owner_id = _get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != uid):
+        raise HTTPException(403, "无权限访问此题目")
+    
+    links = db.query(QuestionKnowledge).filter(QuestionKnowledge.question_id == qid).all()
+    return [
+        {"knowledge_id": int(lk.knowledge_id), "weight": lk.weight, "path": _kp_path(db, int(lk.knowledge_id))}
+        for lk in links
+    ]
+
+@questions_router.put("/{qid}/knowledge")
+def bind_question_knowledge(
+    qid: int = PathParam(...), 
+    items: List[QuestionKnowledgeItem] = Body(...), 
+    db: Session = Depends(deps.get_db), 
+    me: User = Depends(deps.get_current_user)
+):
+    """
+    绑定题目与知识点
+    🔒 权限控制：
+    1. 验证用户是否有权修改该题目
+    2. 验证用户是否有权使用这些知识点
+    """
+    # 🔒 权限控制：验证用户是否有权修改该题目
+    q = db.query(Question).filter(Question.id == qid).first()
+    if not q:
+        raise HTTPException(404, "题目不存在")
+    
+    uid = getattr(me, "id", None)
+    is_admin = bool(getattr(me, "is_admin", False))
+    owner_id = _get_question_owner_id(q, db)
+    if not is_admin and (owner_id is not None) and (owner_id != uid):
+        raise HTTPException(403, "无权限修改此题目")
+    
+    # 🔒 传递用户信息以验证知识点权限
+    knowledge_service.bind_question_knowledge(db, qid, [i.dict() for i in items], user=me)
+    return {"ok": True}

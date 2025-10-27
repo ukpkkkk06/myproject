@@ -161,6 +161,9 @@ const levelLabel   = computed(()=> levels.value.find(s=>s.id===levelId.value)?.n
 
 const hasMore = computed(()=> items.value.length < total.value)
 
+// 🔥 防止定时器泄漏
+let refreshTimer: number | null = null
+
 function clearSearch(){
   keyword.value = ''
   refresh()
@@ -269,22 +272,46 @@ async function openImport(){
             .catch((e:any)=> uni.showToast({ icon:'none', title: e?.data?.message || '导入失败' }))
             .finally(()=> uni.hideLoading())
         }
-        if (typeof uni.chooseFile === 'function') {
-          uni.chooseFile({
-            extension:['.xlsx'],
-            count:1,
-            success: (r2:any)=> pickAndImport(r2.tempFiles || []),
-          })
-        } else if (typeof uni.chooseMessageFile === 'function') {
-          uni.chooseMessageFile({
-            type:'file',
-            extension:['.xlsx'],
-            count:1,
-            success: (r2:any)=> pickAndImport(r2.tempFiles || []),
-          })
-        } else {
-          uni.showToast({ icon:'none', title:'当前端不支持选择文件' })
-        }
+        
+        // 🔥 微信小程序只能从聊天记录选择文件，这是微信的限制
+        // 官方文档：https://developers.weixin.qq.com/miniprogram/dev/api/media/image/wx.chooseMessageFile.html
+        // 用户需要：先把文件发送到任意聊天（可以是文件传输助手），然后从聊天记录中选择
+        
+        uni.showModal({
+          title: '导入Excel文件',
+          content: '请先将Excel文件发送到微信聊天（可发送给"文件传输助手"），然后从聊天记录中选择该文件',
+          confirmText: '我知道了',
+          success: (modalRes:any) => {
+            if (modalRes.confirm) {
+              // @ts-ignore
+              if (typeof wx !== 'undefined' && wx.chooseMessageFile) {
+                try {
+                  // @ts-ignore
+                  wx.chooseMessageFile({
+                    count: 1,
+                    type: 'file',
+                    extension: ['xlsx'],
+                    success: (r2:any) => {
+                      console.log('wx.chooseMessageFile success:', r2)
+                      pickAndImport(r2.tempFiles || [])
+                    },
+                    fail: (err:any) => {
+                      console.log('wx.chooseMessageFile fail:', err)
+                      if (err?.errMsg && err.errMsg.indexOf('cancel') === -1) {
+                        uni.showToast({ icon:'none', title: '选择文件失败' })
+                      }
+                    }
+                  })
+                } catch(e) {
+                  console.error('wx.chooseMessageFile error:', e)
+                  uni.showToast({ icon:'none', title: '文件选择异常' })
+                }
+              } else {
+                uni.showToast({ icon:'none', title:'当前环境不支持文件选择' })
+              }
+            }
+          }
+        })
       }
     }
   })
@@ -293,9 +320,12 @@ async function openImport(){
 // 🔥 监听题目更新事件
 function handleQuestionUpdate(data: any){
   console.log('收到题目更新事件:', data)
+  // 🔥 防止定时器累积：清理旧定时器
+  if(refreshTimer) clearTimeout(refreshTimer)
   // 🔥 添加短暂延迟确保后端数据已更新,然后静默刷新当前页
-  setTimeout(() => {
+  refreshTimer = setTimeout(() => {
     fetch(page.value, false)
+    refreshTimer = null
   }, 100)
 }
 
@@ -316,8 +346,9 @@ onMounted(async ()=>{
   fetch(1)
 })
 
-// 🔥 页面卸载时移除监听
+// 🔥 页面卸载时移除监听和清理定时器
 onUnmounted(() => {
+  if(refreshTimer) clearTimeout(refreshTimer)
   uni.$off('question-updated', handleQuestionUpdate)
 })
 </script>
