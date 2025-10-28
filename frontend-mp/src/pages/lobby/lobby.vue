@@ -219,6 +219,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { api, type KnowledgeNode } from '@/utils/api'
 
 /* 学科 */
@@ -306,14 +307,32 @@ function flattenKp(nodes: KnowledgeNode[], prefix = ''): KpOpt[] {
   return out
 }
 
-onMounted(async ()=>{
-  try { subjects.value = await api.listSubjects() } catch { subjects.value = [] }
+// 🆕 刷新知识点列表
+async function refreshKnowledgeTree() {
   try {
+    console.log('[刷新知识点] 开始获取最新知识点数据...')
     kpTree.value = await api.listKnowledgeTree()
     kpOptions.value = flattenKp(kpTree.value)
-  } catch { kpTree.value = []; kpOptions.value = [] }
+    console.log('[刷新知识点] 成功，共', kpOptions.value.length, '个知识点')
+  } catch (e) {
+    console.error('[刷新知识点] 失败:', e)
+    kpTree.value = []
+    kpOptions.value = []
+  }
+}
+
+onMounted(async ()=>{
+  try { subjects.value = await api.listSubjects() } catch { subjects.value = [] }
+  await refreshKnowledgeTree()
   
   // 🆕 加载错题统计
+  await loadErrorCount()
+})
+
+// 🆕 页面显示时刷新数据（从其他页面返回时触发）
+onShow(async () => {
+  console.log('[页面显示] 大厅页面重新显示，刷新知识点列表')
+  await refreshKnowledgeTree()
   await loadErrorCount()
 })
 

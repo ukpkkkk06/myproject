@@ -7,6 +7,12 @@ Thumbs.db
 .idea/
 *.iml
 
+# 临时文件和归档
+archive/
+*.tmp
+*.bak
+*.swp
+
 # ---------- Python backend ----------
 project_back/__pycache__/
 project_back/**/*.py[cod]
@@ -30,6 +36,8 @@ project_back/dist/
 project_back/*.log
 project_back/*.sqlite*
 project_back/*.db
+*.db
+app.db
 
 # Alembic 缓存（保留迁移脚本）
 project_back/alembic/__pycache__/

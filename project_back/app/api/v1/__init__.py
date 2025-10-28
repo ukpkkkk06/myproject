@@ -1,25 +1,10 @@
-from fastapi import APIRouter
-from app.api.v1.endpoints import (
-    auth,
-    users,
-    health,
-    practice,
-    error_book,
-    question_bank,
-    admin,
-    tags,
-    knowledge,
-)
+"""
+app.api.v1 包初始化文件
 
-api_router = APIRouter()
+注意: 虽然此文件不直接被 import，但 Python 导入机制会在导入
+      app.api.v1.endpoints 时自动加载此文件。
 
-api_router.include_router(health.router, prefix="/health", tags=["健康检查"])
-api_router.include_router(auth.router, prefix="", tags=["认证"])
-api_router.include_router(users.router, prefix="/users", tags=["用户"])
-api_router.include_router(practice.router, prefix="/practice", tags=["练习"])
-api_router.include_router(error_book.router, prefix="/error-book", tags=["错题本"])
-api_router.include_router(question_bank.router, prefix="/question-bank", tags=["题库"])
-api_router.include_router(question_bank.questions_router, prefix="/question-bank/questions", tags=["题目"])  # 🆕 挂载题目基础路由
-api_router.include_router(admin.router, prefix="/admin", tags=["管理后台"])
-api_router.include_router(tags.router, prefix="/tags", tags=["标签"])
-api_router.include_router(knowledge.router, prefix="/knowledge", tags=["知识点"])
+      实际的路由配置在: app/__init__.py
+      此文件保持为空包初始化即可。
+"""
+# 此文件保持最小化，避免副作用

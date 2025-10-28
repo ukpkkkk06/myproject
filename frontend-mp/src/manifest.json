@@ -48,7 +48,13 @@
             "es6" : true,
             "minified" : true,
             "postcss" : true,
-            "minifyWXSS" : true
+            "minifyWXSS" : true,
+            "uploadWithSourceMap": false,
+            "babelSetting": {
+                "ignore": [],
+                "disablePlugins": [],
+                "outputPath": ""
+            }
         },
         "usingComponents" : true,
         "optimization" : {
@@ -59,7 +65,8 @@
                 "desc" : "你的位置信息将用于小程序位置接口的效果展示"
             }
         },
-        "requiredPrivateInfos" : []
+        "requiredPrivateInfos" : [],
+        "lazyCodeLoading": "requiredComponents"
     },
     "mp-alipay" : {
         "usingComponents" : true

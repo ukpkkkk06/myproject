@@ -7625,3 +7625,35 @@ AttributeError: 'Paper' object has no attribute 'practice_mode'
 2025-10-27 08:50:05,640 INFO [practice_service] [get_random_questions] 实际查询到10题
 2025-10-27 08:50:05,640 INFO [practice_service] [RANDOM模式] 实际抽取题目数=10
 2025-10-27 08:50:05,691 INFO [practice_api] [创建练习成功] attempt_id=105, total=10
+2025-10-27 10:01:56,266 DEBUG [python_multipart.multipart] Calling on_part_begin with no data
+2025-10-27 10:01:56,268 DEBUG [python_multipart.multipart] Calling on_header_field with data[17:36]
+2025-10-27 10:01:56,268 DEBUG [python_multipart.multipart] Calling on_header_value with data[38:146]
+2025-10-27 10:01:56,269 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-27 10:01:56,269 DEBUG [python_multipart.multipart] Calling on_header_field with data[148:160]
+2025-10-27 10:01:56,270 DEBUG [python_multipart.multipart] Calling on_header_value with data[162:227]
+2025-10-27 10:01:56,270 DEBUG [python_multipart.multipart] Calling on_header_end with no data
+2025-10-27 10:01:56,270 DEBUG [python_multipart.multipart] Calling on_headers_finished with no data
+2025-10-27 10:01:56,271 DEBUG [python_multipart.multipart] Calling on_part_data with data[231:6281]
+2025-10-27 10:01:56,272 DEBUG [python_multipart.multipart] Calling on_part_end with no data
+2025-10-27 10:01:56,272 DEBUG [python_multipart.multipart] Calling on_end with no data
+2025-10-27 10:02:53,072 INFO [practice_api] [创建练习] 用户27, size=5, subject=5, mode=RANDOM
+2025-10-27 10:02:53,072 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-27 10:02:53,077 INFO [practice_service] [RANDOM模式] 用户27开始随机抽题, 请求题目数=5
+2025-10-27 10:02:53,078 INFO [practice_service] [get_random_questions] 用户27, 请求size=5, 学科=5, 题型=['SC', 'MC', 'FILL']
+2025-10-27 10:02:53,089 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-27 10:02:53,090 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-27 10:02:53,138 INFO [practice_api] [创建练习成功] attempt_id=106, total=5
+2025-10-27 10:03:19,534 INFO [practice_api] [创建练习] 用户27, size=10, subject=5, mode=RANDOM
+2025-10-27 10:03:19,535 INFO [practice_service] [题目数量] 原始size=10, 处理后size=10, 练习模式=RANDOM
+2025-10-27 10:03:19,538 INFO [practice_service] [RANDOM模式] 用户27开始随机抽题, 请求题目数=10
+2025-10-27 10:03:19,538 INFO [practice_service] [get_random_questions] 用户27, 请求size=10, 学科=5, 题型=['SC', 'MC', 'FILL']
+2025-10-27 10:03:19,543 INFO [practice_service] [get_random_questions] 实际查询到5题
+2025-10-27 10:03:19,543 INFO [practice_service] [RANDOM模式] 实际抽取题目数=5
+2025-10-27 10:03:19,563 INFO [practice_api] [创建练习成功] attempt_id=107, total=5
+2025-10-27 10:04:26,710 INFO [practice_api] [创建练习] 用户27, size=5, subject=5, mode=RANDOM
+2025-10-27 10:04:26,711 INFO [practice_service] [题目数量] 原始size=5, 处理后size=5, 练习模式=RANDOM
+2025-10-27 10:04:26,714 INFO [practice_service] [RANDOM模式] 用户27开始随机抽题, 请求题目数=5
+2025-10-27 10:04:26,714 INFO [practice_service] [get_random_questions] 用户27, 请求size=5, 学科=5, 题型=['FILL']
+2025-10-27 10:04:26,717 INFO [practice_service] [get_random_questions] 实际查询到2题
+2025-10-27 10:04:26,717 INFO [practice_service] [RANDOM模式] 实际抽取题目数=2
+2025-10-27 10:04:26,738 INFO [practice_api] [创建练习成功] attempt_id=108, total=2

@@ -16,9 +16,20 @@ export default {
   // 全局错误处理
   onError: function (err) {
     console.error('App Error:', err)
-    // 忽略 saaa_config.json 相关的报错（uni-app框架内部问题）
-    if (err && err.indexOf && err.indexOf('saaa_config') > -1) {
-      return true // 阻止错误继续传播
+    // 忽略 uni-app 框架内部的文件系统错误
+    const ignoreErrors = [
+      'saaa_config',           // uni-app 框架内部配置文件
+      'miniprogramLog',        // 小程序日志文件
+      'wxfile://usr',          // 微信文件系统路径
+      'not node js file system' // 非 Node.js 文件系统错误
+    ]
+    
+    if (err && typeof err === 'string') {
+      for (const pattern of ignoreErrors) {
+        if (err.indexOf(pattern) > -1) {
+          return true // 阻止错误继续传播
+        }
+      }
     }
   }
 }
