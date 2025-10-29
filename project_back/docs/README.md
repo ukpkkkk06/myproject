@@ -46,7 +46,6 @@ project_back/
 | `ADMIN_INIT_GUIDE.md` | 管理员初始化测试指南 |
 | `智能推荐功能文档.md` | 智能推荐算法说明 |
 
----
 
 ## 🛠️ scripts/ - 工具脚本
 
@@ -57,6 +56,19 @@ project_back/
 | `check_references.py` | 检查项目引用完整性 | `python scripts/check_references.py` |
 | `verify_routes.py` | 验证 API 路由注册 | `python scripts/verify_routes.py` |
 | `create_indexes.py` | 创建数据库索引（已执行） | `python scripts/create_indexes.py` |
+
+## 管理员初始化（容器启动）
+- 通过环境变量控制：
+   - `ADMIN_INIT_ENABLED`：是否启用（默认 1）
+   - `ADMIN_ACCOUNT`：管理员账号（默认 admin）
+   - `ADMIN_PASSWORD`：管理员初始密码（为空则跳过，为安全建议在部署前赋值）
+   - `ADMIN_EMAIL`：邮箱（可选）
+   - `ADMIN_NICKNAME`：昵称（默认 管理员）
+- 行为：
+   - 容器启动时检查账号是否存在：
+      - 不存在：创建账号，分配 ADMIN 与 USER 角色
+      - 已存在：不修改密码，仅确保角色绑定
+   - 幂等设计：多次重启不会覆盖已有密码
 
 ---
 

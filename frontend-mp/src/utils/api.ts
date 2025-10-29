@@ -1,7 +1,7 @@
 const API_BASE =
   (import.meta as any).env?.VITE_API_BASE_URL
   || (import.meta as any).env?.VITE_API_BASE
-  || 'http://192.168.167.140:8000'
+  || 'http://localhost:8000'
 const API_PREFIX = (import.meta as any).env?.VITE_API_PREFIX || '/api/v1'
 
 function joinUrl(base: string, prefix: string, path: string) {

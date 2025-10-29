@@ -34,7 +34,6 @@ CREATE TABLE `USER` (
     `updated_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `last_login_at` DATETIME NULL,
     `password_hash` VARCHAR(255) NULL,
-    PRIMARY KEY (`id`),
     UNIQUE KEY uk_user_account (`account`),
     UNIQUE KEY uk_user_email (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -51,7 +50,6 @@ CREATE TABLE `PAPER` (
     `status`        VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
     `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
     KEY idx_paper_created_by (`created_by`),
     CONSTRAINT fk_paper_creator FOREIGN KEY (`created_by`) REFERENCES `USER`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -113,9 +111,7 @@ CREATE TABLE `USER_ROLE` (
     UNIQUE KEY uk_user_role (`user_id`,`role_id`),
     KEY idx_user_role_role (`role_id`),
     CONSTRAINT fk_user_role_role FOREIGN KEY (`role_id`) REFERENCES `ROLE`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_user_role_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT USER_ROLE_ibfk_1 FOREIGN KEY (`role_id`) REFERENCES `ROLE`(`id`) ON DELETE CASCADE,
-    CONSTRAINT USER_ROLE_ibfk_2 FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE
+    CONSTRAINT fk_user_role_user FOREIGN KEY (`user_id`) REFERENCES `USER`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 7. 试卷题目
@@ -231,7 +227,6 @@ CREATE TABLE `QUESTION_TAG` (
     PRIMARY KEY (`id`),
     UNIQUE KEY uk_question_tag (`question_id`,`tag_id`),
     KEY idx_qt_tag (`tag_id`),
-    KEY idx_question_tag_tag (`tag_id`),
     CONSTRAINT fk_qt_question FOREIGN KEY (`question_id`) REFERENCES `QUESTION`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_qt_tag FOREIGN KEY (`tag_id`) REFERENCES `TAG`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -250,7 +245,6 @@ CREATE TABLE `ERROR_BOOK` (
     `created_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY uk_error_user_question (`user_id`,`question_id`),
-    UNIQUE KEY uk_error_book_user_question (`user_id`,`question_id`),
     KEY idx_error_question (`question_id`),
     KEY idx_error_book_user_mastered (`user_id`,`mastered`),
     KEY idx_error_book_last_wrong (`user_id`,`last_wrong_time`),

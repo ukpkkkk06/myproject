@@ -12,8 +12,8 @@ services:
     environment:
       - ENV=production
       - DEBUG=false
-      - DATABASE_URL=mysql+pymysql://root:your_password@db:3306/myexam_db
-      - JWT_SECRET=your_secret_key_here_change_in_production
+      - DATABASE_URL=mysql+pymysql://root:123456@db:3306/myexam_db
+      - JWT_SECRET=a3f98c1de7b25a6fc4d09e1b7d3af0c26b8e1a5de3c79b4f2d8ac1e67f05b9d4
       - JWT_EXPIRE_MINUTES=1440
       - HEALTH_CHECK_URL=http://localhost:8000/api/v1/health
       # 🔥 可选：配置外部监控 webhook（例如 Slack、钉钉、企业微信）
@@ -38,7 +38,7 @@ services:
     image: mysql:8.0
     container_name: myexam-db
     environment:
-      - MYSQL_ROOT_PASSWORD=your_password
+      - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_DATABASE=myexam_db
       - MYSQL_CHARACTER_SET_SERVER=utf8mb4
       - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
@@ -51,7 +51,7 @@ services:
     networks:
       - myexam-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pyour_password"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
       interval: 10s
       timeout: 5s
       retries: 5

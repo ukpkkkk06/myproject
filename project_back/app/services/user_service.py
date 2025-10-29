@@ -24,7 +24,14 @@ def _get_or_create_default_role(db: Session) -> Role:
         .first()
     )
     if not role:
-        role = Role(code=DEFAULT_ROLE_CODE, name="普通用户", description="基础权限，仅能查看和注销自身账户")
+        now = datetime.utcnow()
+        role = Role(
+            code=DEFAULT_ROLE_CODE,
+            name="普通用户",
+            description="基础权限，仅能查看和注销自身账户",
+            created_at=now,
+            updated_at=now,
+        )
         db.add(role)
         db.flush()
     return role
@@ -284,10 +291,13 @@ def register(db: Session, account: str, password: str, nickname: str | None = No
             # 创建或获取管理员角色
             admin_role = db.query(Role).filter(Role.code == "ADMIN").first()
             if not admin_role:
+                now = datetime.utcnow()
                 admin_role = Role(
-                    code="ADMIN", 
-                    name="管理员", 
-                    description="拥有全部权限,可以访问和管理所有用户的数据"
+                    code="ADMIN",
+                    name="管理员",
+                    description="拥有全部权限,可以访问和管理所有用户的数据",
+                    created_at=now,
+                    updated_at=now,
                 )
                 db.add(admin_role)
                 db.flush()
@@ -298,7 +308,14 @@ def register(db: Session, account: str, password: str, nickname: str | None = No
         # 绑定默认角色（直接写关联，避免 user.roles 属性缺失）
         role = db.query(Role).filter(or_(Role.code == DEFAULT_ROLE_CODE, Role.name == DEFAULT_ROLE_CODE)).first()
         if not role:
-            role = Role(code=DEFAULT_ROLE_CODE, name="普通用户", description="基础权限，仅能查看和注销自身账户")
+            now = datetime.utcnow()
+            role = Role(
+                code=DEFAULT_ROLE_CODE,
+                name="普通用户",
+                description="基础权限，仅能查看和注销自身账户",
+                created_at=now,
+                updated_at=now,
+            )
             db.add(role); db.flush()
         if not db.query(UserRole).filter(UserRole.user_id==user.id, UserRole.role_id==role.id).first():
             db.add(UserRole(user_id=user.id, role_id=role.id, created_at=datetime.utcnow()))

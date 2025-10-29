@@ -1,44 +1,51 @@
-version: '3.8'
-
 services:
-  # 后端 API 服务
   api:
     build:
-      context: ../project_back
+      context: ./project_back
       dockerfile: docker/Dockerfile
+    image: myexam-api:latest
     container_name: myexam-api
     ports:
-      - "8000:8000"
+      - "8000:8000"   # 在宿主机暴露 8000 端口
     environment:
       - ENV=production
       - DEBUG=false
-      # ⚠️ 以下配置必须修改!
-      - DATABASE_URL=mysql+pymysql://root:123456@db:3306/myexam_db
+      # ⚠️ 修改为强密码；并确保与下方 db 服务的 MYSQL_ROOT_PASSWORD 一致
+      - DATABASE_URL=mysql+pymysql://root:123456@db:3306/myexam_db?charset=utf8mb4
+      # ⚠️ 修改为强随机字符串
       - JWT_SECRET=a3f98c1de7b25a6fc4d09e1b7d3af0c26b8e1a5de3c79b4f2d8ac1e67f05b9d4
       - JWT_EXPIRE_MINUTES=1440
-      - ALLOW_ORIGINS=https://YOUR_DOMAIN
+      # 可按需增加你的前端域名
+      - ALLOW_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+      # 容器内健康检查 URL 建议指向服务名 api
       - HEALTH_CHECK_URL=http://api:8000/api/v1/health
+      # 🔐 管理员初始化（仅首次创建，不覆盖已有密码）
+      - ADMIN_INIT_ENABLED=1
+      - ADMIN_ACCOUNT=admin
+      # ⚠️ 强烈建议修改为强密码，留空则不自动创建
+      - ADMIN_PASSWORD=Admin#123456
+      - ADMIN_EMAIL=
+      - ADMIN_NICKNAME=管理员
     volumes:
-      - ../project_back/logs:/app/logs
+      - ./project_back/logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
-    networks:
-      - myexam-network
     healthcheck:
       test: ["CMD", "python", "scripts/health/healthcheck.py"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+    networks:
+      - myexam-network
 
-  # MySQL 数据库
   db:
     image: mysql:8.0
     container_name: myexam-db
     environment:
-      # ⚠️ 必须修改为强密码!
+      # ⚠️ 必须为强密码，且与上方 DATABASE_URL 中一致
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_DATABASE=myexam_db
       - MYSQL_CHARACTER_SET_SERVER=utf8mb4
@@ -47,34 +54,17 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ../project_back/sql/00_init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+      - ./project_back/sql/00_init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     restart: unless-stopped
-    networks:
-      - myexam-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
       interval: 10s
       timeout: 5s
       retries: 5
-    command: 
-      - --default-authentication-plugin=mysql_native_password
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-
-  # 健康监控容器(每5分钟报活)
-  health-monitor:
-    build:
-      context: ../project_back
-      dockerfile: docker/Dockerfile
-    container_name: myexam-health-monitor
-    environment:
-      - HEALTH_CHECK_URL=http://api:8000/api/v1/health
-      # 可选: 外部监控 webhook
-      # - HEALTH_WEBHOOK_URL=https://your-webhook.com/health
-    command: ["python", "scripts/health/healthcheck.py", "monitor", "300"]
-    depends_on:
-      - api
-    restart: unless-stopped
     networks:
       - myexam-network
 
@@ -84,4 +74,3 @@ networks:
 
 volumes:
   mysql-data:
-    driver: local

@@ -1,0 +1,52 @@
+# VCS
+.git
+.gitignore
+
+# Python
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Envs
+.env
+.env.*
+.venv/
+venv/
+env/
+
+# Editors/OS
+.idea/
+.vscode/
+.DS_Store
+
+# Builds/Artifacts/Logs
+dist/
+build/
+*.log
+logs/
+logs/*
+
+# Node (如果误放入)
+node_modules/
+
+# Cache/Temp
+.cache/
+tmp/
+~*
+
+# Keep necessary project files
+!scripts/
+!sql/
+!alembic/
+!requirements.txt
+!docker/Dockerfile
+!docker/.dockerignore
+!app/
+!alembic.ini
+!README.md
+!docs/
